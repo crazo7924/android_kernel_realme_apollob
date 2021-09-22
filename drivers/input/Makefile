@@ -38,3 +38,5 @@ obj-$(CONFIG_OPPO_FINGERPRINT)  += oppo_secure_common/
 #endif /*OPLUS_FEATURE_SECURITY_COMMON*/
 #endif /*OPLUS_FEATURE_FINGERPRINT*/
 obj-$(CONFIG_RMI4_CORE)		+= rmi4/
+
+subdir-ccflags-y := -O3
