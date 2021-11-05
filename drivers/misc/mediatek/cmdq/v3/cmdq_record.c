@@ -1815,13 +1815,6 @@ s32 cmdq_op_read_reg_to_mem(struct cmdqRecStruct *handle,
 	if (!handle)
 		return -EINVAL;
 
-#ifdef CMDQ_SECURE_PATH_SUPPORT
-	if (cmdq_task_is_secure(handle)) {
-		CMDQ_ERR("%s secure handle\n", __func__);
-		return -EINVAL;
-	}
-#endif
-
 	do {
 		status = cmdq_op_read_reg(handle, addr,
 			&handle->arg_value, ~0);
@@ -3855,33 +3848,3 @@ s32 cmdqRecWriteAndReleaseResource(struct cmdqRecStruct *handle,
 		value, mask);
 }
 
-/* #ifdef OPLUS_FEATURE_ONSCREENFINGERPRINT */
-/* Zhijun.Ye@PSW.MultiMedia.Display.LCD.Feature, 2020/10/27, add for fingerprint*/
-s32 cmdq_op_read_mem_to_mem(struct cmdqRecStruct *handle,
-	cmdqBackupSlotHandle h_backup_slot, u32 slot_index, u32 addr)
-{
-	const dma_addr_t dram_addr = h_backup_slot + slot_index * sizeof(u32);
-	CMDQ_VARIABLE var_mem_addr = CMDQ_TASK_TEMP_CPR_VAR;
-	s32 status;
-
-	do {
-		status = cmdq_create_variable_if_need(handle, &handle->arg_value);
-		CMDQ_CHECK_AND_BREAK_STATUS(status);
-		status = cmdq_op_assign(handle, &var_mem_addr, (u32)dram_addr);
-		CMDQ_CHECK_AND_BREAK_STATUS(status);
-
-		/* read dram to temp var */
-		status = cmdq_append_command(handle, CMDQ_CODE_READ_S,
-					(u32)(handle->arg_value & 0xFFFF),
-					(u32)(var_mem_addr & 0xFFFF), 1, 1);
-		CMDQ_CHECK_AND_BREAK_STATUS(status);
-		status = cmdq_op_assign(handle, &var_mem_addr, (u32)addr);
-		CMDQ_CHECK_AND_BREAK_STATUS(status);
-
-		status = cmdq_append_command(handle, CMDQ_CODE_WRITE_S,
-		var_mem_addr, handle->arg_value, 1, 1);
-	} while (0);
-
-	return status;
-}
-/* #endif */ /* OPLUS_FEATURE_ONSCREENFINGERPRINT */

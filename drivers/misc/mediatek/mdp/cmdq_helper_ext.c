@@ -42,10 +42,6 @@
 #include <cmdq-sec.h>
 #endif
 
-#if defined(CONFIG_MACH_MT6853)
-#include <soc/mediatek/smi.h>
-#endif
-
 #define CMDQ_GET_COOKIE_CNT(thread) \
 	(CMDQ_REG_GET32(CMDQ_THR_EXEC_CNT(thread)) & CMDQ_MAX_COOKIE_VALUE)
 
@@ -1777,23 +1773,6 @@ int cmdqCoreAllocWriteAddress(u32 count, dma_addr_t *paStart,
 			break;
 		}
 
-		#ifndef OPLUS_FEATURE_CAMERA_COMMON
-		//fuxiang@CAMERA.DRV,2020/10/23, add for delete debug ion info
-		/* clear buffer content */
-		do {
-			u32 *pInt = (u32 *) pWriteAddr->va;
-			int i = 0;
-
-			for (i = 0; i < count; ++i) {
-				*(pInt + i) = 0xcdcdabab;
-				/* make sure instructions are really in DRAM */
-				mb();
-				/* make sure instructions are really in DRAM */
-				smp_mb();
-			}
-		} while (0);
-		#endif /*OPLUS_FEATURE_CAMERA_COMMON*/
-
 		/* assign output pa */
 		*paStart = pWriteAddr->pa;
 
@@ -3356,12 +3335,6 @@ static void cmdq_core_group_clk_cb(bool enable,
 				cmdq_core_group_clk_off(index, engine_clk);
 		}
 	}
-
-#if defined(CONFIG_MACH_MT6853)
-	if ((engine_flag & CMDQ_ENG_MDP_GROUP_BITS) && enable)
-		smi_larb_port_check();
-#endif
-
 }
 
 bool cmdq_thread_in_use(void)

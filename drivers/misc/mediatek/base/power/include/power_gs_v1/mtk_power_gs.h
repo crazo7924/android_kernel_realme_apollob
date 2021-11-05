@@ -99,7 +99,7 @@ void mt_power_gs_compare(char *scenario,
 			char *pmic_name,
 			 const unsigned int *pmic_gs,
 			 unsigned int pmic_gs_len);
-unsigned int _golden_read_reg(unsigned int addr);
+extern unsigned int _golden_read_reg(unsigned int addr);
 void _golden_write_reg(unsigned int addr, unsigned int mask,
 				unsigned int reg_val);
 int _snapshot_golden_setting(struct golden *g, const char *func,
@@ -109,9 +109,9 @@ void mt_power_gs_dpidle_compare(unsigned int dump_flag);
 void mt_power_gs_sodi_compare(unsigned int dump_flag);
 void mt_power_gs_sp_dump(void);
 
-bool _is_exist_in_phys_to_virt_table(unsigned int phys_base);
-void __iomem *_get_virt_base_from_table(unsigned int phys_base);
-unsigned int mt_power_gs_base_remap_init(char *scenario, char *pmic_name,
+extern bool _is_exist_in_phys_to_virt_table(unsigned int phys_base);
+extern void __iomem *_get_virt_base_from_table(unsigned int phys_base);
+extern unsigned int mt_power_gs_base_remap_init(char *scenario, char *pmic_name,
 			const unsigned int *pmic_gs, unsigned int pmic_gs_len);
 void mt_power_gs_internal_init(void);
 void mt_power_gs_table_init(void);

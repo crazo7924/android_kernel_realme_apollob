@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -873,7 +874,7 @@ static void _mt_cpufreq_set(struct cpufreq_policy *policy,
 	enum mt_cpu_dvfs_action_id action)
 {
 	unsigned int target_freq;
-	int ret = -1;
+	int ret __attribute__((unused)) = -1;
 	int log = 0;
 
 	FUNC_ENTER(FUNC_LV_LOCAL);
@@ -1382,10 +1383,8 @@ static struct freq_attr *_mt_cpufreq_attr[] = {
 };
 
 static struct cpufreq_driver _mt_cpufreq_driver = {
-
-#if defined(OPLUS_FEATURE_SCHEDUTIL_USE_TL) && defined(CONFIG_SCHEDUTIL_USE_TL) \
-    || (defined(CONFIG_MTK_PLAT_MT6885_EMULATION) || defined(CONFIG_MACH_MT6893) \
-       || defined(CONFIG_MACH_MT6833))
+#if defined(CONFIG_MTK_PLAT_MT6885_EMULATION) || defined(CONFIG_MACH_MT6893) \
+	|| defined(CONFIG_MACH_MT6833)
 	.flags = CPUFREQ_ASYNC_NOTIFICATION | CPUFREQ_HAVE_GOVERNOR_PER_POLICY,
 #else
 	.flags = CPUFREQ_ASYNC_NOTIFICATION,
@@ -1782,6 +1781,8 @@ static struct platform_driver _mt_cpufreq_pdrv = {
 };
 
 /* Module driver */
+/* BSP.System - 2020.11.9 - add cpumaxfreq node*/
+extern unsigned long cpufreq_max_freq;
 static int __init _mt_cpufreq_tbl_init(void)
 {
 	unsigned int lv = _mt_cpufreq_get_cpu_level();
@@ -1818,6 +1819,10 @@ static int __init _mt_cpufreq_tbl_init(void)
 				table[i].driver_data = i;
 				table[i].frequency =
 				opp_tbl_info->opp_tbl[i].cpufreq_khz;
+				/* BSP.System - 2020.11.9 - add cpumaxfreq node*/
+				if (cpufreq_max_freq < table[i].frequency) {
+					cpufreq_max_freq = table[i].frequency;
+				}
 			}
 
 			table[opp_tbl_info->size].driver_data = i;

@@ -13,7 +13,6 @@
 #include <linux/cpumask.h>
 #include <linux/syscore_ops.h>
 #include <linux/suspend.h>
-#include <linux/timekeeping.h>
 #include <linux/rtc.h>
 #include <asm/cpuidle.h>
 #include <asm/suspend.h>
@@ -34,6 +33,7 @@ struct md_sleep_status before_md_sleep_status;
 struct md_sleep_status after_md_sleep_status;
 struct cpumask s2idle_cpumask;
 struct mtk_lpm_model mt6853_model_suspend;
+
 
 void __attribute__((weak)) subsys_if_on(void)
 {
@@ -188,7 +188,7 @@ static void __mt6853_suspend_reflect(int type, int cpu,
 	printk_deferred("[name:spm&][%s:%d] - resume\n",
 			__func__, __LINE__);
 
-	/* skip calling issuer when prepare fail*/
+	/* do not call issuer when prepare fail */
 	if (mt6853_model_suspend.flag & MTK_LP_PREPARE_FAIL)
 		return;
 
@@ -254,13 +254,14 @@ int mt6853_suspend_s2idle_prepare_enter(int prompt, int cpu,
 
 	return ret;
 }
-
 void mt6853_suspend_s2idle_reflect(int cpu,
 					const struct mtk_lpm_issuer *issuer)
 {
 	if (cpumask_weight(&s2idle_cpumask) == num_online_cpus()) {
 		__mt6853_suspend_reflect(MTK_LPM_SUSPEND_S2IDLE,
 					 cpu, issuer);
+
+
 #ifdef CONFIG_PM_SLEEP
 		/* Notice
 		 * Fix the rcu_idle/timekeeping workaround later.
@@ -274,7 +275,6 @@ void mt6853_suspend_s2idle_reflect(int cpu,
 
 		if (mt6853_model_suspend.flag & MTK_LP_PREPARE_FAIL)
 			mt6853_model_suspend.flag &= (~MTK_LP_PREPARE_FAIL);
-
 #endif
 	}
 	cpumask_clear_cpu(cpu, &s2idle_cpumask);
@@ -285,7 +285,6 @@ void mt6853_suspend_s2idle_reflect(int cpu,
 	mt6853_model_suspend.op.prepare_enter = _enter;\
 	mt6853_model_suspend.op.prepare_resume = _resume;\
 	mt6853_model_suspend.op.reflect = _reflect; })
-
 
 
 struct mtk_lpm_model mt6853_model_suspend = {

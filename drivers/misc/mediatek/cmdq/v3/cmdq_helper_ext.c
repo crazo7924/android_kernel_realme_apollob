@@ -62,10 +62,6 @@ static DEFINE_SPINLOCK(cmdq_write_addr_lock);
 static DEFINE_SPINLOCK(cmdq_record_lock);
 static DEFINE_SPINLOCK(cmdq_first_err_lock);
 
-static struct dma_pool *mdp_rb_pool;
-static atomic_t mdp_rb_pool_cnt;
-static u32 mdp_rb_pool_limit = 256;
-
 /* callbacks */
 static BLOCKING_NOTIFIER_HEAD(cmdq_status_dump_notifier);
 
@@ -256,7 +252,8 @@ bool cmdq_core_check_user_valid(void *src, u32 size)
 
 	mutex_unlock(&cmdq_inst_check_mutex);
 
-	cost = div_u64(sched_clock() - cost, 1000);
+	cost = sched_clock() - cost;
+	do_div(cost, 1000);
 
 	CMDQ_MSG("%s size:%u cost:%lluus ret:%s\n", __func__, size, (u64)cost,
 		ret ? "true" : "false");
@@ -1710,65 +1707,14 @@ static void cmdq_core_save_hex_first_dump(const char *prefix_str,
 	}
 }
 
-static void *mdp_pool_alloc_impl(struct dma_pool *pool,
-	dma_addr_t *pa_out, atomic_t *cnt, u32 limit)
-{
-	void *va;
-	dma_addr_t pa;
-
-	if (atomic_inc_return(cnt) > limit) {
-		/* not use pool, decrease to value before call */
-		atomic_dec(cnt);
-		return NULL;
-	}
-
-	va = dma_pool_alloc(pool, GFP_KERNEL, &pa);
-	if (!va) {
-		atomic_dec(cnt);
-		cmdq_err(
-			"alloc buffer from pool fail va:0x%p pa:%pa pool:0x%p count:%d",
-			va, &pa, pool,
-			(s32)atomic_read(cnt));
-		return NULL;
-	}
-
-	*pa_out = pa;
-
-	return va;
-}
-
-static void mdp_pool_free_impl(struct dma_pool *pool, void *va,
-	dma_addr_t pa, atomic_t *cnt)
-{
-	if (unlikely(atomic_read(cnt) <= 0 || !pool)) {
-		cmdq_err("free pool cnt:%d pool:0x%p",
-			(s32)atomic_read(cnt), pool);
-		return;
-	}
-
-	dma_pool_free(pool, va, pa);
-	atomic_dec(cnt);
-}
-
 void *cmdq_core_alloc_hw_buffer_clt(struct device *dev, size_t size,
-	dma_addr_t *dma_handle, const gfp_t flag, enum CMDQ_CLT_ENUM clt,
-	bool *pool)
+	dma_addr_t *dma_handle, const gfp_t flag, enum CMDQ_CLT_ENUM clt)
 {
 	s32 alloc_cnt, alloc_max = 1 << 10;
-	void *va = NULL;
+	void *ret = cmdq_core_alloc_hw_buffer(dev, size, dma_handle, flag);
 
-	va = mdp_pool_alloc_impl(mdp_rb_pool, dma_handle,
-		&mdp_rb_pool_cnt, mdp_rb_pool_limit);
-
-	if (!va) {
-		*pool = false;
-		va = cmdq_core_alloc_hw_buffer(dev, size, dma_handle, flag);
-		if (!va)
-			return NULL;
-	} else {
-		*pool = true;
-	}
-
+	if (!ret)
+		return NULL;
 
 	alloc_cnt = atomic_inc_return(&cmdq_alloc_cnt[CMDQ_CLT_MAX]);
 	alloc_cnt = atomic_inc_return(&cmdq_alloc_cnt[clt]);
@@ -1780,7 +1726,7 @@ void *cmdq_core_alloc_hw_buffer_clt(struct device *dev, size_t size,
 			atomic_read(&cmdq_alloc_cnt[3]),
 			atomic_read(&cmdq_alloc_cnt[4]),
 			atomic_read(&cmdq_alloc_cnt[5]));
-	return va;
+	return ret;
 }
 EXPORT_SYMBOL(cmdq_core_alloc_hw_buffer_clt);
 
@@ -1833,16 +1779,11 @@ void *cmdq_core_alloc_hw_buffer(struct device *dev, size_t size,
 EXPORT_SYMBOL(cmdq_core_alloc_hw_buffer);
 
 void cmdq_core_free_hw_buffer_clt(struct device *dev, size_t size,
-	void *cpu_addr, dma_addr_t dma_handle, enum CMDQ_CLT_ENUM clt,
-	bool pool)
+	void *cpu_addr, dma_addr_t dma_handle, enum CMDQ_CLT_ENUM clt)
 {
 	atomic_dec(&cmdq_alloc_cnt[CMDQ_CLT_MAX]);
 	atomic_dec(&cmdq_alloc_cnt[clt]);
-	if (pool)
-		mdp_pool_free_impl(mdp_rb_pool, cpu_addr, dma_handle,
-			&mdp_rb_pool_cnt);
-	else
-		cmdq_core_free_hw_buffer(dev, size, cpu_addr, dma_handle);
+	cmdq_core_free_hw_buffer(dev, size, cpu_addr, dma_handle);
 }
 EXPORT_SYMBOL(cmdq_core_free_hw_buffer_clt);
 
@@ -2015,7 +1956,7 @@ int cmdqCoreAllocWriteAddress(u32 count, dma_addr_t *paStart,
 		pWriteAddr->count = count;
 		pWriteAddr->va = cmdq_core_alloc_hw_buffer_clt(cmdq_dev_get(),
 			count * sizeof(u32), &(pWriteAddr->pa), GFP_KERNEL,
-			clt, &pWriteAddr->pool);
+			clt);
 		if (current)
 			pWriteAddr->user = current->pid;
 
@@ -2024,6 +1965,20 @@ int cmdqCoreAllocWriteAddress(u32 count, dma_addr_t *paStart,
 			status = -ENOMEM;
 			break;
 		}
+
+		/* clear buffer content */
+		do {
+			u32 *pInt = (u32 *) pWriteAddr->va;
+			int i = 0;
+
+			for (i = 0; i < count; ++i) {
+				*(pInt + i) = 0xcdcdabab;
+				/* make sure instructions are really in DRAM */
+				mb();
+				/* make sure instructions are really in DRAM */
+				smp_mb();
+			}
+		} while (0);
 
 		/* assign output pa */
 		*paStart = pWriteAddr->pa;
@@ -2044,8 +1999,7 @@ int cmdqCoreAllocWriteAddress(u32 count, dma_addr_t *paStart,
 		if (pWriteAddr && pWriteAddr->va) {
 			cmdq_core_free_hw_buffer_clt(cmdq_dev_get(),
 				sizeof(u32) * pWriteAddr->count,
-				pWriteAddr->va, pWriteAddr->pa, clt,
-				pWriteAddr->pool);
+				pWriteAddr->va, pWriteAddr->pa, clt);
 			memset(pWriteAddr, 0, sizeof(struct WriteAddrStruct));
 		}
 
@@ -2231,7 +2185,7 @@ int cmdqCoreFreeWriteAddress(dma_addr_t paStart, enum CMDQ_CLT_ENUM clt)
 	if (pWriteAddr->va) {
 		cmdq_core_free_hw_buffer_clt(cmdq_dev_get(),
 			sizeof(u32) * pWriteAddr->count,
-			pWriteAddr->va, pWriteAddr->pa, clt, pWriteAddr->pool);
+			pWriteAddr->va, pWriteAddr->pa, clt);
 		memset(pWriteAddr, 0xda, sizeof(struct WriteAddrStruct));
 	}
 
@@ -2531,7 +2485,7 @@ ssize_t cmdq_core_print_error(struct device *dev,
 		i++) {
 		struct ErrorStruct *pError = &cmdq_ctx.error[i];
 		u64 ts = pError->ts_nsec;
-		unsigned long rem_nsec = (unsigned long)div_u64(ts, 1000000000);
+		unsigned long rem_nsec = do_div(ts, 1000000000);
 
 		length += snprintf(buf + length,
 			PAGE_SIZE - length, "[%5lu.%06lu] ",
@@ -5489,9 +5443,6 @@ void cmdq_core_initialize(void)
 	/* Initialize secure path context */
 	cmdqSecInitialize();
 #endif
-	mdp_rb_pool = dma_pool_create("mdp_rb", cmdq_dev_get(),
-		CMDQ_BUF_ALLOC_SIZE, 0, 0);
-	atomic_set(&mdp_rb_pool_cnt, 0);
 }
 EXPORT_SYMBOL(cmdq_core_initialize);
 

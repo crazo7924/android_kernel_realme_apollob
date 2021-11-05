@@ -73,12 +73,10 @@ unsigned int mt_cpufreq_find_close_freq(unsigned int cluster_id,
 {
 	enum mt_cpu_dvfs_id id = (enum mt_cpu_dvfs_id) cluster_id;
 	struct mt_cpu_dvfs *p = id_to_cpu_dvfs(id);
-	int idx;
+	int idx = _search_available_freq_idx(p, freq, CPUFREQ_RELATION_L);
 
 	if (p == NULL)
 		return 0;
-
-	idx = _search_available_freq_idx(p, freq, CPUFREQ_RELATION_L);
 	if (idx < 0)
 		idx = 0;
 
@@ -91,12 +89,10 @@ unsigned int mt_cpufreq_find_Vboot_idx(unsigned int cluster_id)
 {
 	enum mt_cpu_dvfs_id id = (enum mt_cpu_dvfs_id) cluster_id;
 	struct mt_cpu_dvfs *p = id_to_cpu_dvfs(id);
-	int idx = 0;
+	int idx = _search_available_freq_idx_under_v(p, VBOOT_VOLT);
 
 	if (p == NULL)
 		return 0;
-
-	idx = _search_available_freq_idx_under_v(p, VBOOT_VOLT);
 
 	if (idx > p->nr_opp_tbl)
 		idx = p->nr_opp_tbl;
@@ -255,12 +251,14 @@ unsigned int mt_cpufreq_get_cur_freq(unsigned int id)
 	return 0;
 #else
 #ifdef CONFIG_HYBRID_CPU_DVFS
-	int freq_idx = cpuhvfs_get_cur_dvfs_freq_idx((enum mt_cpu_dvfs_id)id);
-
+	int freq_idx;
 #ifdef ENABLE_DOE
 	if (!dvfs_doe.state)
 		return 0;
 #endif
+
+	freq_idx = cpuhvfs_get_cur_dvfs_freq_idx((enum mt_cpu_dvfs_id)id);
+
 	if (freq_idx < 0)
 		freq_idx = 0;
 
@@ -289,12 +287,14 @@ unsigned int mt_cpufreq_get_cur_freq_idx(enum mt_cpu_dvfs_id id)
 	return 0;
 #else
 #ifdef CONFIG_HYBRID_CPU_DVFS
-	int freq_idx = cpuhvfs_get_cur_dvfs_freq_idx(id);
-
+	int freq_idx;
 #ifdef ENABLE_DOE
 	if (!dvfs_doe.state)
 		return 0;
 #endif
+
+	freq_idx = cpuhvfs_get_cur_dvfs_freq_idx(id);
+
 	if (freq_idx < 0)
 		freq_idx = 0;
 

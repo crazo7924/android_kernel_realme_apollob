@@ -67,17 +67,7 @@
 #include "mmc/host/cmdq_hci.h"
 #endif
 
-//#if OPLUS_BUG_COMPATIBILITY
-//2020/10/30 reocvery mode open cmdq function for reocvery FBE failed
-#include <soc/oplus/system/oplus_project.h>
-//#endif /*OPLUS_BUG_COMPATIBILITY*/
-
 #include "dbg.h"
-
-#ifdef VENDOR_EDIT
-//yh@BSP.Storage.Emmc, 2017/10/30 add for work around hynix emmc WP issue
-#include <linux/reboot.h>
-#endif
 
 #define CAPACITY_2G             (2 * 1024 * 1024 * 1024ULL)
 
@@ -1179,24 +1169,10 @@ static int check_enable_cqe(void)
 	 * Device will return switch error if flush cache
 	 * with cache disabled.
 	 */
-//#if OPLUS_BUG_COMPATIBILITY
-//2020/10/30 reocvery mode open cmdq function for reocvery FBE failed
-    if((get_project() == 0x206AC) || (get_project() == 19741) || (get_project() == 19747)){
-		if ((mode == KERNEL_POWER_OFF_CHARGING_BOOT) ||
-			(mode == LOW_POWER_OFF_CHARGING_BOOT))
-			return 0;
-	}else{
-		if ((mode == RECOVERY_BOOT) ||
-			(mode == KERNEL_POWER_OFF_CHARGING_BOOT) ||
-			(mode == LOW_POWER_OFF_CHARGING_BOOT))
-			return 0;
-	}
-//#else
-//	if ((mode == RECOVERY_BOOT) ||
-//		(mode == KERNEL_POWER_OFF_CHARGING_BOOT) ||
-//		(mode == LOW_POWER_OFF_CHARGING_BOOT))
-//		return 0;
-//#endif /*OPLUS_BUG_COMPATIBILITY*/
+	if ((mode == RECOVERY_BOOT) ||
+		(mode == KERNEL_POWER_OFF_CHARGING_BOOT) ||
+		(mode == LOW_POWER_OFF_CHARGING_BOOT))
+		return 0;
 
 	return 1;
 #else
@@ -1217,33 +1193,13 @@ static int msdc_cache_onoff(struct mmc_data *data)
 	 * disable cache in recovery and charger modes
 	 */
 	mode = get_boot_mode();
-//#if OPLUS_BUG_COMPATIBILITY
-//2020/10/30 reocvery mode open cmdq function for reocvery FBE failed
-    if((get_project() == 0x206AC) || (get_project() == 19741) || (get_project() == 19747)){
-	    if ((mode == KERNEL_POWER_OFF_CHARGING_BOOT) ||
-		    (mode == LOW_POWER_OFF_CHARGING_BOOT)) {
+	if ((mode == RECOVERY_BOOT) ||
+		(mode == KERNEL_POWER_OFF_CHARGING_BOOT) ||
+		(mode == LOW_POWER_OFF_CHARGING_BOOT)) {
 		/* Set cache_size as 0 so that mmc layer won't enable cache */
-		    *(ptr + 252) = *(ptr + 251) = *(ptr + 250) = *(ptr + 249) = 0;
-		    return 0;
-	    }
-	}else{
-	    if ((mode == RECOVERY_BOOT) ||
-		    (mode == KERNEL_POWER_OFF_CHARGING_BOOT) ||
-		    (mode == LOW_POWER_OFF_CHARGING_BOOT)) {
-		/* Set cache_size as 0 so that mmc layer won't enable cache */
-		    *(ptr + 252) = *(ptr + 251) = *(ptr + 250) = *(ptr + 249) = 0;
-		    return 0;
-	    }
+		*(ptr + 252) = *(ptr + 251) = *(ptr + 250) = *(ptr + 249) = 0;
+		return 0;
 	}
-//#else
-//	if ((mode == RECOVERY_BOOT) ||
-//		(mode == KERNEL_POWER_OFF_CHARGING_BOOT) ||
-//		(mode == LOW_POWER_OFF_CHARGING_BOOT)) {
-//		/* Set cache_size as 0 so that mmc layer won't enable cache */
-//		*(ptr + 252) = *(ptr + 251) = *(ptr + 250) = *(ptr + 249) = 0;
-//		return 0;
-//	}
-//#endif /*OPLUS_BUG_COMPATIBILITY*/
 	/*
 	 * Enable cache by eMMC vendor
 	 * disable emmc cache if eMMC vendor is in emmc_cache_quirk[]
@@ -1824,14 +1780,6 @@ skip_cmd_resp_polling:
 "[%s]: msdc%d XXX CMD<%d> resp<0x%.8x>, write protection violation\n",
 							__func__, host->id,
 							cmd->opcode, *rsp);
-#ifdef VENDOR_EDIT
-//yh@BSP.Storage.Emmc, 2017/10/30 add for work around hynix emmc WP issue
-					if((host->hw->host_function == MSDC_EMMC) &&
-					   ( get_boot_mode() == RECOVERY_BOOT || get_boot_mode() == OPPO_SAU_BOOT ))
-					{
-						emergency_restart();
-					}
-#endif
 				}
 
 				if ((*rsp & R1_OUT_OF_RANGE)
@@ -5239,11 +5187,10 @@ static int msdc_cqhci_reset(struct mmc_host *mmc)
 		pr_notice("WARN: data xf with cqhci enabled\n");
 
 #ifndef EMMC_RUNTIME_AUTOK_MERGE
-		ret = emmc_execute_dvfs_autok(host, MMC_SEND_TUNING_BLOCK_HS200);
+	ret = emmc_execute_dvfs_autok(host, MMC_SEND_TUNING_BLOCK_HS200);
 #else
-		ret = emmc_runtime_autok_merge(MMC_SEND_TUNING_BLOCK_HS200);
+	ret = emmc_runtime_autok_merge(MMC_SEND_TUNING_BLOCK_HS200);
 #endif
-
 
 	/* clear flag */
 	host->need_tune = TUNE_NONE;

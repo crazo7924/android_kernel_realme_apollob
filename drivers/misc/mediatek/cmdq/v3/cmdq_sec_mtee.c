@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -12,7 +13,10 @@
  */
 
 #include <linux/soc/mediatek/mtk-cmdq.h>
+#include <mt-plat/mtk_secure_api.h>
 #include "cmdq_sec_mtee.h"
+
+static bool cmdq_mtee;
 
 void cmdq_sec_mtee_setup_context(struct cmdq_sec_mtee_context *tee)
 {
@@ -22,6 +26,10 @@ void cmdq_sec_mtee_setup_context(struct cmdq_sec_mtee_context *tee)
 	memset(tee, 0, sizeof(*tee));
 	strncpy(tee->ta_uuid, ta_uuid, sizeof(ta_uuid));
 	strncpy(tee->wsm_uuid, wsm_uuid, sizeof(wsm_uuid));
+/* BSP.Security - 2020.2.2 - fix CTS media playing time is not long enough */
+	if (mt_secure_call(0xBC00000B, 1, 0, 0, 0) == 1)
+		cmdq_mtee = true;
+	cmdq_msg("%s cmdq_mtee:%d", __func__, cmdq_mtee);
 }
 
 // TODO
@@ -63,6 +71,11 @@ s32 cmdq_sec_mtee_allocate_shared_memory(struct cmdq_sec_mtee_context *tee,
 	const dma_addr_t MVABase, const u32 size)
 {
 	s32 status;
+/* BSP.Security - 2020.2.2 - fix CTS media playing time is not long enough */
+	if (!cmdq_gz) {
+		cmdq_msg("%s cmdq_mtee:%d not support", __func__, cmdq_mtee);
+	return 0;
+	}
 
 	tee->mem_param.size = size;
 	tee->mem_param.buffer = (void *)(unsigned long)MVABase;
@@ -84,6 +97,11 @@ s32 cmdq_sec_mtee_allocate_wsm(struct cmdq_sec_mtee_context *tee,
 	void **wsm_buf_ex2, u32 size_ex2)
 {
 	s32 status;
+/* BSP.Security - 2020.2.2 - fix CTS media playing time is not long enough */
+	if (!cmdq_gz) {
+		cmdq_msg("%s cmdq_mtee:%d not support", __func__, cmdq_mtee);
+	return 0;
+	}
 
 	if (!wsm_buffer || !wsm_buf_ex || !wsm_buf_ex2)
 		return -EINVAL;
@@ -153,6 +171,12 @@ s32 cmdq_sec_mtee_allocate_wsm(struct cmdq_sec_mtee_context *tee,
 s32 cmdq_sec_mtee_free_wsm(struct cmdq_sec_mtee_context *tee,
 	void **wsm_buffer)
 {
+/* BSP.Security - 2020.2.2 - fix CTS media playing time is not long enough */
+	if (!cmdq_gz) {
+		cmdq_msg("%s cmdq_mtee:%d not support", __func__, cmdq_mtee);
+	return 0;
+	}
+
 	if (!wsm_buffer)
 		return -EINVAL;
 
@@ -166,6 +190,11 @@ s32 cmdq_sec_mtee_open_session(struct cmdq_sec_mtee_context *tee,
 	void *wsm_buffer)
 {
 	s32 status;
+/* BSP.Security - 2020.2.2 - fix CTS media playing time is not long enough */
+	if (!cmdq_gz) {
+		cmdq_msg("%s cmdq_mtee:%d not support", __func__, cmdq_mtee);
+	return 0;
+	}
 
 	status = KREE_CreateSession(tee->ta_uuid, &tee->pHandle);
 	if (status != TZ_RESULT_SUCCESS) {
@@ -187,6 +216,12 @@ s32 cmdq_sec_mtee_open_session(struct cmdq_sec_mtee_context *tee,
 
 s32 cmdq_sec_mtee_close_session(struct cmdq_sec_mtee_context *tee)
 {
+/* BSP.Security - 2020.2.2 - fix CTS media playing time is not long enough */
+	if (!cmdq_gz) {
+		cmdq_msg("%s cmdq_mtee:%d not support", __func__, cmdq_mtee);
+	return 0;
+	}
+
 	KREE_CloseSession(tee->wsm_pHandle);
 	return KREE_CloseSession(tee->pHandle);
 }
@@ -200,6 +235,11 @@ s32 cmdq_sec_mtee_execute_session(struct cmdq_sec_mtee_context *tee,
 		share_mem_ex2 ? TZPT_VALUE_INOUT : TZPT_NONE,
 		cmd == 4 ? TZPT_VALUE_INOUT : TZPT_NONE); // TODO
 	union MTEEC_PARAM param[4];
+/* BSP.Security - 2020.2.2 - fix CTS media playing time is not long enough */
+	if (!cmdq_gz) {
+		cmdq_msg("%s cmdq_mtee:%d not support", __func__, cmdq_mtee);
+	return 0;
+	}
 
 	param[0].value.a = tee->wsm_handle;
 	param[0].value.b = tee->wsm_param.size;

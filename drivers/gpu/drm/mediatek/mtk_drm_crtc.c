@@ -5972,7 +5972,8 @@ int hbm_eof_flag = 0;
 
 //#ifdef OPLUS_FEATURE_ONFIGNRPRINT
 /* liwei.a@PSW.MM.feature.onfingerprint, 2020/11/05, add for finger unlock */
-int te_remain = 0;
+
+/* int te_remain = 0;
 void mtk_wait_TE(int te_num) {
 	if (te_remain == 0) {
 		DDPINFO("%s: start to wait %d TE\n",__func__, te_num);
@@ -5992,6 +5993,7 @@ void hbm_notify_fingerprint_if_neccessary() {
 	}
 }
 //#endif
+*/
 
 //#ifdef OPLUS_FEATURE_ONFIGNRPRINT
 /* liwei.a@PSW.MM.feature.onfingerprint, 2020/11/05, add for finger unlock */

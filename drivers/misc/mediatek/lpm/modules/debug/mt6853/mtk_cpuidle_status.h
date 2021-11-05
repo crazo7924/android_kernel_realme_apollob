@@ -10,7 +10,6 @@
 
 #define sec_to_ns(v)	((v) * 1000 * 1000 * 1000ULL)
 
-#define S2IDLE_STATE_NAME	"s2idle"
 enum {
 	IDLE_PARAM_LAT,
 	IDLE_PARAM_RES,
@@ -66,7 +65,5 @@ void mtk_cpuidle_state_enable(bool en);
 
 int __init mtk_cpuidle_status_init(void);
 void __exit mtk_cpuidle_status_exit(void);
-
-unsigned long long mtk_cpuidle_state_last_dis_ms(void);
 
 #endif /* __MTK_CPUIDLE_STATUS_H__ */
