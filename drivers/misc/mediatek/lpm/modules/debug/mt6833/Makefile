@@ -24,7 +24,7 @@ mt6833_cpupm_dbg-y += mtk_idle_procfs_profile.o
 mt6833_cpupm_dbg-y += mtk_idle_procfs_control.o
 
 obj-$(CONFIG_MTK_LPM_GS_DUMP_SUPPORT) += mt6833_power_gs_compare.o
-obj-$(CONFIG_MTK_LPM_GS_DUMP_SUPPORT) += mtk_power_gs_6315_array.o
+# obj-$(CONFIG_MTK_LPM_GS_DUMP_SUPPORT) += mtk_power_gs_6315_array.o
 obj-$(CONFIG_MTK_LPM_GS_DUMP_SUPPORT) += mtk_power_gs_6365_array.o
 obj-$(CONFIG_MTK_LPM_GS_DUMP_SUPPORT) += mtk_dcm_array.o
 obj-$(CONFIG_MTK_LPM_GS_DUMP_SUPPORT) += mtk_cg_array.o
