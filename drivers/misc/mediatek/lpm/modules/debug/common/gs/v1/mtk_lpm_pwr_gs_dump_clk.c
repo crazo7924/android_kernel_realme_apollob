@@ -15,11 +15,11 @@ struct mtk_lpm_gs_dcm_info_inst {
 };
 
 static struct base_remap br;
+
 #define DEBUG_BUF_SIZE 2048
 static char buf[DEBUG_BUF_SIZE] = { 0 };
 static struct mtk_lpm_gs_dcm_info_inst mtk_lpm_gs_clks;
 
-/*
 void __iomem *_get_virt_base_from_table(unsigned int pa)
 {
 	unsigned int k;
@@ -34,9 +34,9 @@ void __iomem *_get_virt_base_from_table(unsigned int pa)
 
 	return io_base;
 }
-*/
 
-/* Check phys addr is existed in table or not
+
+/* Check phys addr is existed in table or not */
 bool _is_exist_in_phys_to_virt_table(unsigned int pa)
 {
 	unsigned int k;
@@ -48,6 +48,7 @@ bool _is_exist_in_phys_to_virt_table(unsigned int pa)
 
 	return false;
 }
+
 unsigned int mt_power_gs_base_remap_init(char *scenario, char *pmic_name,
 			 const unsigned int *pmic_gs, unsigned int pmic_gs_len)
 {
@@ -86,7 +87,7 @@ unsigned int mt_power_gs_base_remap_init(char *scenario, char *pmic_name,
 
 	return 0;
 }
-*/
+
 static u16 gs_pmic_read(u16 reg)
 {
 	u32 reg_val = 0;
@@ -102,7 +103,7 @@ static bool _is_pmic_addr(unsigned int addr)
 {
 	return (addr >> 16) ? 0 : 1;
 }
-/*
+
 unsigned int _golden_read_reg(unsigned int addr)
 {
 	unsigned int reg_val;
@@ -128,7 +129,7 @@ unsigned int _golden_read_reg(unsigned int addr)
 
 	return reg_val;
 }
-*/
+
 #define PER_LINE_TO_PRINT 8
 static void mt_power_gs_clk_compare(char *pmic_name,
 				 struct mtk_lpm_gs_clk_user *user)

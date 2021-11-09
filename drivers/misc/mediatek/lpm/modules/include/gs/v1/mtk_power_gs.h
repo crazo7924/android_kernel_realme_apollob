@@ -87,4 +87,9 @@ int mtk_lpm_pwr_gs_common_init(void);
 
 void mtk_lpm_pwr_gs_common_deinit(void);
 
+unsigned int _golden_read_reg(unsigned int addr);
+
+unsigned int mt_power_gs_base_remap_init(char *scenario, char *pmic_name,
+                        const unsigned int *pmic_gs, unsigned int pmic_gs_len);
+
 #endif
