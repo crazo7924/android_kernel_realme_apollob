@@ -23,10 +23,6 @@
 #define SGEN_MUTE_CH1_KCONTROL_NAME "Audio_SineGen_Mute_Ch1"
 #define SGEN_MUTE_CH2_KCONTROL_NAME "Audio_SineGen_Mute_Ch2"
 
-/* BSP.Audio - 2020.12.06 - modify to add kcontrol for closing AGC */
-extern int fsm_add_control(struct snd_soc_platform *platform);
-/* end modify */
-
 static const char * const mt6833_sgen_mode_str[] = {
 	"I0I1",   "I2",     "I3I4",   "I5I6",
 	"I7I8",   "I9",     "I10I11", "I12I13",
@@ -2080,10 +2076,6 @@ int mt6833_add_misc_control(struct snd_soc_platform *platform)
 	snd_soc_add_platform_controls(platform,
 				      mt6833_afe_speech_controls,
 				      ARRAY_SIZE(mt6833_afe_speech_controls));
-
-/* BSP.Audio - 2020.12.06 - modify to add kcontrol for closing AGC */
-	fsm_add_control(platform);
-/* end modify */
 
 #if defined(CONFIG_MTK_VOW_BARGE_IN_SUPPORT)
 	snd_soc_add_platform_controls(platform,

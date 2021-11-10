@@ -33,32 +33,6 @@
  */
 #define EXT_SPK_AMP_W_NAME "Ext_Speaker_Amp"
 
-/* BSP.Audio - 2020.11.2 - modify to bring up PA */
-#ifdef CONFIG_SND_SOC_AW87559
-enum {
-	AW87XXX_OFF_MODE = 0,
-	AW87XXX_MUSIC_MODE = 1,
-	AW87XXX_VOICE_MODE = 2,
-	AW87XXX_FM_MODE = 3,
-	AW87XXX_RCV_MODE = 4,
-	AW87XXX_MODE_MAX = 5,
-};
-enum {
-	AW87XXX_LEFT_CHANNEL = 0,
-	AW87XXX_RIRHT_CHANNEL = 1,
-};
-
-extern unsigned char aw87xxx_show_current_mode(int32_t channel);
-extern int aw87xxx_audio_scene_load(uint8_t mode, int32_t channel);
-#endif
-/* end modify*/
-
-/* BSP.Audio - 2020.11.11 - modify to bring up second PA */
-static const char *awinic = "awinic";
-static const char *foursemi = "foursemi";
-extern char *get_audio_pa_vendor(void);
-/* end modify*/
-
 static const char *const mt6833_spk_type_str[] = {MTK_SPK_NOT_SMARTPA_STR,
 						  MTK_SPK_RICHTEK_RT5509_STR,
 						  MTK_SPK_MEDIATEK_MT6660_STR,
@@ -121,55 +95,15 @@ static int mt6833_mt6359_spk_amp_event(struct snd_soc_dapm_widget *w,
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
 		/* spk amp on control */
-#ifdef CONFIG_SND_SOC_AW87339
-		aw87339_spk_enable_set(true);
-#endif
-
 #ifdef CONFIG_SND_SOC_SIA8109
 		sia81xx_start();
 #endif
-/* BSP.Audio - 2020.11.11 - modify to bring up second PA */
-	if (strcmp((const char *)get_audio_pa_vendor(), awinic) == 0) {
-/* end modify*/
-/* BSP.Audio - 2020.11.2 - modify to bring up PA */
-#ifdef CONFIG_SND_SOC_AW87559
-		aw87xxx_audio_scene_load(AW87XXX_MUSIC_MODE, AW87XXX_LEFT_CHANNEL);
-#endif
-/* end modify*/
-	} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
-/* BSP.Audio - 2020.11.11 - modify to bring up second PA */
-#ifdef CONFIG_SND_SOC_FS16XX
-		fsm_speaker_onn();
-#endif
-/* end modify*/
-	} else
-		pr_err("Please check out PA");
 	break;
 	case SND_SOC_DAPM_PRE_PMD:
 		/* spk amp off control */
-#ifdef CONFIG_SND_SOC_AW87339
-		aw87339_spk_enable_set(false);
-#endif
-
 #ifdef CONFIG_SND_SOC_SIA8109
 		sia81xx_stop();
 #endif
-/* BSP.Audio - 2020.11.11 - modify to bring up second PA */
-	if (strcmp((const char *)get_audio_pa_vendor(), awinic) == 0) {
-/* end modify*/
-/* BSP.Audio - 2020.11.2 - modify to bring up PA */
-#ifdef CONFIG_SND_SOC_AW87559
-		aw87xxx_audio_scene_load(AW87XXX_OFF_MODE, AW87XXX_LEFT_CHANNEL);
-#endif
-/* end modify*/
-/* BSP.Audio - 2020.11.11 - modify to bring up second PA */
-	} else if (strcmp((const char *)get_audio_pa_vendor(), foursemi) == 0) {
-#ifdef CONFIG_SND_SOC_FS16XX
-		fsm_speaker_off();
-#endif
-/* end modify*/
-	} else
-		pr_err("Please check out PA");
 		break;
 	default:
 		break;
