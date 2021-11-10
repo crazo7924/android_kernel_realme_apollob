@@ -164,8 +164,9 @@ typedef struct sia81xx_dev_s {
 }sia81xx_dev_t;
 
 #ifdef VENDOR_EDIT
+/* Wenyang.Fan@PSW.MULTIMEDIA.AUDIODRIVER.MACHINE,2020/06/16, Add for adjust codec & Sia PA sequence */
 sia81xx_dev_t *g_sia81xx = NULL;
-#endif
+#endif /* VENDOR_EDIT */
 
 static ssize_t sia81xx_cmd_show(struct device* cd,
 	struct device_attribute *attr, char* buf);
@@ -1417,6 +1418,10 @@ static int sia81xx_algo_en_set(
 
 #ifdef VENDOR_EDIT
 #ifdef OPPO_SIA_BOOST_VOL
+/* Wenyang.Fan@MULTIMEDIA.AUDIODRIVER.SMARTPA, 2020/06/09,
+ * set or get boost voltage for sia8109
+ * 8.5v,7v,6.5v,5v
+ */
 static int sia81xx_volme_boost_get(
         struct snd_kcontrol *kcontrol,
         struct snd_ctl_elem_value *ucontrol)
@@ -1468,9 +1473,10 @@ static int sia81xx_volme_boost_set(
         return 0;
 }
 #endif /* OPPO_SIA_BOOST_VOL */
-#endif
+#endif /* VENDOR_EDIT */
 
 #ifdef VENDOR_EDIT
+/* Wenyang.Fan@PSW.MULTIMEDIA.AUDIODRIVER.MACHINE,2020/06/16, Add for adjust codec & Sia PA sequence */
 void sia81xx_start(){
         sia81xx_resume(g_sia81xx);
 }
@@ -1478,16 +1484,17 @@ void sia81xx_start(){
 void sia81xx_stop(){
         sia81xx_suspend(g_sia81xx);
 }
-#endif
+#endif /* VENDOR_EDIT */
 
 static const char *const power_function[] = { "Off", "On" };
 static const char *const algo_enable[] = { "Off", "On" };
 static const char *const audio_scene[] = { "Playback", "Voice" };
 #ifdef VENDOR_EDIT
 #ifdef OPPO_SIA_BOOST_VOL
+/* Wenyang.Fan@MULTIMEDIA.AUDIODRIVER.SMARTPA, 2020/06/09, set or get boost voltage for sia8109 */
 static const char *const volume_boost[] = { "Voltage8_5","Voltage7", "Voltage6_5","Voltage5" };
 #endif /* OPPO_SIA_BOOST_VOL */
-#endif
+#endif /* VENDOR_EDIT */
 static const struct soc_enum power_enum = 
 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(power_function), power_function);
 static const struct soc_enum algo_enum = 
@@ -1496,10 +1503,11 @@ static const struct soc_enum audio_scene_enum =
 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(audio_scene), audio_scene);
 #ifdef VENDOR_EDIT
 #ifdef OPPO_SIA_BOOST_VOL
+/* Wenyang.Fan@MULTIMEDIA.AUDIODRIVER.SMARTPA, 2020/06/09, set or get boost voltage for sia8109 */
 static const struct soc_enum volume_boost_enum =
         SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(volume_boost), volume_boost);
 #endif /* OPPO_SIA_BOOST_VOL */
-#endif
+#endif /* VENDOR_EDIT */
 static const struct snd_kcontrol_new sia81xx_controls[] = {
 	SOC_ENUM_EXT("Sia81xx Power", power_enum, 
 			sia81xx_power_get, sia81xx_power_set), 
@@ -1509,10 +1517,11 @@ static const struct snd_kcontrol_new sia81xx_controls[] = {
 			sia81xx_audio_scene_get, sia81xx_audio_scene_set),
 #ifdef VENDOR_EDIT
 #ifdef OPPO_SIA_BOOST_VOL
+/* Wenyang.Fan@MULTIMEDIA.AUDIODRIVER.SMARTPA, 2020/06/09, set or get boost voltage for sia8109 */
         SOC_ENUM_EXT("Sia81xx Volme Boost", volume_boost_enum,
                         sia81xx_volme_boost_get, sia81xx_volme_boost_set)
 #endif /* OPPO_SIA_BOOST_VOL */
-#endif
+#endif /* VENDOR_EDIT */
 };
 
 static int sia81xx_spkr_pa_event(
@@ -1871,8 +1880,9 @@ static int sia81xx_i2c_probe(
 	}
 
 #ifdef VENDOR_EDIT
+/* Wenyang.Fan@PSW.MULTIMEDIA.AUDIODRIVER.MACHINE,2020/06/16, Add for adjust codec & Sia PA sequence */
         g_sia81xx = sia81xx;
-#endif
+#endif /* VENDOR_EDIT */
 
 	sia81xx->regmap = regmap;
 
@@ -1910,8 +1920,9 @@ static int sia81xx_i2c_remove(
 	put_sia81xx_dev(sia81xx);
 
 #ifdef VENDOR_EDIT
+/* Wenyang.Fan@PSW.MULTIMEDIA.AUDIODRIVER.MACHINE,2020/06/16, Add for adjust codec & Sia PA sequence */
         g_sia81xx = NULL;
-#endif
+#endif /* VENDOR_EDIT */
 	
 	return ret;
 }
