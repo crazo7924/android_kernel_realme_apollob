@@ -106,15 +106,13 @@ int freqhopping_config(unsigned int fh_id
 				array->domain,
 				array->fh_id,
 				8);
-		on = true;
 	} else if (on && !enable) {
 		FHDBG("disable\n");
 		hdlr->ops->ssc_disable(hdlr->data,
 				array->domain,
 				array->fh_id);
-		on = false;
 	} else
-		FHDBG("already %s\n",
+		FHDBG("already %s",
 				on ? "enabled" : "disabled");
 	mutex_unlock(&lock);
 
@@ -132,7 +130,7 @@ static struct pll_dts *parse_dt(struct platform_device *pdev)
 {
 	struct device_node *child;
 	struct device_node *root;
-	unsigned int num_pll = 0;
+	unsigned int num_pll;
 	int iomap_idx = 0;
 	struct pll_dts *array;
 	int pll_idx = 0;

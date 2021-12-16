@@ -11,14 +11,14 @@
 # GNU General Public License for more details.
 #
 
-ccflags-y += -I$(srctree)/drivers/misc/mediatek/freqhopping/$(MTK_PLATFORM)/
-subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/freqhopping/
 
-ifeq (y,$(filter y,$(CONFIG_MACH_MT6739) \
-			$(CONFIG_MACH_MT6833)))
-obj-y += fhctl_new/
+ifeq ($(CONFIG_MTK_TINYSYS_MCUPM_SUPPORT), y)
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/mcupm/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/mcupm/$(MTK_PLATFORM)/
+obj-y := mtk_freqhopping_mcupm.o
 else
-obj-y += mtk_freqhopping_drv.o
-obj-y += $(subst ",,$(CONFIG_MTK_PLATFORM))/
+obj-y := mtk_freqhopping.o
 endif
 
