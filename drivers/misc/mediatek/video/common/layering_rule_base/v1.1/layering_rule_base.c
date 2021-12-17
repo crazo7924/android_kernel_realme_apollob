@@ -1735,7 +1735,6 @@ static int _copy_layer_info_by_disp(struct disp_layer_info *disp_info_user,
 	if (debug_mode) {
 		memcpy(disp_info_user->input_config[disp_idx],
 			l_info->input_config[disp_idx], layer_size);
-		kfree(l_info->input_config[disp_idx]);
 	} else {
 		if (copy_to_user(disp_info_user->input_config[disp_idx],
 				l_info->input_config[disp_idx], layer_size)) {
@@ -1888,9 +1887,6 @@ int layering_rule_start(struct disp_layer_info *disp_info_user,
 		layering_info.hrt_num = 0;
 
 	ret = dispatch_ovl_id(&layering_info);
-
-	if (l_rule_ops->clear_layer)
-		l_rule_ops->clear_layer(&layering_info);
 
 	if (l_rule_ops->adjust_hrt_level != NULL)
 		l_rule_ops->adjust_hrt_level(&layering_info);
