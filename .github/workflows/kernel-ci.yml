@@ -1,6 +1,9 @@
 name: Android kernel building CI
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches: [ android-11 ]
+  pull_request:
     branches: [ android-11 ]
 
 jobs:
