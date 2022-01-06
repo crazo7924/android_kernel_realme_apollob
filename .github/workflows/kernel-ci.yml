@@ -18,6 +18,6 @@ jobs:
       id: build
       with:
         arch: arm64
-        compiler: aosp-clang/android11-release/clang-r383902
+        compiler: aosp-clang/android11-release/clang-r383902,aosp-clang/android11-release/clang-r383902/binutils
         defconfig: oppo6833_defconfig
         image: Image.gz-dtb
