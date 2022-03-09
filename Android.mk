@@ -118,7 +118,7 @@ endif#LINUX_KERNEL_VERSION
 
 #ifdef OPLUS_FEATURE_SECURITY_COMMON
 #Meilin.Zhou@BSP.Security.Basic,2020/11/12,Add for metadata encryption compatible
-ifneq ($(filter oppo6853, $(COMPILE_PLATFORM)),)
+ifneq ($(filter oppo6833, $(COMPILE_PLATFORM)),)
 ifeq ($(PRODUCT_SHIPPING_API_LEVEL)_$(PRODUCT_SHIPPING_API_LEVEL_OVERRIDE),30_30)
 $(info set CONFIG_DM_DEFAULT_KEY=y)
 $(shell sed -i 's/CONFIG_DM_DEFAULT_KEY=.*/CONFIG_DM_DEFAULT_KEY=y/g' $(KERNEL_CONFIG_FILE))
