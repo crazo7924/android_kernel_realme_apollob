@@ -13,6 +13,8 @@
 
 ifeq ($(CONFIG_MACH_MT6761),y)
 AUDIO_PLATFORM := mt6765
+else ifeq ($(CONFIG_MACH_MT6833),y)
+AUDIO_PLATFORM := mt6853
 else ifeq ($(CONFIG_MACH_MT6893),y)
 AUDIO_PLATFORM := mt6885
 else
@@ -20,7 +22,7 @@ AUDIO_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 endif
 
 ifneq ($(filter y,$(CONFIG_MTK_VOW_SUPPORT)),)
-ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6785" "mt6771" "mt6768"))
+ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6785" "mt6771" "mt6768" "mt6833" "mt6853"))
 CONFIG_MTK_VOW_IPI_SUPPORT:= y
 endif
 endif

@@ -109,8 +109,8 @@ void mt_power_gs_dpidle_compare(unsigned int dump_flag);
 void mt_power_gs_sodi_compare(unsigned int dump_flag);
 void mt_power_gs_sp_dump(void);
 
-extern bool _is_exist_in_phys_to_virt_table(unsigned int phys_base);
-extern void __iomem *_get_virt_base_from_table(unsigned int phys_base);
+bool _is_exist_in_phys_to_virt_table(unsigned int phys_base);
+void __iomem *_get_virt_base_from_table(unsigned int phys_base);
 unsigned int mt_power_gs_base_remap_init(char *scenario, char *pmic_name,
 			const unsigned int *pmic_gs, unsigned int pmic_gs_len);
 void mt_power_gs_internal_init(void);

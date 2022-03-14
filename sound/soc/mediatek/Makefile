@@ -141,6 +141,10 @@ obj-y += $(AUDIO_PLATFORM)/
 subdir-ccflags-y += -Werror -I$(src)/$(AUDIO_PLATFORM)
 endif
 
+#BSP.Audio - 2020.11.2 - modify to bring up PA
+obj-$(CONFIG_SND_SOC_AW87559) += aw87559/
+obj-$(CONFIG_SND_SOC_FS16XX) += fs1815n/
+
 # wuhui@ODM.CM.Multimedia.Audio 2020/09/08 added for aw87339 bringup
 obj-$(CONFIG_SND_SOC_AW87339) += aw87339/
 

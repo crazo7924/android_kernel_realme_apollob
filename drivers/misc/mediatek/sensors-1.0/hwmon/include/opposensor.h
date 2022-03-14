@@ -16,7 +16,7 @@
  * Modification based on code covered by the below mentioned copyright
  * and/or permission notice(S).
  */
-
+#include <linux/types.h>
 #ifndef __OPPOSENSOR_H__
 #define __OPPOSENSOR_H__
 

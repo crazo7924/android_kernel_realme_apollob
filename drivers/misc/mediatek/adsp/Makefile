@@ -2,7 +2,9 @@
 
 subdir-ccflags-y += -Wformat
 
-ifeq ($(CONFIG_MACH_MT6893), y)
+ifeq ($(CONFIG_MACH_MT6833), y)
+MTK_PLATFORM := mt6853
+else ifeq ($(CONFIG_MACH_MT6893), y)
 MTK_PLATFORM := mt6885
 else
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))

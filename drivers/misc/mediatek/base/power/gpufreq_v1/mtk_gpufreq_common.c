@@ -22,19 +22,18 @@
  * ===============================================
  */
 #include <linux/slab.h>
-#include "mtk_gpufreq_common.h"
-
-#if defined(CONFIG_MTK_AEE_AED)
 #include <mt-plat/aee.h>
 #include <aed.h>
+#include "mtk_gpufreq_common.h"
 
+#ifdef CONFIG_MTK_AEE_AED
 static struct gpu_assert_info g_pending_info;
 static int g_have_pending_info;
 #endif
 
 static void dump_except(enum g_exception_enum except_type, char *except_str)
 {
-#if defined(CONFIG_MTK_AEE_AED)
+#ifdef CONFIG_MTK_AEE_AED
 	if (except_str == NULL) {
 		pr_info("%s: NULL string\n", __func__);
 		return;

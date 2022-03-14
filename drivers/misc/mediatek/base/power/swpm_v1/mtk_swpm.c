@@ -44,13 +44,16 @@
 #define MAX(a, b)			((a) >= (b) ? (a) : (b))
 #define MIN(a, b)			((a) >= (b) ? (b) : (a))
 
+#define SWPM_OPS (swpm_m.plat_ops)
 /****************************************************************************
  *  Type Definitions
  ****************************************************************************/
 struct swpm_manager {
 	bool initialize;
+	bool plat_ready;
 	struct swpm_mem_ref_tbl *mem_ref_tbl;
 	unsigned int ref_tbl_size;
+	struct swpm_core_internal_ops *plat_ops;
 };
 
 /****************************************************************************
@@ -58,6 +61,7 @@ struct swpm_manager {
  ****************************************************************************/
 static struct swpm_manager swpm_m = {
 	.initialize = 0,
+	.plat_ready = 0,
 	.mem_ref_tbl = NULL,
 	.ref_tbl_size = 0,
 };
@@ -125,12 +129,22 @@ static int dump_power_proc_show(struct seq_file *m, void *v)
 	return 0;
 }
 
-#ifndef CPU_LKG_NOT_SUPPORT
 static int dump_lkg_power_proc_show(struct seq_file *m, void *v)
 {
+	int i, j;
+
+	if (!swpm_info_ref)
+		return 0;
+
+	for (i = 0; i < NR_CPU_LKG_TYPE; i++) {
+		for (j = 0; j < 16; j++) {
+			seq_printf(m, "type %d opp%d lkg = %d\n", i, j,
+				swpm_info_ref->cpu_lkg_pwr[i][j]);
+		}
+	}
+
 	return 0;
 }
-#endif
 
 #ifdef CONFIG_MTK_GPU_SWPM_SUPPORT
 static int gpu_debug_proc_show(struct seq_file *m, void *v)
@@ -174,6 +188,7 @@ static ssize_t gpu_debug_proc_write(struct file *file,
 
 	if (!kstrtouint(buf, 10, &enable_time)) {
 		swpm_gpu_debug = (enable_time) ? true : false;
+#if 1
 		if (swpm_gpu_debug) {
 			if (enable_time < 1000000) {
 				if (enable_time == 1)
@@ -184,8 +199,11 @@ static ssize_t gpu_debug_proc_write(struct file *file,
 				MTKGPUPower_model_start_swpm(enable_time);
 		} else
 			MTKGPUPower_model_stop();
+#else
+		swpm_err("gpu_debug node temporary disable\n");
+#endif
 	} else {
-		swpm_err("echo 1/0 > /proc/swpm/debug\n");
+		swpm_err("echo 1/0 > /proc/swpm/gpu_debug\n");
 	}
 	return count;
 }
@@ -413,9 +431,7 @@ static ssize_t log_mask_proc_write(struct file *file,
 }
 
 PROC_FOPS_RO(dump_power);
-#ifndef CPU_LKG_NOT_SUPPORT
 PROC_FOPS_RO(dump_lkg_power);
-#endif
 #ifdef CONFIG_MTK_GPU_SWPM_SUPPORT
 PROC_FOPS_RW(gpu_debug);
 #endif
@@ -427,9 +443,48 @@ PROC_FOPS_RW(avg_window);
 PROC_FOPS_RW(log_interval);
 PROC_FOPS_RW(log_mask);
 
+static int swpm_core_ops_ready_chk(void)
+{
+	bool func_ready = false;
+	struct swpm_core_internal_ops *ops_chk = swpm_m.plat_ops;
+
+	if (ops_chk &&
+	    ops_chk->cmd)
+		func_ready = true;
+
+	return func_ready;
+}
 /***************************************************************************
  *  API
  ***************************************************************************/
+int swpm_core_ops_register(struct swpm_core_internal_ops *ops)
+{
+	if (!swpm_m.plat_ops && ops) {
+		swpm_m.plat_ops = ops;
+		swpm_m.plat_ready = swpm_core_ops_ready_chk();
+	} else
+		return -1;
+
+	return 0;
+}
+
+#undef swpm_pmu_enable
+int swpm_pmu_enable(enum swpm_pmu_user id,
+		    unsigned int enable)
+{
+	unsigned int cmd_code;
+
+	if (!swpm_m.plat_ready)
+		return SWPM_INIT_ERR;
+	else if (id >= NR_SWPM_PMU_USER)
+		return SWPM_ARGS_ERR;
+
+	cmd_code = (!!enable) | (id << SWPM_CODE_USER_BIT);
+	SWPM_OPS->cmd(SET_PMU, cmd_code);
+
+	return SWPM_SUCCESS;
+}
+
 int swpm_append_procfs(struct swpm_entry *p)
 {
 	if (!swpm_dir) {
@@ -456,9 +511,7 @@ int swpm_create_procfs(void)
 
 	struct swpm_entry swpm_entries[] = {
 		PROC_ENTRY(dump_power),
-#ifndef CPU_LKG_NOT_SUPPORT
 		PROC_ENTRY(dump_lkg_power),
-#endif
 		PROC_ENTRY(debug),
 		PROC_ENTRY(enable),
 		PROC_ENTRY(update_cnt),

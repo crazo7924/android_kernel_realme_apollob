@@ -36,17 +36,11 @@
 /* static void __iomem *pwrap_base; */
 static void __iomem *pmif_spi_base;
 static void __iomem *pmif_spmi_base;
-#if 0
-static void __iomem *pmif_spmi2_base;
-#endif
 static void __iomem *spm_base;
 
 /* #define PWRAP_REG(ofs)		(pwrap_base + ofs) */
 #define PMIF_SPI_REG(ofs)	(pmif_spi_base + ofs)
 #define PMIF_SPMI_REG(ofs)	(pmif_spmi_base + ofs)
-#if 0
-#define PMIF_SPMI2_REG(ofs)	(pmif_spmi2_base + ofs)
-#endif
 #define SPM_REG(ofs)		(spm_base + ofs)
 
 /* PMIF Register*/
@@ -131,9 +125,7 @@ static void __iomem *spm_base;
 #define XO_BUF7_BBLPM_EN_MASK	(0x1 << 7)
 
 /* TODO: marked this after driver is ready */
-#if defined(CONFIG_MACH_MT6833)
-#define CLKBUF_BRINGUP
-#endif /* defined(CONFIG_MACH_MT6833) */
+/* #define CLKBUF_BRINGUP */
 /* #define CLKBUF_CONN_SUPPORT_CTRL_FROM_I1 */
 
 #define BUF_MAN_M				0
@@ -144,6 +136,14 @@ static void __iomem *spm_base;
 #define CLKBUF_STATUS_INFO_SIZE 2048
 
 #define PLAT_CLKBUF_OP_FLIGHT_MODE	(0x1)
+
+#if defined(CONFIG_MACH_MT6833)
+#define PWRAP_DTS_NODE_NAME			"mediatek,mt6833-pwrap"
+#define PMIF_M_DTS_NODE_NAME			"mediatek,mt6833-pmif-m"
+#else
+#define PWRAP_DTS_NODE_NAME			"mediatek,mt6853-pwrap"
+#define PMIF_M_DTS_NODE_NAME			"mediatek,mt6853-pmif-m"
+#endif /* defined(CONFIG_MACH_MT6833) */
 
 static unsigned int xo2_mode_set[4] = {WCN_EN_M,
 			WCN_EN_BB_G,
@@ -1195,9 +1195,6 @@ static ssize_t clk_buf_show_status_info_internal(char *buf)
 
 u8 clk_buf_get_xo_en_sta(enum xo_id id)
 {
-	if (id < 0 || id >= XO_NUMBER)
-		return 0;
-
 	clk_buf_get_xo_en();
 
 	return xo_en_stat[id];
@@ -1546,7 +1543,7 @@ int clk_buf_dts_map(void)
 		return -1;
 	}
 
-	node = of_find_compatible_node(NULL, NULL, "mediatek,mt6853-pwrap");
+	node = of_find_compatible_node(NULL, NULL, PWRAP_DTS_NODE_NAME);
 	if (node)
 		pmif_spi_base = of_iomap(node, 0);
 	else {
@@ -1555,7 +1552,7 @@ int clk_buf_dts_map(void)
 		return -1;
 	}
 
-	node = of_find_compatible_node(NULL, NULL, "mediatek,mt6853-pmif-m");
+	node = of_find_compatible_node(NULL, NULL, PMIF_M_DTS_NODE_NAME);
 	if (node)
 		pmif_spmi_base = of_iomap(node, 0);
 	else {
@@ -1563,17 +1560,6 @@ int clk_buf_dts_map(void)
 			__func__);
 		return -1;
 	}
-
-#if 0
-	node = of_find_compatible_node(NULL, NULL, "mediatek,mt6853-pmif-p");
-	if (node)
-		pmif_spmi2_base = of_iomap(node, 0);
-	else {
-		pr_notice("%s can't find compatible node for pmif_spmi2\n",
-			__func__);
-		return -1;
-	}
-#endif
 
 	node = of_find_compatible_node(NULL, NULL, "mediatek,sleep");
 	if (node)
@@ -1718,11 +1704,11 @@ void clk_buf_post_init(void)
 #endif
 #endif
 
-//#ifndef CONFIG_NFC_CHIP_SUPPORT
-//	/* no need to use XO_NFC if no NFC */
-//	clk_buf_ctrl_internal(CLK_BUF_NFC, CLK_BUF_FORCE_OFF);
-//	CLK_BUF3_STATUS = CLOCK_BUFFER_DISABLE;
-//#endif
+#ifndef CONFIG_MTK_NFC_CLKBUF_ENABLE
+	/* no need to use XO_NFC if no NFC */
+	clk_buf_ctrl_internal(CLK_BUF_NFC, CLK_BUF_FORCE_OFF);
+	CLK_BUF3_STATUS = CLOCK_BUFFER_DISABLE;
+#endif
 #ifdef CLKBUF_USE_BBLPM
 	if (bblpm_switch == 2) {
 		clk_buf_ctrl_bblpm_mask(CLK_BUF_BB_MD, true);

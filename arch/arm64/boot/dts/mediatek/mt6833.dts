@@ -730,6 +730,11 @@ page_owner=on loop.max_part=7";
 	gauge_timer {
 		compatible = "mediatek,gauge_timer_service";
 	};
+/*BSP.System - 2020.11.2 - add simtray status*/
+	simtray {
+		compatible = "mediatek,simtray-status";
+		status-gpio = <&pio 77 0>;
+	};
 #if (CONFIG_MTK_GAUGE_VERSION == 30)
 	#include "mediatek/bat_setting/mt6833_battery_prop.dtsi"
 #endif
@@ -5706,6 +5711,7 @@ page_owner=on loop.max_part=7";
 };
 
 #include "mediatek/mt6359p.dtsi"
+#include "mediatek/cust_mt6833_msdc.dtsi"
 #include "mediatek/mt6833-clkitg.dtsi"
 
 &spmi_bus {

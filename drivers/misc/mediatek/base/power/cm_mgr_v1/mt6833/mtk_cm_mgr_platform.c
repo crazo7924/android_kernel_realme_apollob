@@ -1025,7 +1025,7 @@ static void cm_mgr_process(struct work_struct *work)
 
 void cm_mgr_update_dram_by_cpu_opp(int cpu_opp)
 {
-	int ret __attribute__((unused)) = 0;
+	int ret = 0;
 	int dram_opp = 0;
 
 	if (!is_dvfsrc_enabled())
