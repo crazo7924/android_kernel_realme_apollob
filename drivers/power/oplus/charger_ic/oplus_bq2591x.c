@@ -42,10 +42,9 @@ enum bq2591x_part_no {
 };
 
 enum {
-	USER	= BIT(0),
+	USER = BIT(0),
 	PARALLEL = BIT(1),
 };
-
 
 struct bq2591x_config {
 	int chg_mv;
@@ -60,9 +59,8 @@ struct bq2591x_config {
 	bool enable_term;
 };
 
-
 struct bq2591x {
-	struct device	*dev;
+	struct device *dev;
 	struct i2c_client *client;
 	struct charger_device *chg_dev;
 	struct charger_properties chg_props;
@@ -112,7 +110,7 @@ static int __bq2591x_read_reg(struct bq2591x *bq, u8 reg, u8 *data)
 	ret = i2c_smbus_read_byte_data(bq->client, reg);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
 			ret = i2c_smbus_read_byte_data(bq->client, reg);
 			if (ret < 0) {
@@ -139,7 +137,7 @@ static int __bq2591x_write_reg(struct bq2591x *bq, int reg, u8 val)
 	ret = i2c_smbus_write_byte_data(bq->client, reg, val);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
 			ret = i2c_smbus_write_byte_data(bq->client, reg, val);
 			if (ret < 0) {
@@ -152,7 +150,7 @@ static int __bq2591x_write_reg(struct bq2591x *bq, int reg, u8 val)
 
 	if (ret < 0) {
 		pr_err("i2c write fail: can't write 0x%02X to reg 0x%02X: %d\n",
-				val, reg, ret);
+		       val, reg, ret);
 		return ret;
 	}
 	return 0;
@@ -174,7 +172,6 @@ static int bq2591x_read_byte(struct bq2591x *bq, u8 *data, u8 reg)
 	return ret;
 }
 
-
 static int bq2591x_write_byte(struct bq2591x *bq, u8 reg, u8 data)
 {
 	int ret;
@@ -192,9 +189,7 @@ static int bq2591x_write_byte(struct bq2591x *bq, u8 reg, u8 data)
 	return ret;
 }
 
-
-static int bq2591x_update_bits(struct bq2591x *bq, u8 reg,
-					u8 mask, u8 data)
+static int bq2591x_update_bits(struct bq2591x *bq, u8 reg, u8 mask, u8 data)
 {
 	int ret;
 	u8 tmp;
@@ -226,8 +221,7 @@ static int bq2591x_enable_charger(struct bq2591x *bq)
 	int ret;
 	u8 val = BQ2591X_CHG_ENABLE << BQ2591X_EN_CHG_SHIFT;
 
-	ret = bq2591x_update_bits(bq, BQ2591X_REG_06,
-				BQ2591X_EN_CHG_MASK, val);
+	ret = bq2591x_update_bits(bq, BQ2591X_REG_06, BQ2591X_EN_CHG_MASK, val);
 	return ret;
 }
 
@@ -236,8 +230,7 @@ static int bq2591x_disable_charger(struct bq2591x *bq)
 	int ret;
 	u8 val = BQ2591X_CHG_DISABLE << BQ2591X_EN_CHG_SHIFT;
 
-	ret = bq2591x_update_bits(bq, BQ2591X_REG_06,
-				BQ2591X_EN_CHG_MASK, val);
+	ret = bq2591x_update_bits(bq, BQ2591X_REG_06, BQ2591X_EN_CHG_MASK, val);
 
 	return ret;
 }
@@ -254,8 +247,8 @@ static int bq2591x_enable_term(struct bq2591x *bq, bool enable)
 
 	val <<= BQ2591X_EN_TERM_SHIFT;
 
-	ret = bq2591x_update_bits(bq, BQ2591X_REG_05,
-				BQ2591X_EN_TERM_MASK, val);
+	ret = bq2591x_update_bits(bq, BQ2591X_REG_05, BQ2591X_EN_TERM_MASK,
+				  val);
 
 	return ret;
 }
@@ -266,13 +259,11 @@ static int bq2591x_set_chargecurrent(struct charger_device *chg_dev, u32 curr)
 	u8 ichg;
 
 	curr /= 1000; /*to mA */
-	ichg = (curr - BQ2591X_ICHG_BASE)/BQ2591X_ICHG_LSB;
+	ichg = (curr - BQ2591X_ICHG_BASE) / BQ2591X_ICHG_LSB;
 
 	ichg <<= BQ2591X_ICHG_SHIFT;
 
-	return bq2591x_update_bits(bq, BQ2591X_REG_01,
-				BQ2591X_ICHG_MASK, ichg);
-
+	return bq2591x_update_bits(bq, BQ2591X_REG_01, BQ2591X_ICHG_MASK, ichg);
 }
 
 static int bq2591x_get_chargecurrent(struct charger_device *chg_dev, u32 *curr)
@@ -284,7 +275,9 @@ static int bq2591x_get_chargecurrent(struct charger_device *chg_dev, u32 *curr)
 
 	ret = bq2591x_read_byte(bq, &val, BQ2591X_REG_01);
 	if (!ret) {
-		ichg = ((u32)(val & BQ2591X_ICHG_MASK)  >> BQ2591X_ICHG_SHIFT) * BQ2591X_ICHG_LSB + BQ2591X_ICHG_BASE;
+		ichg = ((u32)(val & BQ2591X_ICHG_MASK) >> BQ2591X_ICHG_SHIFT) *
+			       BQ2591X_ICHG_LSB +
+		       BQ2591X_ICHG_BASE;
 		*curr = ichg * 1000; /*to uA*/
 	}
 
@@ -295,7 +288,7 @@ static int bq2591x_get_min_ichg(struct charger_device *chg_dev, u32 *curr)
 {
 	int ret = 0;
 
-	*curr = 500*1000;/*500mA*/
+	*curr = 500 * 1000; /*500mA*/
 
 	return ret;
 }
@@ -327,11 +320,10 @@ static int bq2591x_set_chargevoltage(struct charger_device *chg_dev, u32 volt)
 	u8 val;
 
 	volt /= 1000; /*to mV*/
-	val = (volt - BQ2591X_VREG_BASE)/BQ2591X_VREG_LSB;
+	val = (volt - BQ2591X_VREG_BASE) / BQ2591X_VREG_LSB;
 	val <<= BQ2591X_VREG_SHIFT;
 
-	return bq2591x_update_bits(bq, BQ2591X_REG_00,
-				BQ2591X_VREG_MASK, val);
+	return bq2591x_update_bits(bq, BQ2591X_REG_00, BQ2591X_VREG_MASK, val);
 }
 
 static int bq2591x_get_chargevoltage(struct charger_device *chg_dev, u32 *cv)
@@ -352,7 +344,8 @@ static int bq2591x_get_chargevoltage(struct charger_device *chg_dev, u32 *cv)
 	return ret;
 }
 
-static int bq2591x_set_input_volt_limit(struct charger_device *chg_dev, u32 volt)
+static int bq2591x_set_input_volt_limit(struct charger_device *chg_dev,
+					u32 volt)
 {
 	struct bq2591x *bq = dev_get_drvdata(&chg_dev->dev);
 	u8 val;
@@ -361,25 +354,26 @@ static int bq2591x_set_input_volt_limit(struct charger_device *chg_dev, u32 volt
 	val = (volt - BQ2591X_VINDPM_BASE) / BQ2591X_VINDPM_LSB;
 	val <<= BQ2591X_VINDPM_SHIFT;
 
-	return bq2591x_update_bits(bq, BQ2591X_REG_02,
-				BQ2591X_VINDPM_MASK, val);
+	return bq2591x_update_bits(bq, BQ2591X_REG_02, BQ2591X_VINDPM_MASK,
+				   val);
 }
 
-
-static int bq2591x_set_input_current_limit(struct charger_device *chg_dev, u32 curr)
+static int bq2591x_set_input_current_limit(struct charger_device *chg_dev,
+					   u32 curr)
 {
 	struct bq2591x *bq = dev_get_drvdata(&chg_dev->dev);
 	u8 val;
 
-	curr /= 1000;/*to mA*/
+	curr /= 1000; /*to mA*/
 	val = (curr - BQ2591X_IINLIM_BASE) / BQ2591X_IINLIM_LSB;
 	val <<= BQ2591X_IINLIM_SHIFT;
 
-	return bq2591x_update_bits(bq, BQ2591X_REG_03,
-				BQ2591X_IINLIM_MASK, val);
+	return bq2591x_update_bits(bq, BQ2591X_REG_03, BQ2591X_IINLIM_MASK,
+				   val);
 }
 
-static int bq2591x_get_input_current_limit(struct charger_device *chg_dev, u32 *curr)
+static int bq2591x_get_input_current_limit(struct charger_device *chg_dev,
+					   u32 *curr)
 {
 	struct bq2591x *bq = dev_get_drvdata(&chg_dev->dev);
 	u8 val;
@@ -405,8 +399,7 @@ int bq2591x_set_watchdog_timer(struct bq2591x *bq, u8 timeout)
 
 	val <<= BQ2591X_WDT_SHIFT;
 
-	return bq2591x_update_bits(bq, BQ2591X_REG_05,
-				BQ2591X_WDT_MASK, val);
+	return bq2591x_update_bits(bq, BQ2591X_REG_05, BQ2591X_WDT_MASK, val);
 }
 EXPORT_SYMBOL_GPL(bq2591x_set_watchdog_timer);
 
@@ -414,8 +407,7 @@ int bq2591x_disable_watchdog_timer(struct bq2591x *bq)
 {
 	u8 val = BQ2591X_WDT_DISABLE << BQ2591X_WDT_SHIFT;
 
-	return bq2591x_update_bits(bq, BQ2591X_REG_05,
-				BQ2591X_WDT_MASK, val);
+	return bq2591x_update_bits(bq, BQ2591X_REG_05, BQ2591X_WDT_MASK, val);
 }
 EXPORT_SYMBOL_GPL(bq2591x_disable_watchdog_timer);
 
@@ -425,8 +417,8 @@ static int bq2591x_reset_watchdog_timer(struct charger_device *chg_dev)
 
 	u8 val = BQ2591X_WDT_RESET << BQ2591X_WDT_RESET_SHIFT;
 
-	return bq2591x_update_bits(bq, BQ2591X_REG_05,
-				BQ2591X_WDT_RESET_MASK, val);
+	return bq2591x_update_bits(bq, BQ2591X_REG_05, BQ2591X_WDT_RESET_MASK,
+				   val);
 }
 
 int bq2591x_reset_chip(struct bq2591x *bq)
@@ -434,8 +426,7 @@ int bq2591x_reset_chip(struct bq2591x *bq)
 	int ret;
 	u8 val = BQ2591X_RESET << BQ2591X_RESET_SHIFT;
 
-	ret = bq2591x_update_bits(bq, BQ2591X_REG_0D,
-				BQ2591X_RESET_MASK, val);
+	ret = bq2591x_update_bits(bq, BQ2591X_REG_0D, BQ2591X_RESET_MASK, val);
 	return ret;
 }
 EXPORT_SYMBOL_GPL(bq2591x_reset_chip);
@@ -445,9 +436,9 @@ int bq2591x_exit_hiz_mode(struct bq2591x *bq)
 	int ret;
 	u8 val = BQ2591X_WDT_RESET << BQ2591X_WDT_RESET_SHIFT;
 
-	ret = bq2591x_update_bits(bq, BQ2591X_REG_05,
-				BQ2591X_WDT_RESET_MASK, val);
-	ret	= bq2591x_enable_charger(bq);
+	ret = bq2591x_update_bits(bq, BQ2591X_REG_05, BQ2591X_WDT_RESET_MASK,
+				  val);
+	ret = bq2591x_enable_charger(bq);
 	bq->hz_mode = 0;
 	return ret;
 }
@@ -479,14 +470,14 @@ static int bq2591x_set_vbatlow_volt(struct bq2591x *bq, int volt)
 
 	val <<= BQ2591X_VBATLOWV_SHIFT;
 
-	ret = bq2591x_update_bits(bq, BQ2591X_REG_06,
-				BQ2591X_VBATLOWV_MASK, val);
+	ret = bq2591x_update_bits(bq, BQ2591X_REG_06, BQ2591X_VBATLOWV_MASK,
+				  val);
 
 	return ret;
 }
 
 static int bq2591x_enable_safety_timer(struct charger_device *chg_dev,
-											bool enable)
+				       bool enable)
 {
 	struct bq2591x *bq = dev_get_drvdata(&chg_dev->dev);
 	u8 val;
@@ -499,13 +490,13 @@ static int bq2591x_enable_safety_timer(struct charger_device *chg_dev,
 
 	val <<= BQ2591X_EN_TIMER_SHIFT;
 
-	ret = bq2591x_update_bits(bq, BQ2591X_REG_05,
-				BQ2591X_EN_TIMER_MASK, val);
+	ret = bq2591x_update_bits(bq, BQ2591X_REG_05, BQ2591X_EN_TIMER_MASK,
+				  val);
 	return ret;
 }
 
 static int bq2591x_is_safety_timer_enable(struct charger_device *chg_dev,
-	bool *en)
+					  bool *en)
 {
 	struct bq2591x *bq = dev_get_drvdata(&chg_dev->dev);
 	int ret;
@@ -519,7 +510,7 @@ static int bq2591x_is_safety_timer_enable(struct charger_device *chg_dev,
 }
 
 static ssize_t bq2591x_show_registers(struct device *dev,
-				struct device_attribute *attr, char *buf)
+				      struct device_attribute *attr, char *buf)
 {
 	struct bq2591x *bq = dev_get_drvdata(dev);
 	u8 addr;
@@ -534,7 +525,7 @@ static ssize_t bq2591x_show_registers(struct device *dev,
 		ret = bq2591x_read_byte(bq, &val, addr);
 		if (ret == 0) {
 			len = snprintf(tmpbuf, PAGE_SIZE - idx,
-					"Reg[%02X] = 0x%02X\n",	addr, val);
+				       "Reg[%02X] = 0x%02X\n", addr, val);
 			memcpy(&buf[idx], tmpbuf, len);
 			idx += len;
 		}
@@ -544,7 +535,8 @@ static ssize_t bq2591x_show_registers(struct device *dev,
 }
 
 static ssize_t bq2591x_store_registers(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+				       struct device_attribute *attr,
+				       const char *buf, size_t count)
 {
 	struct bq2591x *bq = dev_get_drvdata(dev);
 	int ret;
@@ -559,7 +551,7 @@ static ssize_t bq2591x_store_registers(struct device *dev,
 }
 
 static DEVICE_ATTR(registers, S_IRUGO | S_IWUSR, bq2591x_show_registers,
-						bq2591x_store_registers);
+		   bq2591x_store_registers);
 
 static struct attribute *bq2591x_attributes[] = {
 	&dev_attr_registers.attr,
@@ -582,7 +574,7 @@ static int bq2591x_charging(struct charger_device *chg_dev, bool enable)
 		ret = bq2591x_disable_charger(bq);
 
 	pr_err("%s charger %s\n", enable ? "enable" : "disable",
-				  !ret ? "successfully" : "failed");
+	       !ret ? "successfully" : "failed");
 
 	ret = bq2591x_read_byte(bq, &val, BQ2591X_REG_06);
 
@@ -615,22 +607,24 @@ static int bq2591x_is_charging_done(struct charger_device *chg_dev, bool *done)
 	return ret;
 }
 
-
 static int bq2591x_parse_dt(struct device *dev, struct bq2591x *bq)
 {
 	int ret;
 	struct device_node *np = dev->of_node;
 
-	if (of_property_read_string(np, "charger_name", &bq->chg_dev_name) < 0) {
+	if (of_property_read_string(np, "charger_name", &bq->chg_dev_name) <
+	    0) {
 		bq->chg_dev_name = "secondary_chg";
 		pr_warn("no charger name\n");
 	}
 
-	bq->charge_enabled = !(of_property_read_bool(np, "ti,charging-disabled"));
-	bq->cfg.enable_term = of_property_read_bool(np, "ti,bq2591x,enable-term");
+	bq->charge_enabled =
+		!(of_property_read_bool(np, "ti,charging-disabled"));
+	bq->cfg.enable_term =
+		of_property_read_bool(np, "ti,bq2591x,enable-term");
 
 	ret = of_property_read_u32(np, "ti,bq2591x,charge-voltage",
-					&bq->cfg.chg_mv);
+				   &bq->cfg.chg_mv);
 	if (ret) {
 		bq->cfg.chg_mv = 4400;
 		pr_err("Failed to read node of ti,bq2591x,charge-voltage\n");
@@ -638,14 +632,14 @@ static int bq2591x_parse_dt(struct device *dev, struct bq2591x *bq)
 	}
 
 	ret = of_property_read_u32(np, "ti,bq2591x,charge-current",
-					&bq->cfg.chg_ma);
+				   &bq->cfg.chg_ma);
 	if (ret) {
 		bq->cfg.chg_ma = 500;
 		pr_err("Failed to read node of ti,bq2591x,charge-voltage\n");
 		return ret;
 	}
 	ret = of_property_read_u32(np, "ti,bq2591x,input-current-limit",
-					&bq->cfg.icl_ma);
+				   &bq->cfg.icl_ma);
 	if (ret) {
 		bq->cfg.icl_ma = 500;
 		pr_err("Failed to read node of ti,bq2591x,charge-voltage\n");
@@ -653,7 +647,7 @@ static int bq2591x_parse_dt(struct device *dev, struct bq2591x *bq)
 	}
 
 	ret = of_property_read_u32(np, "ti,bq2591x,input-voltage-limit",
-					&bq->cfg.ivl_mv);
+				   &bq->cfg.ivl_mv);
 	if (ret) {
 		bq->cfg.icl_ma = 4400;
 		pr_err("Failed to read node of ti,bq2591x,charge-voltage\n");
@@ -661,7 +655,7 @@ static int bq2591x_parse_dt(struct device *dev, struct bq2591x *bq)
 	}
 
 	ret = of_property_read_u32(np, "ti,bq2591x,vbatlow-volt",
-					&bq->cfg.batlow_mv);
+				   &bq->cfg.batlow_mv);
 	if (ret) {
 		bq->cfg.batlow_mv = 3500;
 		pr_err("Failed to read node of ti,bq2591x,charge-voltage\n");
@@ -669,7 +663,7 @@ static int bq2591x_parse_dt(struct device *dev, struct bq2591x *bq)
 	}
 
 	ret = of_property_read_u32(np, "ti,bq2591x,term-current",
-					&bq->cfg.iterm_ma);
+				   &bq->cfg.iterm_ma);
 	if (ret) {
 		bq->cfg.iterm_ma = 250;
 		pr_err("Failed to read node of ti,bq2591x,charge-voltage\n");
@@ -687,7 +681,8 @@ static int bq2591x_detect_device(struct bq2591x *bq)
 	ret = bq2591x_read_byte(bq, &data, BQ2591X_REG_0D);
 	if (ret == 0) {
 		bq->part_no = (data & BQ2591X_PN_MASK) >> BQ2591X_PN_SHIFT;
-		bq->revision = (data & BQ2591X_DEV_REV_MASK) >> BQ2591X_DEV_REV_SHIFT;
+		bq->revision =
+			(data & BQ2591X_DEV_REV_MASK) >> BQ2591X_DEV_REV_SHIFT;
 	}
 
 	return ret;
@@ -709,7 +704,8 @@ static int bq2591x_set_charge_profile(struct bq2591x *bq)
 		return ret;
 	}
 
-	ret = bq2591x_set_input_current_limit(bq->chg_dev, bq->cfg.icl_ma * 1000);
+	ret = bq2591x_set_input_current_limit(bq->chg_dev,
+					      bq->cfg.icl_ma * 1000);
 	if (ret < 0) {
 		pr_err("Failed to set input current limit:%d\n", ret);
 		return ret;
@@ -738,14 +734,14 @@ static int bq2591x_init_device(struct bq2591x *bq)
 	ret = bq2591x_enable_term(bq, bq->cfg.enable_term);
 	if (ret < 0)
 		pr_err("Failed to %s termination:%d\n",
-			bq->cfg.enable_term ? "enable" : "disable", ret);
+		       bq->cfg.enable_term ? "enable" : "disable", ret);
 
 	ret = bq2591x_set_vbatlow_volt(bq, bq->cfg.batlow_mv);
 	if (ret < 0)
 		pr_err("Failed to set vbatlow volt to %d,rc=%d\n",
-					bq->cfg.batlow_mv, ret);
+		       bq->cfg.batlow_mv, ret);
 
-//	bq2591x_set_term_current(bq, bq->cfg.iterm_ma * 1000);
+	//	bq2591x_set_term_current(bq, bq->cfg.iterm_ma * 1000);
 
 	bq2591x_set_charge_profile(bq);
 
@@ -756,7 +752,7 @@ static int bq2591x_init_device(struct bq2591x *bq)
 
 	if (ret < 0)
 		pr_err("Failed to %s charger:%d\n",
-			bq->charge_enabled ? "enable" : "disable", ret);
+		       bq->charge_enabled ? "enable" : "disable", ret);
 
 	return 0;
 }
@@ -782,8 +778,8 @@ static void bq2591x_stat_handler(struct bq2591x *bq)
 		return;
 
 	bq->prev_stat_flag = bq->reg_stat_flag;
-	pr_info("%s\n", (bq->reg_stat & BQ2591X_PG_STAT_MASK) ?
-					"Power Good" : "Power Poor");
+	pr_info("%s\n", (bq->reg_stat & BQ2591X_PG_STAT_MASK) ? "Power Good" :
+								      "Power Poor");
 
 	if (bq->reg_stat & BQ2591X_IINDPM_STAT_MASK)
 		pr_info("IINDPM Triggered\n");
@@ -797,15 +793,14 @@ static void bq2591x_stat_handler(struct bq2591x *bq)
 	if (bq->reg_stat & BQ2591X_WD_STAT_MASK)
 		pr_err("Watchdog overflow\n");
 
-	bq->charge_state = (bq->reg_stat & BQ2591X_CHRG_STAT_MASK)
-					>> BQ2591X_CHRG_STAT_SHIFT;
+	bq->charge_state = (bq->reg_stat & BQ2591X_CHRG_STAT_MASK) >>
+			   BQ2591X_CHRG_STAT_SHIFT;
 	if (bq->charge_state == BQ2591X_CHRG_STAT_NCHG)
 		pr_info("Not Charging\n");
 	else if (bq->charge_state == BQ2591X_CHRG_STAT_FCHG)
 		pr_info("Fast Charging\n");
 	else if (bq->charge_state == BQ2591X_CHRG_STAT_TCHG)
 		pr_info("Taper Charging\n");
-
 }
 
 static void bq2591x_fault_handler(struct bq2591x *bq)
@@ -817,35 +812,34 @@ static void bq2591x_fault_handler(struct bq2591x *bq)
 
 	if (bq->reg_fault_flag & BQ2591X_VBUS_OVP_FLAG_MASK)
 		pr_info("VBus OVP fault occured, current stat:%d",
-				bq->reg_fault & BQ2591X_VBUS_OVP_STAT_MASK);
+			bq->reg_fault & BQ2591X_VBUS_OVP_STAT_MASK);
 
 	if (bq->reg_fault_flag & BQ2591X_TSHUT_FLAG_MASK)
 		pr_info("Thermal shutdown occured, current stat:%d",
-				bq->reg_fault & BQ2591X_TSHUT_STAT_MASK);
+			bq->reg_fault & BQ2591X_TSHUT_STAT_MASK);
 
 	if (bq->reg_fault_flag & BQ2591X_BATOVP_FLAG_MASK)
 		pr_info("Battery OVP fault occured, current stat:%d",
-				bq->reg_fault & BQ2591X_BATOVP_STAT_MASK);
+			bq->reg_fault & BQ2591X_BATOVP_STAT_MASK);
 
 	if (bq->reg_fault_flag & BQ2591X_CFLY_FLAG_MASK)
 		pr_info("CFLY fault occured, current stat:%d",
-				bq->reg_fault & BQ2591X_CFLY_STAT_MASK);
+			bq->reg_fault & BQ2591X_CFLY_STAT_MASK);
 
 	if (bq->reg_fault_flag & BQ2591X_TMR_FLAG_MASK)
 		pr_info("Charge safety timer fault, current stat:%d",
-				bq->reg_fault & BQ2591X_TMR_STAT_MASK);
+			bq->reg_fault & BQ2591X_TMR_STAT_MASK);
 
 	if (bq->reg_fault_flag & BQ2591X_CAP_COND_FLAG_MASK)
 		pr_info("CAP conditon fault occured, current stat:%d",
-				bq->reg_fault & BQ2591X_CAP_COND_STAT_MASK);
+			bq->reg_fault & BQ2591X_CAP_COND_STAT_MASK);
 }
-
 
 static irqreturn_t bq2591x_charger_interrupt(int irq, void *data)
 {
 	struct bq2591x *bq = data;
 	int ret;
-	u8  val;
+	u8 val;
 
 	pr_info("bq2591x_charger_interrupt Triggered\n");
 
@@ -879,13 +873,13 @@ static irqreturn_t bq2591x_charger_interrupt(int irq, void *data)
 
 static void bq2591x_monitor_workfunc(struct work_struct *work)
 {
-	struct bq2591x *bq = container_of(work, struct bq2591x, monitor_work.work);
+	struct bq2591x *bq =
+		container_of(work, struct bq2591x, monitor_work.work);
 
 	//bq2591x_dump_register(bq);
 
 	schedule_delayed_work(&bq->monitor_work, 5 * HZ);
 }
-
 
 static int bq2591x_plug_in(struct charger_device *chg_dev)
 {
@@ -898,7 +892,6 @@ static int bq2591x_plug_in(struct charger_device *chg_dev)
 		pr_err("Failed to enable charging:%d\n", ret);
 
 	return ret;
-
 }
 
 static int bq2591x_plug_out(struct charger_device *chg_dev)
@@ -949,8 +942,8 @@ static struct charger_ops bq2591x_chg_ops = {
 	.send_ta_current_pattern = NULL,
 	.set_pe20_efficiency_table = NULL,
 	.send_ta20_current_pattern = NULL,
-//	.set_ta20_reset = NULL,
-//	.enable_cable_drop_comp = NULL,
+	//	.set_ta20_reset = NULL,
+	//	.enable_cable_drop_comp = NULL,
 
 	/* ADC */
 	.get_tchg_adc = NULL,
@@ -969,24 +962,24 @@ void oplus_bq2591x_dump_registers(void)
 		msleep(1);
 	}
 
-	s+=sprintf(s,"bq2591x_dump_regs:");
-	for (addr = 0x0; addr <= 0x0D; addr++){
-		s+=sprintf(s,"[0x%.2x,0x%.2x]", addr, val[addr]);
+	s += sprintf(s, "bq2591x_dump_regs:");
+	for (addr = 0x0; addr <= 0x0D; addr++) {
+		s += sprintf(s, "[0x%.2x,0x%.2x]", addr, val[addr]);
 	}
 
-	s+=sprintf(s,"\n");
-	dev_info(g_bq->dev,"%s",buf);
+	s += sprintf(s, "\n");
+	dev_info(g_bq->dev, "%s", buf);
 }
 
 int oplus_bq2591x_kick_wdt(void)
 {
 	u8 val = BQ2591X_WDT_RESET << BQ2591X_WDT_RESET_SHIFT;
 
-	if(g_bq->hz_mode)
+	if (g_bq->hz_mode)
 		return 0;
 
-	return bq2591x_update_bits(g_bq, BQ2591X_REG_05,
-				BQ2591X_WDT_RESET_MASK, val);
+	return bq2591x_update_bits(g_bq, BQ2591X_REG_05, BQ2591X_WDT_RESET_MASK,
+				   val);
 }
 
 int oplus_bq2591x_hardware_init(void)
@@ -1010,7 +1003,7 @@ int oplus_bq2591x_hardware_init(void)
 	g_bq->charge_enabled = true;
 	if (strcmp(g_bq->chg_dev_name, "secondary_chg") == 0) {
 		bq2591x_exit_hiz_mode(g_bq);
-   	}
+	}
 
 	return ret;
 }
@@ -1020,7 +1013,7 @@ int oplus_bq2591x_set_ichg(int cur)
 	u8 ichg;
 	u8 charge_enabled, ret, reg_val = 0;
 
-	dev_info(g_bq->dev, "%s:%d\n", __func__,cur);
+	dev_info(g_bq->dev, "%s:%d\n", __func__, cur);
 
 	if (cur) {
 		ret = bq2591x_read_byte(g_bq, &reg_val, BQ2591X_REG_06);
@@ -1031,11 +1024,11 @@ int oplus_bq2591x_set_ichg(int cur)
 			bq2591x_enable_charger(g_bq);
 	}
 
-	ichg = (cur - BQ2591X_ICHG_BASE)/BQ2591X_ICHG_LSB;
+	ichg = (cur - BQ2591X_ICHG_BASE) / BQ2591X_ICHG_LSB;
 	ichg <<= BQ2591X_ICHG_SHIFT;
 
-	return bq2591x_update_bits(g_bq, BQ2591X_REG_01,
-				BQ2591X_ICHG_MASK, ichg);
+	return bq2591x_update_bits(g_bq, BQ2591X_REG_01, BQ2591X_ICHG_MASK,
+				   ichg);
 }
 
 void oplus_bq2591x_set_mivr(int vbatt)
@@ -1043,28 +1036,27 @@ void oplus_bq2591x_set_mivr(int vbatt)
 	u8 val;
 
 	vbatt = vbatt + 200;
-	if(vbatt<4200) {
+	if (vbatt < 4200) {
 		vbatt = 4200;
 	}
 
 	val = (vbatt - BQ2591X_VINDPM_BASE) / BQ2591X_VINDPM_LSB;
 	val <<= BQ2591X_VINDPM_SHIFT;
 
-	bq2591x_update_bits(g_bq, BQ2591X_REG_02,
-				BQ2591X_VINDPM_MASK, val);
+	bq2591x_update_bits(g_bq, BQ2591X_REG_02, BQ2591X_VINDPM_MASK, val);
 }
 
 static int oplus_bq2591x_set_input_current_limit(int curr)
 {
 	u8 val;
-	if(curr < BQ2591X_IINLIM_BASE)
+	if (curr < BQ2591X_IINLIM_BASE)
 		curr = BQ2591X_IINLIM_BASE;
 
 	val = (curr - BQ2591X_IINLIM_BASE) / BQ2591X_IINLIM_LSB;
 	val <<= BQ2591X_IINLIM_SHIFT;
 
-	return bq2591x_update_bits(g_bq, BQ2591X_REG_03,
-				BQ2591X_IINLIM_MASK, val);
+	return bq2591x_update_bits(g_bq, BQ2591X_REG_03, BQ2591X_IINLIM_MASK,
+				   val);
 }
 
 static int usb_icl[] = {
@@ -1077,10 +1069,10 @@ int oplus_bq2591x_set_aicr(int current_ma)
 	int aicl_point = 0;
 	int aicl_point_temp = 0;
 
-	dev_info(g_bq->dev, "%s:%d\n", __func__,current_ma);
+	dev_info(g_bq->dev, "%s:%d\n", __func__, current_ma);
 
-     if (strcmp(g_bq->chg_dev_name, "secondary_chg") == 0) {
-	    if (current_ma && (true == g_bq->charge_enabled)) {
+	if (strcmp(g_bq->chg_dev_name, "secondary_chg") == 0) {
+		if (current_ma && (true == g_bq->charge_enabled)) {
 			bq2591x_exit_hiz_mode(g_bq);
 			bq2591x_enable_charger(g_bq);
 		} else if (0 == current_ma) {
@@ -1096,7 +1088,8 @@ int oplus_bq2591x_set_aicr(int current_ma)
 	else
 		g_bq->pre_current_ma = current_ma;
 
-	dev_info(g_bq->dev, "%s usb input max current limit=%d\n", __func__,current_ma);
+	dev_info(g_bq->dev, "%s usb input max current limit=%d\n", __func__,
+		 current_ma);
 	aicl_point_temp = aicl_point = 4500;
 	oplus_bq2591x_set_input_current_limit(4200);
 
@@ -1111,7 +1104,7 @@ int oplus_bq2591x_set_aicr(int current_ma)
 
 	chg_vol = oplus_bq2591x_get_charger_voltage();
 	if (chg_vol < aicl_point_temp) {
-		pr_debug( "use 500 here\n");
+		pr_debug("use 500 here\n");
 		goto aicl_end;
 	} else if (current_ma < 900)
 		goto aicl_end;
@@ -1164,7 +1157,7 @@ int oplus_bq2591x_set_aicr(int current_ma)
 	oplus_bq2591x_set_input_current_limit(usb_icl[i]);
 	msleep(90);
 	if (chg_vol < aicl_point_temp) {
-		i =  i - 2;//1.5
+		i = i - 2; //1.5
 		goto aicl_pre_step;
 	} else if (current_ma < 3000)
 		goto aicl_end;
@@ -1181,11 +1174,17 @@ int oplus_bq2591x_set_aicr(int current_ma)
 
 aicl_pre_step:
 	oplus_bq2591x_set_input_current_limit(usb_icl[i]);
-	dev_info(g_bq->dev, "%s:usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n",__func__, chg_vol, i, usb_icl[i], aicl_point_temp);
+	dev_info(
+		g_bq->dev,
+		"%s:usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n",
+		__func__, chg_vol, i, usb_icl[i], aicl_point_temp);
 	return rc;
 aicl_end:
 	oplus_bq2591x_set_input_current_limit(usb_icl[i]);
-	dev_info(g_bq->dev, "%s:usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n",__func__, chg_vol, i, usb_icl[i], aicl_point_temp);
+	dev_info(
+		g_bq->dev,
+		"%s:usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n",
+		__func__, chg_vol, i, usb_icl[i], aicl_point_temp);
 	return rc;
 }
 
@@ -1193,11 +1192,11 @@ int oplus_bq2591x_set_cv(int mv)
 {
 	u8 val;
 
-	val = (mv - BQ2591X_VREG_BASE)/BQ2591X_VREG_LSB;
+	val = (mv - BQ2591X_VREG_BASE) / BQ2591X_VREG_LSB;
 	val <<= BQ2591X_VREG_SHIFT;
 
-	return bq2591x_update_bits(g_bq, BQ2591X_REG_00,
-				BQ2591X_VREG_MASK, val);
+	return bq2591x_update_bits(g_bq, BQ2591X_REG_00, BQ2591X_VREG_MASK,
+				   val);
 }
 
 int oplus_bq2591x_set_ieoc(int cur)
@@ -1289,7 +1288,7 @@ int oplus_bq2591x_disable_otg(void)
 
 int oplus_bq2591x_disable_te(void)
 {
-	return  bq2591x_enable_term(g_bq, false);
+	return bq2591x_enable_term(g_bq, false);
 }
 
 bool oplus_bq2591x_check_charger_resume(void)
@@ -1320,7 +1319,6 @@ static int oplus_bq2591x_get_charger_voltage(void)
 
 	vchr = vchr / 1000;
 	return vchr;
-
 }
 
 void oplus_bq2591x_set_chargerid_switch_val(int value)
@@ -1377,7 +1375,7 @@ int oplus_bq2591x_enable_shipmode(bool en)
 
 extern int oplus_battery_meter_get_battery_voltage(void);
 
-struct oplus_chg_operations  oplus_chg_bq2591x_ops = {
+struct oplus_chg_operations oplus_chg_bq2591x_ops = {
 	.dump_registers = oplus_bq2591x_dump_registers,
 	.kick_wdt = oplus_bq2591x_kick_wdt,
 	.hardware_init = oplus_bq2591x_hardware_init,
@@ -1401,10 +1399,10 @@ struct oplus_chg_operations  oplus_chg_bq2591x_ops = {
 
 	.get_charger_type = oplus_bq2591x_get_charger_type,
 	.get_charger_volt = oplus_bq2591x_get_charger_voltage,
-//	int (*get_charger_current)(void);
+	//	int (*get_charger_current)(void);
 	.get_chargerid_volt = NULL,
-    .set_chargerid_switch_val = oplus_bq2591x_set_chargerid_switch_val,
-    .get_chargerid_switch_val = oplus_bq2591x_get_chargerid_switch_val,
+	.set_chargerid_switch_val = oplus_bq2591x_set_chargerid_switch_val,
+	.get_chargerid_switch_val = oplus_bq2591x_get_chargerid_switch_val,
 	.check_chrdet_status = NULL,
 
 	.get_boot_mode = (int (*)(void))get_boot_mode,
@@ -1415,13 +1413,13 @@ struct oplus_chg_operations  oplus_chg_bq2591x_ops = {
 	.set_power_off = NULL,
 	.usb_connect = mt_usb_connect,
 	.usb_disconnect = mt_usb_disconnect,
-    .get_chg_current_step = oplus_bq2591x_get_chg_current_step,
-    .need_to_check_ibatt = oplus_bq2591x_need_to_check_ibatt,
-    .get_dyna_aicl_result = oplus_bq2591x_get_dyna_aicl_result,
-    .get_shortc_hw_gpio_status = oplus_bq2591x_get_shortc_hw_gpio_status,
-//	void (*check_is_iindpm_mode) (void);
-    .oplus_chg_get_pd_type = NULL,
-    .oplus_chg_pd_setup = NULL,
+	.get_chg_current_step = oplus_bq2591x_get_chg_current_step,
+	.need_to_check_ibatt = oplus_bq2591x_need_to_check_ibatt,
+	.get_dyna_aicl_result = oplus_bq2591x_get_dyna_aicl_result,
+	.get_shortc_hw_gpio_status = oplus_bq2591x_get_shortc_hw_gpio_status,
+	//	void (*check_is_iindpm_mode) (void);
+	.oplus_chg_get_pd_type = NULL,
+	.oplus_chg_pd_setup = NULL,
 	.get_charger_subtype = oplus_bq2591x_get_charger_subtype,
 	.set_qc_config = NULL,
 	.enable_qc_detect = NULL,
@@ -1430,7 +1428,7 @@ struct oplus_chg_operations  oplus_chg_bq2591x_ops = {
 };
 
 static int bq2591x_charger_probe(struct i2c_client *client,
-			   const struct i2c_device_id *id)
+				 const struct i2c_device_id *id)
 {
 	struct bq2591x *bq = NULL;
 	int ret;
@@ -1454,10 +1452,10 @@ static int bq2591x_charger_probe(struct i2c_client *client,
 	ret = bq2591x_detect_device(bq);
 	if (!ret && bq->part_no == BQ25910) {
 		pr_info("charger device bq2591x detected, revision:%d\n",
-							bq->revision);
+			bq->revision);
 	} else {
 		pr_info("no bq2591x charger device found:%d\n", ret);
-		ret= -ENODEV;
+		ret = -ENODEV;
 		goto err_detect_device;
 	}
 
@@ -1465,10 +1463,9 @@ static int bq2591x_charger_probe(struct i2c_client *client,
 		bq2591x_parse_dt(&client->dev, bq);
 
 	bq->chg_props = bq2591x_chg_props;
-		/* Register charger device */
-	bq->chg_dev = charger_device_register(
-		"bq25910", &client->dev, bq, &bq2591x_chg_ops,
-		&bq->chg_props);
+	/* Register charger device */
+	bq->chg_dev = charger_device_register("bq25910", &client->dev, bq,
+					      &bq2591x_chg_ops, &bq->chg_props);
 	if (IS_ERR_OR_NULL(bq->chg_dev)) {
 		ret = PTR_ERR(bq->chg_dev);
 		goto err_charger_device;
@@ -1484,18 +1481,19 @@ static int bq2591x_charger_probe(struct i2c_client *client,
 
 	if (client->irq) {
 		ret = devm_request_threaded_irq(&client->dev, client->irq, NULL,
-				bq2591x_charger_interrupt,
-				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-				"bq2591x charger irq", bq);
+						bq2591x_charger_interrupt,
+						IRQF_TRIGGER_FALLING |
+							IRQF_ONESHOT,
+						"bq2591x charger irq", bq);
 		if (ret < 0) {
 			pr_err("request irq for irq=%d failed,ret =%d\n",
-				client->irq, ret);
+			       client->irq, ret);
 			goto err_irq;
 		}
 	}
 
 	ret = sysfs_create_group(&bq->dev->kobj, &bq2591x_attr_group);
-	if (ret){
+	if (ret) {
 		dev_err(bq->dev, "failed to register sysfs. err: %d\n", ret);
 		goto err_sysfs_create;
 	}
@@ -1529,18 +1527,15 @@ static int bq2591x_charger_remove(struct i2c_client *client)
 	return 0;
 }
 
-
 static void bq2591x_charger_shutdown(struct i2c_client *client)
 {
 	pr_info("shutdown\n");
-
 }
 
 static struct of_device_id bq2591x_charger_match_table[] = {
-	{.compatible = "ti,bq2591x"},
+	{ .compatible = "ti,bq2591x" },
 	{},
 };
-
 
 static const struct i2c_device_id bq2591x_charger_id[] = {
 	{ "bq2591x", BQ25910 },

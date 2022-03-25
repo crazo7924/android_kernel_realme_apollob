@@ -63,7 +63,6 @@ static irqreturn_t tmem_mpu_vio_handler(unsigned int emi_id,
 	unsigned int master_id, domain_id;
 	unsigned int port_id;
 	unsigned int wr_vio, wr_oo_vio;
-	unsigned int hp_wr_vio;
 
 	for (i = 0; i < len; i++) {
 		if (dump[i].offset == EMI_MPUS_OFFSET)
@@ -84,7 +83,6 @@ static irqreturn_t tmem_mpu_vio_handler(unsigned int emi_id,
 
 	vio_addr = ((((unsigned long long)(mput_2nd & 0xF)) << 32) + mput
 		    + EMI_PHY_START);
-	hp_wr_vio = (mput_2nd >> 21) & 0x3;
 
 	master_id = mpus & 0xFFFF;
 	domain_id = (mpus >> 21) & 0xF;

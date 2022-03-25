@@ -35,46 +35,47 @@
 #define CHARGING_INTERVAL 10
 #define CHARGING_FULL_INTERVAL 20
 
-#define CHRLOG_ERROR_LEVEL   1
-#define CHRLOG_DEBUG_LEVEL   2
+#define CHRLOG_ERROR_LEVEL 1
+#define CHRLOG_DEBUG_LEVEL 2
 extern int chr_get_debug_level(void);
 
-#define chr_err(fmt, args...)					\
-do {								\
-	if (chr_get_debug_level() >= CHRLOG_ERROR_LEVEL) {	\
-		pr_notice(fmt, ##args);				\
-	}							\
-} while (0)
+#define chr_err(fmt, args...)                                                  \
+	do {                                                                   \
+		if (chr_get_debug_level() >= CHRLOG_ERROR_LEVEL) {             \
+			pr_notice(fmt, ##args);                                \
+		}                                                              \
+	} while (0)
 
-#define chr_info(fmt, args...)					\
-do {								\
-	if (chr_get_debug_level() >= CHRLOG_INFO_LEVEL) {	\
-		pr_notice_ratelimited(fmt, ##args);		\
-	}							\
-} while (0)
+#define chr_info(fmt, args...)                                                 \
+	do {                                                                   \
+		if (chr_get_debug_level() >= CHRLOG_INFO_LEVEL) {              \
+			pr_notice_ratelimited(fmt, ##args);                    \
+		}                                                              \
+	} while (0)
 
-#define chr_debug(fmt, args...)					\
-do {								\
-	if (chr_get_debug_level() >= CHRLOG_DEBUG_LEVEL) {	\
-		pr_notice(fmt, ##args);				\
-	}							\
-} while (0)
-
+#define chr_debug(fmt, args...)                                                \
+	do {                                                                   \
+		if (chr_get_debug_level() >= CHRLOG_DEBUG_LEVEL) {             \
+			pr_notice(fmt, ##args);                                \
+		}                                                              \
+	} while (0)
 
 /* procfs */
-#define PROC_FOPS_RW(name)						\
-static int mtk_chg_##name##_open(struct inode *node, struct file *file)	\
-{									\
-	return single_open(file, mtk_chg_##name##_show, PDE_DATA(node));\
-}									\
-static const struct file_operations mtk_chg_##name##_fops = {		\
-	.owner = THIS_MODULE,						\
-	.open = mtk_chg_##name##_open,					\
-	.read = seq_read,						\
-	.llseek = seq_lseek,						\
-	.release = single_release,					\
-	.write = mtk_chg_##name##_write,				\
-}
+#define PROC_FOPS_RW(name)                                                     \
+	static int mtk_chg_##name##_open(struct inode *node,                   \
+					 struct file *file)                    \
+	{                                                                      \
+		return single_open(file, mtk_chg_##name##_show,                \
+				   PDE_DATA(node));                            \
+	}                                                                      \
+	static const struct file_operations mtk_chg_##name##_fops = {          \
+		.owner = THIS_MODULE,                                          \
+		.open = mtk_chg_##name##_open,                                 \
+		.read = seq_read,                                              \
+		.llseek = seq_lseek,                                           \
+		.release = single_release,                                     \
+		.write = mtk_chg_##name##_write,                               \
+	}
 
 //====================================================================//
 /* mtk_charger_init.h begin */
@@ -82,59 +83,59 @@ static const struct file_operations mtk_chg_##name##_fops = {		\
 #define V_CHARGER_MAX 6500000 /* 6.5 V */
 #define V_CHARGER_MIN 4600000 /* 4.6 V */
 
-#define USB_CHARGER_CURRENT_SUSPEND		0 /* def CONFIG_USB_IF */
-#define USB_CHARGER_CURRENT_UNCONFIGURED	70000 /* 70mA */
-#define USB_CHARGER_CURRENT_CONFIGURED		500000 /* 500mA */
-#define USB_CHARGER_CURRENT			500000 /* 500mA */
-#define AC_CHARGER_CURRENT			2050000
-#define AC_CHARGER_INPUT_CURRENT		3200000
-#define NON_STD_AC_CHARGER_CURRENT		500000
-#define CHARGING_HOST_CHARGER_CURRENT		650000
-#define APPLE_1_0A_CHARGER_CURRENT		650000
-#define APPLE_2_1A_CHARGER_CURRENT		800000
-#define TA_AC_CHARGING_CURRENT	3000000
+#define USB_CHARGER_CURRENT_SUSPEND 0 /* def CONFIG_USB_IF */
+#define USB_CHARGER_CURRENT_UNCONFIGURED 70000 /* 70mA */
+#define USB_CHARGER_CURRENT_CONFIGURED 500000 /* 500mA */
+#define USB_CHARGER_CURRENT 500000 /* 500mA */
+#define AC_CHARGER_CURRENT 2050000
+#define AC_CHARGER_INPUT_CURRENT 3200000
+#define NON_STD_AC_CHARGER_CURRENT 500000
+#define CHARGING_HOST_CHARGER_CURRENT 650000
+#define APPLE_1_0A_CHARGER_CURRENT 650000
+#define APPLE_2_1A_CHARGER_CURRENT 800000
+#define TA_AC_CHARGING_CURRENT 3000000
 
 #define V_CHARGER_MIN_1 4400000 /* 4.4 V */
 #define V_CHARGER_MIN_2 4200000 /* 4.2 V */
 #define MAX_DMIVR_CHARGER_CURRENT 1400000 /* 1.4 A */
 
 /* sw jeita */
-#define JEITA_TEMP_ABOVE_T4_CV	4240000
-#define JEITA_TEMP_T3_TO_T4_CV	4240000
-#define JEITA_TEMP_T2_TO_T3_CV	4340000
-#define JEITA_TEMP_T1_TO_T2_CV	4240000
-#define JEITA_TEMP_T0_TO_T1_CV	4040000
-#define JEITA_TEMP_BELOW_T0_CV	4040000
-#define TEMP_T4_THRES  50
+#define JEITA_TEMP_ABOVE_T4_CV 4240000
+#define JEITA_TEMP_T3_TO_T4_CV 4240000
+#define JEITA_TEMP_T2_TO_T3_CV 4340000
+#define JEITA_TEMP_T1_TO_T2_CV 4240000
+#define JEITA_TEMP_T0_TO_T1_CV 4040000
+#define JEITA_TEMP_BELOW_T0_CV 4040000
+#define TEMP_T4_THRES 50
 #define TEMP_T4_THRES_MINUS_X_DEGREE 47
-#define TEMP_T3_THRES  45
+#define TEMP_T3_THRES 45
 #define TEMP_T3_THRES_MINUS_X_DEGREE 39
-#define TEMP_T2_THRES  10
+#define TEMP_T2_THRES 10
 #define TEMP_T2_THRES_PLUS_X_DEGREE 16
-#define TEMP_T1_THRES  0
+#define TEMP_T1_THRES 0
 #define TEMP_T1_THRES_PLUS_X_DEGREE 6
-#define TEMP_T0_THRES  0
-#define TEMP_T0_THRES_PLUS_X_DEGREE  0
+#define TEMP_T0_THRES 0
+#define TEMP_T0_THRES_PLUS_X_DEGREE 0
 #define TEMP_NEG_10_THRES 0
 
 /* Battery Temperature Protection */
-#define MIN_CHARGE_TEMP  0
-#define MIN_CHARGE_TEMP_PLUS_X_DEGREE	6
-#define MAX_CHARGE_TEMP  50
-#define MAX_CHARGE_TEMP_MINUS_X_DEGREE	47
+#define MIN_CHARGE_TEMP 0
+#define MIN_CHARGE_TEMP_PLUS_X_DEGREE 6
+#define MAX_CHARGE_TEMP 50
+#define MAX_CHARGE_TEMP_MINUS_X_DEGREE 47
 
 /* pe */
 #define PE_ICHG_LEAVE_THRESHOLD 1000000 /* uA */
 #define TA_AC_12V_INPUT_CURRENT 3200000
-#define TA_AC_9V_INPUT_CURRENT	3200000
-#define TA_AC_7V_INPUT_CURRENT	3200000
+#define TA_AC_9V_INPUT_CURRENT 3200000
+#define TA_AC_7V_INPUT_CURRENT 3200000
 #define TA_9V_SUPPORT
 #define TA_12V_SUPPORT
 
 /* pe2.0 */
 #define PE20_ICHG_LEAVE_THRESHOLD 1000000 /* uA */
-#define TA_START_BATTERY_SOC	0
-#define TA_STOP_BATTERY_SOC	85
+#define TA_START_BATTERY_SOC 0
+#define TA_STOP_BATTERY_SOC 85
 
 /* dual charger */
 #define TA_AC_MASTER_CHARGING_CURRENT 1500000
@@ -148,9 +149,9 @@ static const struct file_operations mtk_chg_##name##_fops = {		\
 #define VBAT_CABLE_IMP_THRESHOLD 3900000 /* uV */
 
 /* bif */
-#define BIF_THRESHOLD1 4250000	/* UV */
-#define BIF_THRESHOLD2 4300000	/* UV */
-#define BIF_CV_UNDER_THRESHOLD2 4450000	/* UV */
+#define BIF_THRESHOLD1 4250000 /* UV */
+#define BIF_THRESHOLD2 4300000 /* UV */
+#define BIF_CV_UNDER_THRESHOLD2 4450000 /* UV */
 #define BIF_CV BATTERY_CV /* UV */
 
 #define R_SENSE 56 /* mohm */
@@ -159,8 +160,8 @@ static const struct file_operations mtk_chg_##name##_fops = {		\
 
 #define DEFAULT_BC12_CHARGER 0 /* MAIN_CHARGER */
 
-#define PD_VBUS_UPPER_BOUND 10000000	/* uv */
-#define PD_VBUS_LOW_BOUND 5000000	/* uv */
+#define PD_VBUS_UPPER_BOUND 10000000 /* uv */
+#define PD_VBUS_LOW_BOUND 5000000 /* uv */
 #define PD_ICHG_LEAVE_THRESHOLD 1000000 /* uA */
 #define PD_STOP_BATTERY_SOC 80
 
@@ -172,26 +173,26 @@ static const struct file_operations mtk_chg_##name##_fops = {		\
 #define BATTERY_NOTIFY_CASE_0002_VBATTEMP
 /* mtk_charger_init.h end */
 
-#define CHR_CC		(0x0001)
-#define CHR_TOPOFF	(0x0002)
-#define CHR_TUNING	(0x0003)
-#define CHR_POSTCC	(0x0004)
-#define CHR_BATFULL	(0x0005)
-#define CHR_ERROR	(0x0006)
-#define	CHR_PE40_INIT	(0x0007)
-#define	CHR_PE40_CC	(0x0008)
-#define	CHR_PE40_TUNING	(0x0009)
-#define	CHR_PE40_POSTCC	(0x000A)
-#define CHR_PE30	(0x000B)
+#define CHR_CC (0x0001)
+#define CHR_TOPOFF (0x0002)
+#define CHR_TUNING (0x0003)
+#define CHR_POSTCC (0x0004)
+#define CHR_BATFULL (0x0005)
+#define CHR_ERROR (0x0006)
+#define CHR_PE40_INIT (0x0007)
+#define CHR_PE40_CC (0x0008)
+#define CHR_PE40_TUNING (0x0009)
+#define CHR_PE40_POSTCC (0x000A)
+#define CHR_PE30 (0x000B)
 
 /* charging abnormal status */
-#define CHG_VBUS_OV_STATUS	(1 << 0)
-#define CHG_BAT_OT_STATUS	(1 << 1)
-#define CHG_OC_STATUS		(1 << 2)
-#define CHG_BAT_OV_STATUS	(1 << 3)
-#define CHG_ST_TMO_STATUS	(1 << 4)
-#define CHG_BAT_LT_STATUS	(1 << 5)
-#define CHG_TYPEC_WD_STATUS	(1 << 6)
+#define CHG_VBUS_OV_STATUS (1 << 0)
+#define CHG_BAT_OT_STATUS (1 << 1)
+#define CHG_OC_STATUS (1 << 2)
+#define CHG_BAT_OV_STATUS (1 << 3)
+#define CHG_ST_TMO_STATUS (1 << 4)
+#define CHG_BAT_LT_STATUS (1 << 5)
+#define CHG_TYPEC_WD_STATUS (1 << 6)
 
 struct mtk_charger;
 /* charger_algorithm notify charger_dev */
@@ -199,7 +200,6 @@ enum {
 	EVENT_EOC,
 	EVENT_RECHARGE,
 };
-
 
 /*
  * Software JEITA
@@ -227,11 +227,7 @@ struct sw_jeita_data {
 };
 
 /* battery thermal protection */
-enum bat_temp_state_enum {
-	BAT_TEMP_LOW = 0,
-	BAT_TEMP_NORMAL,
-	BAT_TEMP_HIGH
-};
+enum bat_temp_state_enum { BAT_TEMP_LOW = 0, BAT_TEMP_NORMAL, BAT_TEMP_HIGH };
 
 struct battery_thermal_protection_data {
 	int sm;
@@ -250,24 +246,23 @@ struct battery_thermal_protection_data {
 #define SY6970 5
 
 typedef enum {
-        AP_TEMP_BELOW_T0 = 0,
-        AP_TEMP_T0_TO_T1,
-        AP_TEMP_T1_TO_T2,
-        AP_TEMP_T2_TO_T3,
-        AP_TEMP_ABOVE_T3
-}OPLUS_CHG_AP_TEMP_STAT;
-
+	AP_TEMP_BELOW_T0 = 0,
+	AP_TEMP_T0_TO_T1,
+	AP_TEMP_T1_TO_T2,
+	AP_TEMP_T2_TO_T3,
+	AP_TEMP_ABOVE_T3
+} OPLUS_CHG_AP_TEMP_STAT;
 
 enum charger_type {
-    CHARGER_UNKNOWN = 0,
-    STANDARD_HOST,      /* USB : 450mA */
-    CHARGING_HOST,
-    NONSTANDARD_CHARGER,    /* AC : 450mA~1A */
-    STANDARD_CHARGER,   /* AC : ~1A */
-    APPLE_2_1A_CHARGER, /* 2.1A apple charger */
-    APPLE_1_0A_CHARGER, /* 1A apple charger */
-    APPLE_0_5A_CHARGER, /* 0.5A apple charger */
-    WIRELESS_CHARGER,
+	CHARGER_UNKNOWN = 0,
+	STANDARD_HOST, /* USB : 450mA */
+	CHARGING_HOST,
+	NONSTANDARD_CHARGER, /* AC : 450mA~1A */
+	STANDARD_CHARGER, /* AC : ~1A */
+	APPLE_2_1A_CHARGER, /* 2.1A apple charger */
+	APPLE_1_0A_CHARGER, /* 1A apple charger */
+	APPLE_0_5A_CHARGER, /* 0.5A apple charger */
+	WIRELESS_CHARGER,
 };
 
 /* charger_manager notify charger_consumer */
@@ -298,7 +293,6 @@ struct gtimer {
 	int (*callback)(struct gtimer *gt);
 	struct list_head list;
 };
-
 
 struct mtk_charger_algorithm {
 	int (*do_algorithm)(struct mtk_charger *info);
@@ -339,7 +333,7 @@ struct mtk_pdc {
 };
 
 struct charger_custom_data {
-	int battery_cv;	/* uv */
+	int battery_cv; /* uv */
 	int max_charger_voltage;
 	int max_charger_voltage_setting;
 	int min_charger_voltage;
@@ -435,9 +429,9 @@ struct charger_custom_data {
 	int vbat_cable_imp_threshold;
 
 	/* bif */
-	int bif_threshold1;	/* uv */
-	int bif_threshold2;	/* uv */
-	int bif_cv_under_threshold2;	/* uv */
+	int bif_threshold1; /* uv */
+	int bif_threshold2; /* uv */
+	int bif_cv_under_threshold2; /* uv */
 
 	/* power path */
 	bool power_path_support;
@@ -471,8 +465,8 @@ struct charger_data {
 };
 
 struct hvdcp_v20 {
-    bool is_enabled;
-    bool is_connect;
+	bool is_enabled;
+	bool is_connect;
 };
 
 enum chg_data_idx_enum {
@@ -487,7 +481,7 @@ struct mtk_charger {
 	struct notifier_block chg1_nb;
 	struct charger_device *chg2_dev;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* lizhijie@BSP.CHG.Basic, 2020/05/08, Add for charging */
+	/* lizhijie@BSP.CHG.Basic, 2020/05/08, Add for charging */
 	struct charger_device *dvchg1_dev;
 	struct notifier_block dvchg1_nb;
 	struct charger_data dvchg1_data;
@@ -513,11 +507,11 @@ struct mtk_charger {
 	struct notifier_block pd_nb;
 	struct mutex pd_lock;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* lizhijie@BSP.CHG.Basic, 2020/05/08, lzj Add for charging */
-	struct iio_channel      *charger_id_chan;
-	struct iio_channel      *usb_temp_v_l_chan;
-	struct iio_channel      *usb_temp_v_r_chan;
-	struct delayed_work	step_charging_work;
+	/* lizhijie@BSP.CHG.Basic, 2020/05/08, lzj Add for charging */
+	struct iio_channel *charger_id_chan;
+	struct iio_channel *usb_temp_v_l_chan;
+	struct iio_channel *usb_temp_v_r_chan;
+	struct delayed_work step_charging_work;
 	int step_status;
 	int step_status_pre;
 	int step_cnt;
@@ -525,7 +519,7 @@ struct mtk_charger {
 #endif
 
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* YanGang@BSP.CHG.Basic, 2019/12/30, Add for ccdetect */
+	/* YanGang@BSP.CHG.Basic, 2019/12/30, Add for ccdetect */
 	int ccdetect_gpio;
 	int ccdetect_irq;
 	struct pinctrl_state *ccdetect_active;
@@ -537,7 +531,7 @@ struct mtk_charger {
 	bool pd_reset;
 	bool disable_pd_dual;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/*lizhijie@BSP.CHG.Basic. 2020/05/08 add for charger*/
+	/*lizhijie@BSP.CHG.Basic. 2020/05/08 add for charger*/
 	struct tcpc_device *tcpc;
 #endif
 
@@ -565,7 +559,7 @@ struct mtk_charger {
 	struct mutex charger_lock;
 
 	/* thread related */
-	wait_queue_head_t  wait_que;
+	wait_queue_head_t wait_que;
 	bool charger_thread_timeout;
 	unsigned int polling_interval;
 	bool charger_thread_polling;
@@ -619,12 +613,12 @@ struct mtk_charger {
 	struct notifier_block chg_alg_nb;
 	bool enable_hv_charging;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/*Boyu.Wen@BSP.CHG.Basic, 2020/09/03, Add for the difference of chargerid between 537&538  */
+	/*Boyu.Wen@BSP.CHG.Basic, 2020/09/03, Add for the difference of chargerid between 537&538  */
 	bool chargerid_disable;
 	bool chargerid_vol_disable;
 #endif
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* wangdengwen@BSP.CHG.Basic, 2020/09/05, Add for the tchg get  */
+	/* wangdengwen@BSP.CHG.Basic, 2020/09/05, Add for the tchg get  */
 	struct iio_channel *chg_temp_chan;
 	int chargeric_temp_volt;
 	int chargeric_temp;
@@ -638,27 +632,27 @@ struct mtk_charger {
 };
 
 struct charger_consumer {
-    struct device *dev;
-    void *cm;
-    struct notifier_block *pnb;
-    struct list_head list;
-    bool hv_charging_disabled;
-    /* KaiLi.Lu@BSP.CHG.Basic, 2020/08/10, add for tscharger 0.1C precision support*/
-    bool support_ntc_01c_precision;
-    /*end*/
+	struct device *dev;
+	void *cm;
+	struct notifier_block *pnb;
+	struct list_head list;
+	bool hv_charging_disabled;
+	/* KaiLi.Lu@BSP.CHG.Basic, 2020/08/10, add for tscharger 0.1C precision support*/
+	bool support_ntc_01c_precision;
+	/*end*/
 };
 
 typedef enum {
-        BATT_TEMP_EXTEND_BELOW_T0 = 0,
-        BATT_TEMP_EXTEND_T0_TO_T1,
-        BATT_TEMP_EXTEND_T1_TO_T2,
-        BATT_TEMP_EXTEND_T2_TO_T3,
-        BATT_TEMP_EXTEND_T3_TO_T4,
-        BATT_TEMP_EXTEND_T4_TO_T5,
-        BATT_TEMP_EXTEND_T5_TO_T6,
-        BATT_TEMP_EXTEND_T6_TO_T7,
-        BATT_TEMP_EXTEND_ABOVE_T7
-}OPLUS_CHG_BATT_TEMP_EXTEND_STAT;
+	BATT_TEMP_EXTEND_BELOW_T0 = 0,
+	BATT_TEMP_EXTEND_T0_TO_T1,
+	BATT_TEMP_EXTEND_T1_TO_T2,
+	BATT_TEMP_EXTEND_T2_TO_T3,
+	BATT_TEMP_EXTEND_T3_TO_T4,
+	BATT_TEMP_EXTEND_T4_TO_T5,
+	BATT_TEMP_EXTEND_T5_TO_T6,
+	BATT_TEMP_EXTEND_T6_TO_T7,
+	BATT_TEMP_EXTEND_ABOVE_T7
+} OPLUS_CHG_BATT_TEMP_EXTEND_STAT;
 
 //extern void mt_power_off(void);
 extern int mtk_chg_enable_vbus_ovp(bool enable);
@@ -678,12 +672,12 @@ extern int get_charger_type(struct mtk_charger *info);
 extern int disable_hw_ovp(struct mtk_charger *info, int en);
 extern bool is_charger_exist(struct mtk_charger *info);
 extern int get_charger_temperature(struct mtk_charger *info,
-	struct charger_device *chg);
+				   struct charger_device *chg);
 extern int get_charger_charging_current(struct mtk_charger *info,
-	struct charger_device *chg);
+					struct charger_device *chg);
 extern int get_charger_input_current(struct mtk_charger *info,
-	struct charger_device *chg);
+				     struct charger_device *chg);
 extern void _wake_up_charger(struct mtk_charger *info);
-extern int get_chgntc_adc_temp(struct charger_device *chg_dev, 
-	int *tmin, int *tmax);
+extern int get_chgntc_adc_temp(struct charger_device *chg_dev, int *tmin,
+			       int *tmax);
 #endif /* __OPLUS_BATTERY_MTK6765R_H__ */

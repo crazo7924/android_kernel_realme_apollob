@@ -17,7 +17,6 @@
 #include "../oplus_charger.h"
 #include <mt-plat/charger_type.h>
 
-
 #ifdef CONFIG_OPLUS_CHARGER_MTK
 #include <linux/slab.h>
 #include <linux/irq.h>
@@ -36,7 +35,8 @@
 #include <mt-plat/mt_gpio.h>
 #include <mt_boot_common.h>
 #include <mt-plat/mtk_rtc.h>
-#elif defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_OPLUS_CHARGER_MTK6771)
+#elif defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                 \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771)
 #include <linux/module.h>
 
 #include <mt-plat/mtk_gpio.h>
@@ -51,8 +51,6 @@
 #include <mach/mtk_rtc.h>
 #endif
 #include <soc/oppo/device_info.h>
-
-
 
 //extern void mt_power_off(void);
 #else
@@ -94,7 +92,7 @@ extern void mt_set_chargerid_switch_val(int value);
 extern int charger_pretype_get(void);
 extern int mt_get_chargerid_switch_val(void);
 extern bool oplus_pmic_check_chip_is_null(void);
-extern int mt_get_chargerid_volt (void);
+extern int mt_get_chargerid_volt(void);
 extern int oplus_battery_meter_get_battery_voltage(void);
 static int smb1351_read_reg(struct smb1351_charger *chip, int reg, u8 *val)
 {
@@ -105,7 +103,7 @@ static int smb1351_read_reg(struct smb1351_charger *chip, int reg, u8 *val)
 	ret = i2c_smbus_read_byte_data(chip->client, reg);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
 			ret = i2c_smbus_read_byte_data(chip->client, reg);
 			if (ret < 0) {
@@ -124,7 +122,7 @@ static int smb1351_read_reg(struct smb1351_charger *chip, int reg, u8 *val)
 		*val = ret;
 	}
 	pm_relax(chip->dev);
-//	pr_err("Reading 0x%02x=0x%02x\n", reg, *val);
+	//	pr_err("Reading 0x%02x=0x%02x\n", reg, *val);
 	return 0;
 }
 
@@ -137,7 +135,7 @@ static int smb1351_write_reg(struct smb1351_charger *chip, int reg, u8 val)
 	ret = i2c_smbus_write_byte_data(chip->client, reg, val);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
 			ret = i2c_smbus_write_byte_data(chip->client, reg, val);
 			if (ret < 0) {
@@ -149,18 +147,18 @@ static int smb1351_write_reg(struct smb1351_charger *chip, int reg, u8 val)
 	}
 
 	if (ret < 0) {
-		pr_err("i2c write fail: can't write %02x to %02x: %d\n",
-			val, reg, ret);
+		pr_err("i2c write fail: can't write %02x to %02x: %d\n", val,
+		       reg, ret);
 		pm_relax(chip->dev);
 		return ret;
 	}
 	pm_relax(chip->dev);
-//	pr_err("Writing 0x%02x=0x%02x\n", reg, val);
+	//	pr_err("Writing 0x%02x=0x%02x\n", reg, val);
 	return 0;
 }
 
-static int smb1351_masked_write(struct smb1351_charger *chip, int reg,
-							u8 mask, u8 val)
+static int smb1351_masked_write(struct smb1351_charger *chip, int reg, u8 mask,
+				u8 val)
 {
 	s32 rc;
 	u8 temp;
@@ -185,7 +183,7 @@ static int smb1351_enable_volatile_writes(struct smb1351_charger *chip)
 	int rc;
 
 	rc = smb1351_masked_write(chip, CMD_I2C_REG, CMD_BQ_CFG_ACCESS_BIT,
-							CMD_BQ_CFG_ACCESS_BIT);
+				  CMD_BQ_CFG_ACCESS_BIT);
 	if (rc)
 		pr_err("Couldn't write CMD_BQ_CFG_ACCESS_BIT rc=%d\n", rc);
 
@@ -196,29 +194,30 @@ static int smbchg_charging_suspend(struct smb1351_charger *chip, bool enable)
 {
 	int rc = 0;
 	u8 reg = 0;
-	pr_err("%s, suspend= %d\n", __func__,enable);
-	rc = smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG,CMD_SUSPEND_MODE_BIT,
-				enable ? CMD_SUSPEND_MODE_BIT : 0);
+	pr_err("%s, suspend= %d\n", __func__, enable);
+	rc = smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG,
+				  CMD_SUSPEND_MODE_BIT,
+				  enable ? CMD_SUSPEND_MODE_BIT : 0);
 	if (rc)
 		pr_err("Couldn't suspend rc = %d\n", rc);
-	
-	smb1351_read_reg(chip,CMD_INPUT_LIMIT_REG, &reg);
-	pr_err("%s, read reg:0x%x\n",__func__,reg);
+
+	smb1351_read_reg(chip, CMD_INPUT_LIMIT_REG, &reg);
+	pr_err("%s, read reg:0x%x\n", __func__, reg);
 	return rc;
 }
 static int smbchg_charging_enable(struct smb1351_charger *chip, bool enable)
 {
 	int rc = 0;
 	u8 reg = 0;
-	pr_err("%s, enable= %d\n", __func__,enable);
+	pr_err("%s, enable= %d\n", __func__, enable);
 	rc = smb1351_masked_write(chip, CMD_CHG_REG, CMD_CHG_EN_BIT,
-					enable ? CMD_CHG_ENABLE : 0);
+				  enable ? CMD_CHG_ENABLE : 0);
 	if (rc)
 		pr_err("Couldn't enable rc = %d\n", rc);
 
-	smb1351_read_reg(chip,CMD_CHG_REG, &reg);
-	pr_err("%s, read reg:0x%x\n",__func__,reg);
-	
+	smb1351_read_reg(chip, CMD_CHG_REG, &reg);
+	pr_err("%s, read reg:0x%x\n", __func__, reg);
+
 	return rc;
 }
 static int smb1351_check_charging_enable(void)
@@ -227,66 +226,66 @@ static int smb1351_check_charging_enable(void)
 	u8 reg = 0;
 	bool charging_enable = false;
 
-	if(atomic_read(&smb1351_chip->charger_suspended) == 1) {
+	if (atomic_read(&smb1351_chip->charger_suspended) == 1) {
 		return 0;
 	}
 	rc = smb1351_read_reg(smb1351_chip, CMD_CHG_REG, &reg);
-    if (rc) {
-        chg_err("Couldn't read charging enable rc = %d\n", rc);
-        return 0;
-    }
+	if (rc) {
+		chg_err("Couldn't read charging enable rc = %d\n", rc);
+		return 0;
+	}
 
-    charging_enable = ((reg & CMD_CHG_EN_BIT) == CMD_CHG_EN_BIT) ? 1 : 0;
-	chg_debug(" charging_enable:%d\n",charging_enable);
+	charging_enable = ((reg & CMD_CHG_EN_BIT) == CMD_CHG_EN_BIT) ? 1 : 0;
+	chg_debug(" charging_enable:%d\n", charging_enable);
 
 	return charging_enable;
-	
 }
 
 static int smb1351_set_rechg_voltage(int recharge_mv)
 {
 	u8 reg = 0;
 	int rc = 0;
-	
+
 	if (atomic_read(&smb1351_chip->charger_suspended) == 1) {
 		return 0;
 	}
-	 
-	
-	/* set recharge voltage */
-    if (recharge_mv >= 100) {
-        reg = AUTO_RECHG_TH_100MV;
-    } else {
-        reg = AUTO_RECHG_TH_50MV;
-    }
-    rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, AUTO_RECHG_TH_BIT,reg);
-    if (rc) {
-        chg_err("Couldn't set recharging threshold rc = %d\n", rc);
-    }
 
-	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, AUTO_RECHG_BIT,AUTO_RECHG_DISABLE);
+	/* set recharge voltage */
+	if (recharge_mv >= 100) {
+		reg = AUTO_RECHG_TH_100MV;
+	} else {
+		reg = AUTO_RECHG_TH_50MV;
+	}
+	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, AUTO_RECHG_TH_BIT,
+				  reg);
+	if (rc) {
+		chg_err("Couldn't set recharging threshold rc = %d\n", rc);
+	}
+
+	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, AUTO_RECHG_BIT,
+				  AUTO_RECHG_DISABLE);
 	chg_debug(" hw rechg disable\n");
 
 	return rc;
-	
 }
 
 static int smb1351_set_chging_term_disable(void)
 {
 	int rc = 0;
-	u8 reg =0;
+	u8 reg = 0;
 	if (atomic_read(&smb1351_chip->charger_suspended) == 1) {
 		return 0;
 	}
 
-	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, ITERM_EN_BIT, ITERM_DISABLE);
+	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, ITERM_EN_BIT,
+				  ITERM_DISABLE);
 	if (rc) {
-        chg_err("Couldn't set chging_term disable rc = %d\n", rc);
-    }
+		chg_err("Couldn't set chging_term disable rc = %d\n", rc);
+	}
 
-	smb1351_read_reg(smb1351_chip,CHG_CTRL_REG, &reg);
-	pr_err("%s, read reg:0x%x\n",__func__,reg);
-	
+	smb1351_read_reg(smb1351_chip, CHG_CTRL_REG, &reg);
+	pr_err("%s, read reg:0x%x\n", __func__, reg);
+
 	return rc;
 }
 
@@ -299,18 +298,15 @@ static bool smb1351_check_charger_resume(void)
 	}
 }
 
-
-
 static int smb1351_fastchg_current_set(int fastchg_current)
 {
 	int i, rc;
 	bool is_pre_chg = false;
 
-
 	if ((fastchg_current < SMB1351_CHG_PRE_MIN_MA) ||
-		(fastchg_current > SMB1351_CHG_FAST_MAX_MA)) {
+	    (fastchg_current > SMB1351_CHG_FAST_MAX_MA)) {
 		pr_err("bad pre_fastchg current mA=%d asked to set\n",
-					fastchg_current);
+		       fastchg_current);
 		return -EINVAL;
 	}
 
@@ -336,14 +332,16 @@ static int smb1351_fastchg_current_set(int fastchg_current)
 
 		i = i << SMB1351_CHG_PRE_SHIFT;
 
-		rc = smb1351_masked_write(smb1351_chip, CHG_OTH_CURRENT_CTRL_REG,
-				PRECHG_CURRENT_MASK, i);
+		rc = smb1351_masked_write(smb1351_chip,
+					  CHG_OTH_CURRENT_CTRL_REG,
+					  PRECHG_CURRENT_MASK, i);
 		if (rc)
 			pr_err("Couldn't write CHG_OTH_CURRENT_CTRL_REG rc=%d\n",
-									rc);
+			       rc);
 
 		return smb1351_masked_write(smb1351_chip, VARIOUS_FUNC_2_REG,
-				PRECHG_TO_FASTCHG_BIT, PRECHG_TO_FASTCHG_BIT);
+					    PRECHG_TO_FASTCHG_BIT,
+					    PRECHG_TO_FASTCHG_BIT);
 	} else {
 		if (smb1351_chip->version == SMB_UNKNOWN)
 			return -EINVAL;
@@ -363,22 +361,22 @@ static int smb1351_fastchg_current_set(int fastchg_current)
 
 		i = i << SMB1351_CHG_FAST_SHIFT;
 		pr_err("fastchg limit=%d setting %02x\n",
-					smb1351_chip->fastchg_current_max_ma, i);
+		       smb1351_chip->fastchg_current_max_ma, i);
 
 		/* make sure pre chg mode is disabled */
 		rc = smb1351_masked_write(smb1351_chip, VARIOUS_FUNC_2_REG,
-					PRECHG_TO_FASTCHG_BIT, 0);
+					  PRECHG_TO_FASTCHG_BIT, 0);
 		if (rc)
 			pr_err("Couldn't write VARIOUS_FUNC_2_REG rc=%d\n", rc);
 
 		return smb1351_masked_write(smb1351_chip, CHG_CURRENT_CTRL_REG,
-					FAST_CHG_CURRENT_MASK, i);
+					    FAST_CHG_CURRENT_MASK, i);
 	}
 }
 
-#define MIN_FLOAT_MV		3500
-#define MAX_FLOAT_MV		4500
-#define VFLOAT_STEP_MV		20
+#define MIN_FLOAT_MV 3500
+#define MAX_FLOAT_MV 4500
+#define VFLOAT_STEP_MV 20
 
 static int smb1351_float_voltage_set(int vfloat_mv)
 {
@@ -391,7 +389,8 @@ static int smb1351_float_voltage_set(int vfloat_mv)
 
 	temp = (vfloat_mv - MIN_FLOAT_MV) / VFLOAT_STEP_MV;
 
-	return smb1351_masked_write(smb1351_chip, VFLOAT_REG, VFLOAT_MASK, temp);
+	return smb1351_masked_write(smb1351_chip, VFLOAT_REG, VFLOAT_MASK,
+				    temp);
 }
 
 static int smb1351_iterm_set(int iterm_ma)
@@ -413,14 +412,14 @@ static int smb1351_iterm_set(int iterm_ma)
 		reg = CHG_ITERM_700MA;
 
 	rc = smb1351_masked_write(smb1351_chip, CHG_OTH_CURRENT_CTRL_REG,
-				ITERM_MASK, reg);
+				  ITERM_MASK, reg);
 	if (rc) {
 		pr_err("Couldn't set iterm rc = %d\n", rc);
 		return rc;
 	}
 	/* enable the iterm */
-	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG,
-				ITERM_EN_BIT, ITERM_ENABLE);
+	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, ITERM_EN_BIT,
+				  ITERM_ENABLE);
 	if (rc) {
 		pr_err("Couldn't enable iterm rc = %d\n", rc);
 		return rc;
@@ -434,10 +433,10 @@ static int smb1351_chg_otg_regulator_enable(struct regulator_dev *rdev)
 	struct smb1351_charger *chip = rdev_get_drvdata(rdev);
 
 	rc = smb1351_masked_write(chip, CMD_CHG_REG, CMD_OTG_EN_BIT,
-							CMD_OTG_EN_BIT);
+				  CMD_OTG_EN_BIT);
 	if (rc)
 		pr_err("Couldn't enable  OTG mode rc=%d\n", rc);
-	pr_err("%s \n",__func__);
+	pr_err("%s \n", __func__);
 	return rc;
 }
 
@@ -449,7 +448,7 @@ static int smb1351_chg_otg_regulator_disable(struct regulator_dev *rdev)
 	rc = smb1351_masked_write(chip, CMD_CHG_REG, CMD_OTG_EN_BIT, 0);
 	if (rc)
 		pr_err("Couldn't disable OTG mode rc=%d\n", rc);
-	pr_err("%s\n",__func__);
+	pr_err("%s\n", __func__);
 	return rc;
 }
 
@@ -469,9 +468,9 @@ static int smb1351_chg_otg_regulator_is_enable(struct regulator_dev *rdev)
 }
 
 static struct regulator_ops smb1351_chg_otg_reg_ops = {
-	.enable		= smb1351_chg_otg_regulator_enable,
-	.disable	= smb1351_chg_otg_regulator_disable,
-	.is_enabled	= smb1351_chg_otg_regulator_is_enable,
+	.enable = smb1351_chg_otg_regulator_enable,
+	.disable = smb1351_chg_otg_regulator_disable,
+	.is_enabled = smb1351_chg_otg_regulator_is_enable,
 };
 /*
 static int smb1351_regulator_init(struct smb1351_charger *chip)
@@ -530,16 +529,15 @@ static int smb1351_hw_init(void)
 
 	/* configure smb_pinctrl to enable irqs */
 	if (smb1351_chip->pinctrl_state_name) {
-		smb1351_chip->smb_pinctrl = pinctrl_get_select(smb1351_chip->dev,
-						smb1351_chip->pinctrl_state_name);
+		smb1351_chip->smb_pinctrl = pinctrl_get_select(
+			smb1351_chip->dev, smb1351_chip->pinctrl_state_name);
 		if (IS_ERR(smb1351_chip->smb_pinctrl)) {
 			pr_err("Could not get/set %s pinctrl state rc = %ld\n",
-						smb1351_chip->pinctrl_state_name,
-						PTR_ERR(smb1351_chip->smb_pinctrl));
-//			return PTR_ERR(smb1351_chip->smb1351.smb_pinctrl);
+			       smb1351_chip->pinctrl_state_name,
+			       PTR_ERR(smb1351_chip->smb_pinctrl));
+			//			return PTR_ERR(smb1351_chip->smb1351.smb_pinctrl);
 		}
 	}
-
 
 	/*
 	 * If the charger is pre-configured for autonomous operation,
@@ -570,7 +568,7 @@ static int smb1351_hw_init(void)
 	reg = BATT_MISSING_THERM_PIN_SOURCE_BIT;
 	mask = BATT_MISSING_THERM_PIN_SOURCE_BIT;
 	rc = smb1351_masked_write(smb1351_chip, HVDCP_BATT_MISSING_CTRL_REG,
-								mask, reg);
+				  mask, reg);
 	if (rc) {
 		pr_err("Couldn't set HVDCP_BATT_MISSING_CTRL_REG rc=%d\n", rc);
 		return rc;
@@ -580,7 +578,7 @@ static int smb1351_hw_init(void)
 	reg = 0;
 	mask = HVDCP_EN_BIT;
 	rc = smb1351_masked_write(smb1351_chip, HVDCP_BATT_MISSING_CTRL_REG,
-								mask, reg);
+				  mask, reg);
 	if (rc) {
 		pr_err("Couldn't disable hvdcp rc=%d\n", rc);
 		return rc;
@@ -590,36 +588,33 @@ static int smb1351_hw_init(void)
 	reg = 0;
 	mask = ADAPTER_CONFIG_MASK;
 	rc = smb1351_masked_write(smb1351_chip, OTG_MODE_POWER_OPTIONS_REG,
-								mask, reg);
+				  mask, reg);
 	if (rc) {
 		pr_err("Couldn't set  adapter_config 0x14h , rc=%d\n", rc);
 		return rc;
 	}
 	reg = 0;
 	mask = CHG_CONFIG_MASK;
-	rc = smb1351_masked_write(smb1351_chip, FLEXCHARGER_REG,
-								mask, reg);
+	rc = smb1351_masked_write(smb1351_chip, FLEXCHARGER_REG, mask, reg);
 	if (rc) {
 		pr_err("Couldn't set FlexCharge 5V rc=%d\n", rc);
 		return rc;
 	}
-	
 
 	/*setup dcd timetout time*/
 	reg = DCD_DISABLE | TIMEOUT_SEL_330MS;
 	mask = TIMEOUT_SEL_FOR_APSD_BIT | DCD_EN_BIT;
-	rc = smb1351_masked_write(smb1351_chip, VARIOUS_FUNC_3_REG,
-								mask, reg);
+	rc = smb1351_masked_write(smb1351_chip, VARIOUS_FUNC_3_REG, mask, reg);
 	if (rc) {
 		pr_err("Couldn't SET DCD  rc=%d\n", rc);
 		return rc;
 	}
-	
+
 	/* setup defaults for CHG_PIN_EN_CTRL_REG */
 	reg = EN_BY_I2C_0_DISABLE | USBCS_CTRL_BY_I2C | CHG_ERR_BIT |
-		APSD_DONE_BIT | LED_BLINK_FUNC_BIT;
-	mask = EN_PIN_CTRL_MASK | USBCS_CTRL_BIT | CHG_ERR_BIT |
-		APSD_DONE_BIT | LED_BLINK_FUNC_BIT;
+	      APSD_DONE_BIT | LED_BLINK_FUNC_BIT;
+	mask = EN_PIN_CTRL_MASK | USBCS_CTRL_BIT | CHG_ERR_BIT | APSD_DONE_BIT |
+	       LED_BLINK_FUNC_BIT;
 	rc = smb1351_masked_write(smb1351_chip, CHG_PIN_EN_CTRL_REG, mask, reg);
 	if (rc) {
 		pr_err("Couldn't set CHG_PIN_EN_CTRL_REG rc=%d\n", rc);
@@ -628,7 +623,8 @@ static int smb1351_hw_init(void)
 	/* setup USB 2.0/3.0 detection and USB 500/100 command polarity */
 	reg = USB_2_3_MODE_SEL_BY_I2C | USB_CMD_POLARITY_500_1_100_0;
 	mask = USB_2_3_MODE_SEL_BIT | USB_5_1_CMD_POLARITY_BIT;
-	rc = smb1351_masked_write(smb1351_chip, CHG_OTH_CURRENT_CTRL_REG, mask, reg);
+	rc = smb1351_masked_write(smb1351_chip, CHG_OTH_CURRENT_CTRL_REG, mask,
+				  reg);
 	if (rc) {
 		pr_err("Couldn't set CHG_OTH_CURRENT_CTRL_REG rc=%d\n", rc);
 		return rc;
@@ -640,20 +636,20 @@ static int smb1351_hw_init(void)
 	mask = SUSPEND_MODE_CTRL_BIT | AICL_EN_BIT | APSD_EN_BIT;
 	rc = smb1351_masked_write(smb1351_chip, VARIOUS_FUNC_REG, mask, reg);
 	if (rc) {
-		pr_err("Couldn't set VARIOUS_FUNC_REG rc=%d\n",	rc);
+		pr_err("Couldn't set VARIOUS_FUNC_REG rc=%d\n", rc);
 		return rc;
 	}
 	/* Fault and Status IRQ configuration */
-	reg = HOT_COLD_HARD_LIMIT_BIT | HOT_COLD_SOFT_LIMIT_BIT
-		| INPUT_OVLO_BIT | INPUT_UVLO_BIT | AICL_DONE_FAIL_BIT;
+	reg = HOT_COLD_HARD_LIMIT_BIT | HOT_COLD_SOFT_LIMIT_BIT |
+	      INPUT_OVLO_BIT | INPUT_UVLO_BIT | AICL_DONE_FAIL_BIT;
 	rc = smb1351_write_reg(smb1351_chip, FAULT_INT_REG, reg);
 	if (rc) {
 		pr_err("Couldn't set FAULT_INT_REG rc=%d\n", rc);
 		return rc;
 	}
 	reg = CHG_OR_PRECHG_TIMEOUT_BIT | BATT_OVP_BIT |
-		FAST_TERM_TAPER_RECHG_INHIBIT_BIT |
-		BATT_MISSING_BIT | BATT_LOW_BIT;
+	      FAST_TERM_TAPER_RECHG_INHIBIT_BIT | BATT_MISSING_BIT |
+	      BATT_LOW_BIT;
 	rc = smb1351_write_reg(smb1351_chip, STATUS_INT_REG, reg);
 	if (rc) {
 		pr_err("Couldn't set STATUS_INT_REG rc=%d\n", rc);
@@ -662,9 +658,9 @@ static int smb1351_hw_init(void)
 	/* setup THERM Monitor */
 	if (!smb1351_chip->using_pmic_therm) {
 		rc = smb1351_masked_write(smb1351_chip, THERM_A_CTRL_REG,
-			THERM_MONITOR_BIT, THERM_MONITOR_EN);
+					  THERM_MONITOR_BIT, THERM_MONITOR_EN);
 		if (rc) {
-			pr_err("Couldn't set THERM_A_CTRL_REG rc=%d\n",	rc);
+			pr_err("Couldn't set THERM_A_CTRL_REG rc=%d\n", rc);
 			return rc;
 		}
 	}
@@ -687,13 +683,12 @@ static int smb1351_hw_init(void)
 	/* disable AFVC*/
 	reg = 0;
 	mask = AFCV_MASK;
-	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG,
-								mask, reg);
+	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, mask, reg);
 	if (rc) {
 		pr_err("Couldn't SET DCD  rc=%d\n", rc);
 		return rc;
 	}
-	
+
 #if 0
 	/* set iterm */
 	if (smb1351_chip->iterm_ma != -EINVAL) {
@@ -707,11 +702,11 @@ static int smb1351_hw_init(void)
 				return rc;
 			}
 		}
-	} else  
+	} else
 #endif
 	if (smb1351_chip->iterm_disabled) {
 		rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG,
-					ITERM_EN_BIT, ITERM_DISABLE);
+					  ITERM_EN_BIT, ITERM_DISABLE);
 		if (rc) {
 			pr_err("Couldn't set iterm rc = %d\n", rc);
 			return rc;
@@ -730,9 +725,9 @@ static int smb1351_hw_init(void)
 			else
 				reg |= AUTO_RECHG_TH_50MV;
 
-			rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG,
-					AUTO_RECHG_BIT |
-					AUTO_RECHG_TH_BIT, reg);
+			rc = smb1351_masked_write(
+				smb1351_chip, CHG_CTRL_REG,
+				AUTO_RECHG_BIT | AUTO_RECHG_TH_BIT, reg);
 			if (rc) {
 				pr_err("Couldn't set rechg-cfg rc = %d\n", rc);
 				return rc;
@@ -740,8 +735,7 @@ static int smb1351_hw_init(void)
 		}
 	} else if (smb1351_chip->recharge_disabled) {
 		rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG,
-				AUTO_RECHG_BIT,
-				AUTO_RECHG_DISABLE);
+					  AUTO_RECHG_BIT, AUTO_RECHG_DISABLE);
 		if (rc) {
 			pr_err("Couldn't disable auto-rechg rc = %d\n", rc);
 			return rc;
@@ -749,15 +743,15 @@ static int smb1351_hw_init(void)
 	}
 
 	/* enable/disable charging by suspending usb */
-	rc = smbchg_charging_suspend(smb1351_chip,false);
+	rc = smbchg_charging_suspend(smb1351_chip, false);
 	if (rc) {
 		pr_err("Unable to %s battery charging. rc=%d\n",
-			smb1351_chip->usb_suspended_status ? "disable" : "enable",
-									rc);
+		       smb1351_chip->usb_suspended_status ? "disable" :
+								  "enable",
+		       rc);
 	}
 
 	return rc;
-
 }
 
 static int smb1351_suspend_charger(void)
@@ -779,8 +773,7 @@ static int smb1351_disable_charging(void)
 	return smbchg_charging_enable(smb1351_chip, false);
 }
 static int smb1351_usbin_input_current_limit[] = {
-    100,    150,    500,    900,
-    1200,   1500,   2000,   3000,
+	100, 150, 500, 900, 1200, 1500, 2000, 3000,
 };
 #define AICL_COUNT 10
 static int chg_vol_mini(int *chg_vol)
@@ -788,202 +781,264 @@ static int chg_vol_mini(int *chg_vol)
 	int chg_vol_temp = 0;
 	int i = 0;
 	chg_vol_temp = chg_vol[0];
-	for(i = 0; i < AICL_COUNT; i++) {
-		if(chg_vol_temp > chg_vol[i]){
+	for (i = 0; i < AICL_COUNT; i++) {
+		if (chg_vol_temp > chg_vol[i]) {
 			chg_vol_temp = chg_vol[i];
 		}
 	}
 	return chg_vol_temp;
 }
 
-static int smb1351_input_current_limit_write(struct smb1351_charger *chip, int value)
+static int smb1351_input_current_limit_write(struct smb1351_charger *chip,
+					     int value)
 {
-		int rc = 0;
-		int i = 0;
-		int j = 0;
-		int chg_vol = 0;
-		int aicl_point_temp = 0;
-		int chg_vol_all[10] = {0};
-		if(smb1351_registers_read_full()) {
-			smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
-			smb1351_dump_regs();
-			printk("smb1351_masked_write_input_current_limit_write\n");
-			return 0;
-		}
-		if (atomic_read(&chip->charger_suspended) == 1) {
-			return 0;
-		}
-	
-		chg_debug( "usb input max current limit=%d setting %02x\n", value, i);
-	
-		aicl_point_temp = chip->sw_aicl_point;
-
-		if (value < 150) {
-			j = 0;
-			goto aicl_end;
-		} else if (value < 500) {
-			j = 1;
-			goto aicl_end;
-		}
-	
-		j = 2; /* 500 */
-		rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
-		msleep(90);
-		chg_vol = battery_meter_get_charger_voltage();
-		if (chg_vol < aicl_point_temp) {
-			j = 2;
-			goto aicl_pre_step;
-		} else if (value < 900)
-			goto aicl_end;
-	
-		j = 3; /* 900 */
-		rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_900MA);
-		msleep(90);
-		chg_vol = battery_meter_get_charger_voltage();
-		if (chg_vol < aicl_point_temp) {
-			j = j - 1;
-			goto aicl_pre_step;
-		} else if (value < 1200)
-			goto aicl_end;
-	
-		j = 5; /* 1500 */
-	#if defined(CONFIG_OPLUS_CHARGER_MTK6763)  || defined(CONFIG_OPLUS_CHARGER_MTK6771)
-		aicl_point_temp = chip->sw_aicl_point;
-	#else
-		aicl_point_temp = chip->sw_aicl_point;
-	#endif
-		rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_1500MA);
-		msleep(90);
-		chg_vol = battery_meter_get_charger_voltage();
-		if (chg_vol < aicl_point_temp) {
-			j = j - 2; //We DO NOT use 1.2A here
-			goto aicl_pre_step;
-		} else if (value < 1500) {
-			j = j - 1; //We use 1.2A here
-			goto aicl_end;
-		} else if (value < 2000)
-			goto aicl_end;
-	
-		j = 6; /* 2000 */
-	#if defined(CONFIG_OPLUS_CHARGER_MTK6763)  || defined(CONFIG_OPLUS_CHARGER_MTK6771)
-		aicl_point_temp = chip->sw_aicl_point;
-	#else
-		aicl_point_temp = chip->sw_aicl_point;
-	#endif
-		rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_2000MA);
-		msleep(90);
-	#if defined(CONFIG_OPLUS_CHARGER_MTK6763)  || defined(CONFIG_OPLUS_CHARGER_MTK6771)
-		for(i = 0; i < AICL_COUNT; i++){
-			chg_vol = battery_meter_get_charger_voltage();
-			chg_vol_all[i] = chg_vol;
-			usleep_range(5000, 5000);
-		}
-		chg_vol = chg_vol_mini(chg_vol_all);
-	#else
-		chg_vol = battery_meter_get_charger_voltage();
-	#endif
-		if (chg_vol < aicl_point_temp) {
-			j = j - 1;
-			goto aicl_pre_step;
-		} else if (value < 3000)
-			goto aicl_end;
-	
-		j = 7; /* 3000 */
-		rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_2200MA);
-		msleep(90);
-		chg_vol = battery_meter_get_charger_voltage();
-		if (chg_vol < aicl_point_temp) {
-			j = j - 1;
-			goto aicl_pre_step;
-		} else if (value >= 3000)
-			goto aicl_end;
-	
-	aicl_pre_step:
-		if((j >= 2) && (j <= ARRAY_SIZE(smb1351_usbin_input_current_limit) - 1))
-			aicl_result = smb1351_usbin_input_current_limit[j]; 	
-		chg_debug( "usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n", chg_vol, j, smb1351_usbin_input_current_limit[j], aicl_point_temp);
-		switch (j) {
-			case 0:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
-			break;
-			case 1:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
-			break;
-			case 2:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
-			break;
-			case 3:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_900MA);
-			break;
-			case 4:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_1200MA);
-			break;
-			case 5:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_1500MA);
-			break;
-			case 6:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_2000MA);
-			break;
-			case 7:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_2200MA);
-			break;
-			default:
-				break;
-
-		}
-		smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG, USBCS_CTRL_BIT, USBCS_CTRL_BIT);
-		smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_INPUT_CURRENT_MODE_BIT, CMD_INPUT_CURRENT_MODE_BIT);
-		mdelay(30);
-		smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_USB_AC_MODE_MASK, CMD_USB_AC_MODE);
-		mdelay(30);
-		smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG, USBCS_CTRL_BIT, 0x0);
-	//	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_INPUT_CURRENT_MODE_BIT, 0x0);
-	//	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_USB_AC_MODE_MASK, 0x0);
-		
-		return rc;
-	aicl_end:
-		if((j >= 2) && (j <= ARRAY_SIZE(smb1351_usbin_input_current_limit) - 1))
-			aicl_result = smb1351_usbin_input_current_limit[j]; 	
-		chg_debug( "usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n", chg_vol, j, smb1351_usbin_input_current_limit[j], aicl_point_temp);
-		switch (j) {
-			case 0:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
-			break;
-			case 1:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
-			break;
-			case 2:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
-			break;
-			case 3:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_900MA);
-			break;
-			case 4:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_1200MA);
-			break;
-			case 5:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_1500MA);
-			break;
-			case 6:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_2000MA);
-			break;
-			case 7:
-				rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK, REG00_SMB1351_INPUT_CURRENT_LIMIT_2200MA);
-			break;
-			default:
-				break;
-		}
-		smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG, USBCS_CTRL_BIT, USBCS_CTRL_BIT);
-		smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_INPUT_CURRENT_MODE_BIT, CMD_INPUT_CURRENT_MODE_BIT);
-		mdelay(30);
-		smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_USB_AC_MODE_MASK, CMD_USB_AC_MODE);
-		mdelay(30);
-		smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG, USBCS_CTRL_BIT, 0x0);
-	//	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_INPUT_CURRENT_MODE_BIT, 0x0);
-	//	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_USB_AC_MODE_MASK, 0x0);
+	int rc = 0;
+	int i = 0;
+	int j = 0;
+	int chg_vol = 0;
+	int aicl_point_temp = 0;
+	int chg_vol_all[10] = { 0 };
+	if (smb1351_registers_read_full()) {
+		smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG,
+				     AC_INPUT_CURRENT_LIMIT_MASK,
+				     REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
 		smb1351_dump_regs();
-		return rc;
+		printk("smb1351_masked_write_input_current_limit_write\n");
+		return 0;
+	}
+	if (atomic_read(&chip->charger_suspended) == 1) {
+		return 0;
+	}
 
+	chg_debug("usb input max current limit=%d setting %02x\n", value, i);
+
+	aicl_point_temp = chip->sw_aicl_point;
+
+	if (value < 150) {
+		j = 0;
+		goto aicl_end;
+	} else if (value < 500) {
+		j = 1;
+		goto aicl_end;
+	}
+
+	j = 2; /* 500 */
+	rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG,
+				  AC_INPUT_CURRENT_LIMIT_MASK,
+				  REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
+	msleep(90);
+	chg_vol = battery_meter_get_charger_voltage();
+	if (chg_vol < aicl_point_temp) {
+		j = 2;
+		goto aicl_pre_step;
+	} else if (value < 900)
+		goto aicl_end;
+
+	j = 3; /* 900 */
+	rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG,
+				  AC_INPUT_CURRENT_LIMIT_MASK,
+				  REG00_SMB1351_INPUT_CURRENT_LIMIT_900MA);
+	msleep(90);
+	chg_vol = battery_meter_get_charger_voltage();
+	if (chg_vol < aicl_point_temp) {
+		j = j - 1;
+		goto aicl_pre_step;
+	} else if (value < 1200)
+		goto aicl_end;
+
+	j = 5; /* 1500 */
+#if defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                   \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771)
+	aicl_point_temp = chip->sw_aicl_point;
+#else
+	aicl_point_temp = chip->sw_aicl_point;
+#endif
+	rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG,
+				  AC_INPUT_CURRENT_LIMIT_MASK,
+				  REG00_SMB1351_INPUT_CURRENT_LIMIT_1500MA);
+	msleep(90);
+	chg_vol = battery_meter_get_charger_voltage();
+	if (chg_vol < aicl_point_temp) {
+		j = j - 2; //We DO NOT use 1.2A here
+		goto aicl_pre_step;
+	} else if (value < 1500) {
+		j = j - 1; //We use 1.2A here
+		goto aicl_end;
+	} else if (value < 2000)
+		goto aicl_end;
+
+	j = 6; /* 2000 */
+#if defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                   \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771)
+	aicl_point_temp = chip->sw_aicl_point;
+#else
+	aicl_point_temp = chip->sw_aicl_point;
+#endif
+	rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG,
+				  AC_INPUT_CURRENT_LIMIT_MASK,
+				  REG00_SMB1351_INPUT_CURRENT_LIMIT_2000MA);
+	msleep(90);
+#if defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                   \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771)
+	for (i = 0; i < AICL_COUNT; i++) {
+		chg_vol = battery_meter_get_charger_voltage();
+		chg_vol_all[i] = chg_vol;
+		usleep_range(5000, 5000);
+	}
+	chg_vol = chg_vol_mini(chg_vol_all);
+#else
+	chg_vol = battery_meter_get_charger_voltage();
+#endif
+	if (chg_vol < aicl_point_temp) {
+		j = j - 1;
+		goto aicl_pre_step;
+	} else if (value < 3000)
+		goto aicl_end;
+
+	j = 7; /* 3000 */
+	rc = smb1351_masked_write(chip, CHG_CURRENT_CTRL_REG,
+				  AC_INPUT_CURRENT_LIMIT_MASK,
+				  REG00_SMB1351_INPUT_CURRENT_LIMIT_2200MA);
+	msleep(90);
+	chg_vol = battery_meter_get_charger_voltage();
+	if (chg_vol < aicl_point_temp) {
+		j = j - 1;
+		goto aicl_pre_step;
+	} else if (value >= 3000)
+		goto aicl_end;
+
+aicl_pre_step:
+	if ((j >= 2) &&
+	    (j <= ARRAY_SIZE(smb1351_usbin_input_current_limit) - 1))
+		aicl_result = smb1351_usbin_input_current_limit[j];
+	chg_debug(
+		"usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n",
+		chg_vol, j, smb1351_usbin_input_current_limit[j],
+		aicl_point_temp);
+	switch (j) {
+	case 0:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
+		break;
+	case 1:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
+		break;
+	case 2:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
+		break;
+	case 3:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_900MA);
+		break;
+	case 4:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_1200MA);
+		break;
+	case 5:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_1500MA);
+		break;
+	case 6:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_2000MA);
+		break;
+	case 7:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_2200MA);
+		break;
+	default:
+		break;
+	}
+	smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG, USBCS_CTRL_BIT,
+			     USBCS_CTRL_BIT);
+	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG,
+			     CMD_INPUT_CURRENT_MODE_BIT,
+			     CMD_INPUT_CURRENT_MODE_BIT);
+	mdelay(30);
+	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_USB_AC_MODE_MASK,
+			     CMD_USB_AC_MODE);
+	mdelay(30);
+	smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG, USBCS_CTRL_BIT, 0x0);
+	//	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_INPUT_CURRENT_MODE_BIT, 0x0);
+	//	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_USB_AC_MODE_MASK, 0x0);
+
+	return rc;
+aicl_end:
+	if ((j >= 2) &&
+	    (j <= ARRAY_SIZE(smb1351_usbin_input_current_limit) - 1))
+		aicl_result = smb1351_usbin_input_current_limit[j];
+	chg_debug(
+		"usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n",
+		chg_vol, j, smb1351_usbin_input_current_limit[j],
+		aicl_point_temp);
+	switch (j) {
+	case 0:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
+		break;
+	case 1:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
+		break;
+	case 2:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_500MA);
+		break;
+	case 3:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_900MA);
+		break;
+	case 4:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_1200MA);
+		break;
+	case 5:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_1500MA);
+		break;
+	case 6:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_2000MA);
+		break;
+	case 7:
+		rc = smb1351_masked_write(
+			chip, CHG_CURRENT_CTRL_REG, AC_INPUT_CURRENT_LIMIT_MASK,
+			REG00_SMB1351_INPUT_CURRENT_LIMIT_2200MA);
+		break;
+	default:
+		break;
+	}
+	smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG, USBCS_CTRL_BIT,
+			     USBCS_CTRL_BIT);
+	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG,
+			     CMD_INPUT_CURRENT_MODE_BIT,
+			     CMD_INPUT_CURRENT_MODE_BIT);
+	mdelay(30);
+	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_USB_AC_MODE_MASK,
+			     CMD_USB_AC_MODE);
+	mdelay(30);
+	smb1351_masked_write(chip, CHG_PIN_EN_CTRL_REG, USBCS_CTRL_BIT, 0x0);
+	//	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_INPUT_CURRENT_MODE_BIT, 0x0);
+	//	smb1351_masked_write(chip, CMD_INPUT_LIMIT_REG, CMD_USB_AC_MODE_MASK, 0x0);
+	smb1351_dump_regs();
+	return rc;
 }
 int smb1351_get_charger_type(void);
 static int smb1351_set_usb_chg_current(int current_ma)
@@ -1004,11 +1059,11 @@ static int smb1351_set_usb_chg_current(int current_ma)
 		pr_err("USB suspend\n");
 		return 0;
 	}
-	switch(smb1351_get_charger_type()) {
-	//case POWER_SUPPLY_TYPE_USB:
-    case STANDARD_HOST:
+	switch (smb1351_get_charger_type()) {
+		//case POWER_SUPPLY_TYPE_USB:
+	case STANDARD_HOST:
 		if (current_ma > SUSPEND_CURRENT_MA &&
-				current_ma < USB2_MIN_CURRENT_MA)
+		    current_ma < USB2_MIN_CURRENT_MA)
 			current_ma = USB2_MIN_CURRENT_MA;
 
 		if (current_ma == USB2_MIN_CURRENT_MA) {
@@ -1020,33 +1075,33 @@ static int smb1351_set_usb_chg_current(int current_ma)
 		} else if (current_ma == USB2_MAX_CURRENT_MA) {
 			/* USB 2.0 - 500mA */
 			reg = CMD_USB_2_MODE | CMD_USB_500_MODE;
-		} 
+		}
 		/* control input current mode by command */
 		reg |= CMD_INPUT_CURRENT_MODE_CMD;
 		mask = CMD_INPUT_CURRENT_MODE_BIT | CMD_USB_2_3_SEL_BIT |
-			CMD_USB_1_5_AC_CTRL_MASK;
-		rc = smb1351_masked_write(smb1351_chip, CMD_INPUT_LIMIT_REG, mask, reg);
+		       CMD_USB_1_5_AC_CTRL_MASK;
+		rc = smb1351_masked_write(smb1351_chip, CMD_INPUT_LIMIT_REG,
+					  mask, reg);
 		if (rc) {
 			pr_err("Couldn't set charging mode rc = %d\n", rc);
 			return rc;
 		}
 
 		if (current_ma > USB2_MAX_CURRENT_MA) {
-			rc = smb1351_input_current_limit_write(smb1351_chip,current_ma);
+			rc = smb1351_input_current_limit_write(smb1351_chip,
+							       current_ma);
 		}
 		if (rc < 0)
 			pr_err("Couldn't set %dmA rc = %d\n", current_ma, rc);
 		break;
 
 	default:
-		rc = smb1351_input_current_limit_write(smb1351_chip, current_ma);
+		rc = smb1351_input_current_limit_write(smb1351_chip,
+						       current_ma);
 		if (rc < 0)
 			pr_err("Couldn't set %dmA rc = %d\n", current_ma, rc);
 		break;
-
-
 	}
-
 
 	return rc;
 }
@@ -1095,29 +1150,27 @@ static int rerun_apsd(struct smb1351_charger *chip)
 	pr_err("Reruning APSD\n\n");
 
 	rc = smb1351_masked_write(chip, CMD_HVDCP_REG, CMD_APSD_RE_RUN_BIT,
-						CMD_APSD_RE_RUN_BIT);
+				  CMD_APSD_RE_RUN_BIT);
 	if (rc)
 		pr_err("Couldn't re-run APSD algo\n");
 
 	return 0;
 }
 
-
 static int smb1351_apsd_complete_handler(struct smb1351_charger *chip,
-						u8 status)
+					 u8 status)
 {
 	int rc;
 	u8 reg = 0;
-	pr_err("%s, status:%d\n",__func__,status);
+	pr_err("%s, status:%d\n", __func__, status);
 	rc = smb1351_read_reg(chip, STATUS_5_REG, &reg);
 	if (rc) {
 		pr_err("Couldn't read STATUS_5 rc = %d\n", rc);
 		return rc;
 	}
 
-	pr_err("%s, STATUS_5_REG(0x3B)=%x\n", __func__,reg);
+	pr_err("%s, STATUS_5_REG(0x3B)=%x\n", __func__, reg);
 	return 0;
-	
 }
 extern void Charger_Detect_Init(void);
 extern void Charger_Detect_Release(void);
@@ -1160,18 +1213,18 @@ int smb1351_get_charger_type(void)
 	mdelay(40);
 	printk("mt_charger_type_detection1\n");
 	rerun_apsd(smb1351_chip);
-	
+
 	mdelay(800);
 	rc = smb1351_read_reg(smb1351_chip, IRQ_G_REG, &reg);
-	while(!(reg & IRQ_SOURCE_DET_BIT) && count < 40){
+	while (!(reg & IRQ_SOURCE_DET_BIT) && count < 40) {
 		count++;
 		rc = smb1351_read_reg(smb1351_chip, IRQ_G_REG, &reg);
 		mdelay(50);
 	}
-	if(count == 40) {
+	if (count == 40) {
 		type = APPLE_2_1A_CHARGER;
 		chg_debug(" call resun apsd timeout\n");
-		if(!pmic_chrdet_status()) {
+		if (!pmic_chrdet_status()) {
 			type = CHARGER_UNKNOWN;
 			chg_debug(" already plug out\n");
 		}
@@ -1183,13 +1236,13 @@ int smb1351_get_charger_type(void)
 		pr_err("Couldn't read STATUS_6 rc = %d\n", rc);
 	}
 	pr_err("dcd result(0x3C)=%x\n", reg);
-	
+
 	rc = smb1351_read_reg(smb1351_chip, STATUS_5_REG, &reg);
 	if (rc) {
 		pr_err("Couldn't read STATUS_5 rc = %d\n", rc);
 	}
 
-	pr_err("apsd result(0x3B)=%x, count:%d\n", reg,count);
+	pr_err("apsd result(0x3B)=%x, count:%d\n", reg, count);
 
 	switch (reg) {
 	case STATUS_PORT_ACA_DOCK:
@@ -1218,14 +1271,13 @@ int smb1351_get_charger_type(void)
 	return type;
 }
 
-
 /*
  * As source detect interrupt is not triggered on the falling edge,
  * we need to schedule a work for checking source detect status after
  * charger UV interrupt fired.
  */
-#define FIRST_CHECK_DELAY	100
-#define SECOND_CHECK_DELAY	1000
+#define FIRST_CHECK_DELAY 100
+#define SECOND_CHECK_DELAY 1000
 /*
 static void smb1351_chg_remove_work(struct work_struct *work)
 {
@@ -1262,7 +1314,7 @@ reschedule:
 */
 static int smb1351_usbin_uv_handler(struct smb1351_charger *chip, u8 status)
 {
-	pr_err("%s, status:%d\n",__func__,status);
+	pr_err("%s, status:%d\n", __func__, status);
 
 	return 0;
 }
@@ -1271,12 +1323,14 @@ static int smb1351_usbin_ov_handler(struct smb1351_charger *chip, u8 status)
 {
 	int rc;
 	u8 reg;
-	union power_supply_propval pval = {0, };
+	union power_supply_propval pval = {
+		0,
+	};
 
 	rc = smb1351_read_reg(chip, IRQ_E_REG, &reg);
 	if (rc)
 		pr_err("Couldn't read IRQ_E rc = %d\n", rc);
-	pr_err("%s, status:%d\n",__func__,status);
+	pr_err("%s, status:%d\n", __func__, status);
 
 	return 0;
 }
@@ -1296,7 +1350,7 @@ static int smb1351_chg_term_handler(struct smb1351_charger *chip, u8 status)
 }
 
 static int smb1351_safety_timeout_handler(struct smb1351_charger *chip,
-						u8 status)
+					  u8 status)
 {
 	pr_err("safety_timeout triggered\n");
 	return 0;
@@ -1334,7 +1388,7 @@ static int smb1351_cold_soft_handler(struct smb1351_charger *chip, u8 status)
 }
 
 static int smb1351_battery_missing_handler(struct smb1351_charger *chip,
-						u8 status)
+					   u8 status)
 {
 	if (status)
 		chip->battery_missing = true;
@@ -1345,17 +1399,17 @@ static int smb1351_battery_missing_handler(struct smb1351_charger *chip,
 }
 #ifdef CONFIG_OPLUS_CHARGER_MTK6771
 struct smb_irq_info {
-	const char		*name;
+	const char *name;
 	int (*smb_irq)(struct smb1351_charger *chip, u8 rt_stat);
-	int			high;
-	int			low;
+	int high;
+	int low;
 };
 
 struct irq_handler_info {
-		u8			stat_reg;
-		u8			val;
-		u8			prev_val;
-		struct smb_irq_info	irq_info[4];
+	u8 stat_reg;
+	u8 val;
+	u8 prev_val;
+	struct smb_irq_info irq_info[4];
 };
 #endif
 static struct irq_handler_info handlers[] = {
@@ -1489,9 +1543,9 @@ static struct irq_handler_info handlers[] = {
 	},
 };
 
-#define IRQ_LATCHED_MASK	0x02
-#define IRQ_STATUS_MASK		0x01
-#define BITS_PER_IRQ		2
+#define IRQ_LATCHED_MASK 0x02
+#define IRQ_STATUS_MASK 0x01
+#define BITS_PER_IRQ 2
 static irqreturn_t smb1351_chg_stat_handler(int irq, void *dev_id)
 {
 	struct smb1351_charger *chip = dev_id;
@@ -1515,34 +1569,34 @@ static irqreturn_t smb1351_chg_stat_handler(int irq, void *dev_id)
 
 	for (i = 0; i < ARRAY_SIZE(handlers); i++) {
 		rc = smb1351_read_reg(chip, handlers[i].stat_reg,
-						&handlers[i].val);
+				      &handlers[i].val);
 		if (rc) {
 			pr_err("Couldn't read %d rc = %d\n",
-					handlers[i].stat_reg, rc);
+			       handlers[i].stat_reg, rc);
 			continue;
 		}
 
 		for (j = 0; j < ARRAY_SIZE(handlers[i].irq_info); j++) {
-			triggered = handlers[i].val
-			       & (IRQ_LATCHED_MASK << (j * BITS_PER_IRQ));
-			rt_stat = handlers[i].val
-				& (IRQ_STATUS_MASK << (j * BITS_PER_IRQ));
-			prev_rt_stat = handlers[i].prev_val
-				& (IRQ_STATUS_MASK << (j * BITS_PER_IRQ));
+			triggered = handlers[i].val &
+				    (IRQ_LATCHED_MASK << (j * BITS_PER_IRQ));
+			rt_stat = handlers[i].val &
+				  (IRQ_STATUS_MASK << (j * BITS_PER_IRQ));
+			prev_rt_stat = handlers[i].prev_val &
+				       (IRQ_STATUS_MASK << (j * BITS_PER_IRQ));
 			changed = prev_rt_stat ^ rt_stat;
 
 			if (triggered || changed)
 				rt_stat ? handlers[i].irq_info[j].high++ :
 						handlers[i].irq_info[j].low++;
 
-			if ((triggered || changed)
-				&& handlers[i].irq_info[j].smb_irq != NULL) {
+			if ((triggered || changed) &&
+			    handlers[i].irq_info[j].smb_irq != NULL) {
 				handler_count++;
 				rc = handlers[i].irq_info[j].smb_irq(chip,
-								rt_stat);
+								     rt_stat);
 				if (rc)
 					pr_err("Couldn't handle %d irq for reg 0x%02x rc = %d\n",
-						j, handlers[i].stat_reg, rc);
+					       j, handlers[i].stat_reg, rc);
 			}
 		}
 		handlers[i].prev_val = handlers[i].val;
@@ -1558,7 +1612,7 @@ static irqreturn_t smb1351_chg_stat_handler(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-#define LAST_CNFG_REG	0x16
+#define LAST_CNFG_REG 0x16
 static int show_cnfg_regs(struct seq_file *m, void *data)
 {
 	struct smb1351_charger *chip = m->private;
@@ -1583,15 +1637,15 @@ static int cnfg_debugfs_open(struct inode *inode, struct file *file)
 }
 
 static const struct file_operations cnfg_debugfs_ops = {
-	.owner		= THIS_MODULE,
-	.open		= cnfg_debugfs_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
+	.owner = THIS_MODULE,
+	.open = cnfg_debugfs_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
 };
 
-#define FIRST_CMD_REG	0x30
-#define LAST_CMD_REG	0x34
+#define FIRST_CMD_REG 0x30
+#define LAST_CMD_REG 0x34
 static int show_cmd_regs(struct seq_file *m, void *data)
 {
 	struct smb1351_charger *chip = m->private;
@@ -1616,15 +1670,15 @@ static int cmd_debugfs_open(struct inode *inode, struct file *file)
 }
 
 static const struct file_operations cmd_debugfs_ops = {
-	.owner		= THIS_MODULE,
-	.open		= cmd_debugfs_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
+	.owner = THIS_MODULE,
+	.open = cmd_debugfs_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
 };
 
-#define FIRST_STATUS_REG	0x36
-#define LAST_STATUS_REG		0x3F
+#define FIRST_STATUS_REG 0x36
+#define LAST_STATUS_REG 0x3F
 static int show_status_regs(struct seq_file *m, void *data)
 {
 	struct smb1351_charger *chip = m->private;
@@ -1649,11 +1703,11 @@ static int status_debugfs_open(struct inode *inode, struct file *file)
 }
 
 static const struct file_operations status_debugfs_ops = {
-	.owner		= THIS_MODULE,
-	.open		= status_debugfs_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
+	.owner = THIS_MODULE,
+	.open = status_debugfs_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
 };
 
 static int show_irq_count(struct seq_file *m, void *data)
@@ -1663,13 +1717,13 @@ static int show_irq_count(struct seq_file *m, void *data)
 	for (i = 0; i < ARRAY_SIZE(handlers); i++)
 		for (j = 0; j < 4; j++) {
 			seq_printf(m, "%s=%d\t(high=%d low=%d)\n",
-						handlers[i].irq_info[j].name,
-						handlers[i].irq_info[j].high
-						+ handlers[i].irq_info[j].low,
-						handlers[i].irq_info[j].high,
-						handlers[i].irq_info[j].low);
-			total += (handlers[i].irq_info[j].high
-					+ handlers[i].irq_info[j].low);
+				   handlers[i].irq_info[j].name,
+				   handlers[i].irq_info[j].high +
+					   handlers[i].irq_info[j].low,
+				   handlers[i].irq_info[j].high,
+				   handlers[i].irq_info[j].low);
+			total += (handlers[i].irq_info[j].high +
+				  handlers[i].irq_info[j].low);
 		}
 
 	seq_printf(m, "\n\tTotal = %d\n", total);
@@ -1685,11 +1739,11 @@ static int irq_count_debugfs_open(struct inode *inode, struct file *file)
 }
 
 static const struct file_operations irq_count_debugfs_ops = {
-	.owner		= THIS_MODULE,
-	.open		= irq_count_debugfs_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
+	.owner = THIS_MODULE,
+	.open = irq_count_debugfs_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
 };
 
 static int get_reg(void *data, u64 *val)
@@ -1701,7 +1755,7 @@ static int get_reg(void *data, u64 *val)
 	rc = smb1351_read_reg(chip, chip->peek_poke_address, &temp);
 	if (rc) {
 		pr_err("Couldn't read reg %x rc = %d\n",
-			chip->peek_poke_address, rc);
+		       chip->peek_poke_address, rc);
 		return -EAGAIN;
 	}
 	*val = temp;
@@ -1714,11 +1768,11 @@ static int set_reg(void *data, u64 val)
 	int rc;
 	u8 temp;
 
-	temp = (u8) val;
+	temp = (u8)val;
 	rc = smb1351_write_reg(chip, chip->peek_poke_address, temp);
 	if (rc) {
-		pr_err("Couldn't write 0x%02x to 0x%02x rc= %d\n",
-			temp, chip->peek_poke_address, rc);
+		pr_err("Couldn't write 0x%02x to 0x%02x rc= %d\n", temp,
+		       chip->peek_poke_address, rc);
 		return -EAGAIN;
 	}
 	return 0;
@@ -1741,48 +1795,51 @@ void smb1351_dump_regs(void)
 	int rc;
 	u8 reg;
 	u8 addr;
-	u8 dump_reg[DUMP_REG_LEN] = {0x0};
+	u8 dump_reg[DUMP_REG_LEN] = { 0x0 };
 
 	for (addr = 0; addr <= LAST_CNFG_REG; addr++) {
 		rc = smb1351_read_reg(smb1351_chip, addr, &reg);
-		if (rc){
+		if (rc) {
 			pr_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
-			return ;
-		}
-		else {
+			return;
+		} else {
 			dump_reg[addr] = reg;
 		}
-			
 	}
-	pr_err("[%s]:smb1351_cnfg_reg[0x00-0x16]:0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x\n",__func__,
-		dump_reg[0],dump_reg[1], dump_reg[2], dump_reg[3], dump_reg[4], dump_reg[5], dump_reg[6],
-		dump_reg[7], dump_reg[8], dump_reg[9], dump_reg[10], dump_reg[11], dump_reg[12], dump_reg[13], dump_reg[14], dump_reg[15],
-		dump_reg[16], dump_reg[17], dump_reg[18], dump_reg[19], dump_reg[20], dump_reg[21], dump_reg[22]);
+	pr_err("[%s]:smb1351_cnfg_reg[0x00-0x16]:0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x\n",
+	       __func__, dump_reg[0], dump_reg[1], dump_reg[2], dump_reg[3],
+	       dump_reg[4], dump_reg[5], dump_reg[6], dump_reg[7], dump_reg[8],
+	       dump_reg[9], dump_reg[10], dump_reg[11], dump_reg[12],
+	       dump_reg[13], dump_reg[14], dump_reg[15], dump_reg[16],
+	       dump_reg[17], dump_reg[18], dump_reg[19], dump_reg[20],
+	       dump_reg[21], dump_reg[22]);
 
-	
 	for (addr = FIRST_STATUS_REG; addr <= LAST_STATUS_REG; addr++) {
 		rc = smb1351_read_reg(smb1351_chip, addr, &reg);
 		if (rc)
 			pr_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
 		else {
-			dump_reg[addr-FIRST_STATUS_REG] = reg;
+			dump_reg[addr - FIRST_STATUS_REG] = reg;
 		}
 	}
-	pr_err("[%s]:smb1351_status_reg[0x36-0x3f]:0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x\n",__func__,
-		dump_reg[0], dump_reg[1], dump_reg[2], dump_reg[3], dump_reg[4], dump_reg[5], dump_reg[6], dump_reg[7], dump_reg[8],
-		dump_reg[9]);
+	pr_err("[%s]:smb1351_status_reg[0x36-0x3f]:0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x\n",
+	       __func__, dump_reg[0], dump_reg[1], dump_reg[2], dump_reg[3],
+	       dump_reg[4], dump_reg[5], dump_reg[6], dump_reg[7], dump_reg[8],
+	       dump_reg[9]);
 
 	for (addr = FIRST_CMD_REG; addr <= LAST_CMD_REG; addr++) {
 		rc = smb1351_read_reg(smb1351_chip, addr, &reg);
 		if (rc)
 			pr_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
 		else {
-			dump_reg[addr-FIRST_CMD_REG] = reg;
+			dump_reg[addr - FIRST_CMD_REG] = reg;
 		}
 	}
-	pr_err("[%s]:smb1351_cmd_reg[0x30-0x34]:0x%x,0x%x,0x%x,0x%x,0x%x\n",__func__,dump_reg[0], dump_reg[1], dump_reg[2], dump_reg[3], dump_reg[4]);
-    charger_ic_flag = 3;
-	return ;
+	pr_err("[%s]:smb1351_cmd_reg[0x30-0x34]:0x%x,0x%x,0x%x,0x%x,0x%x\n",
+	       __func__, dump_reg[0], dump_reg[1], dump_reg[2], dump_reg[3],
+	       dump_reg[4]);
+	charger_ic_flag = 3;
+	return;
 }
 #else
 static void dump_regs(struct smb1351_charger *chip)
@@ -1800,73 +1857,69 @@ static int smb1351_parse_dt(struct smb1351_charger *chip)
 		return -EINVAL;
 	}
 
-
 	chip->disable_apsd = of_property_read_bool(node, "qcom,disable-apsd");
 
-	chip->using_pmic_therm = of_property_read_bool(node,
-						"qcom,using-pmic-therm");
-	chip->bms_controlled_charging  = of_property_read_bool(node,
-					"qcom,bms-controlled-charging");
-	chip->force_hvdcp_2p0 = of_property_read_bool(node,
-					"qcom,force-hvdcp-2p0");
+	chip->using_pmic_therm =
+		of_property_read_bool(node, "qcom,using-pmic-therm");
+	chip->bms_controlled_charging =
+		of_property_read_bool(node, "qcom,bms-controlled-charging");
+	chip->force_hvdcp_2p0 =
+		of_property_read_bool(node, "qcom,force-hvdcp-2p0");
 
 	rc = of_property_read_string(node, "qcom,bms-psy-name",
-						&chip->bms_psy_name);
+				     &chip->bms_psy_name);
 	if (rc)
 		chip->bms_psy_name = NULL;
 
 	rc = of_property_read_u32(node, "qcom,fastchg-current-max-ma",
-					&chip->target_fastchg_current_max_ma);
+				  &chip->target_fastchg_current_max_ma);
 	if (rc)
 		chip->target_fastchg_current_max_ma = SMB1351_CHG_FAST_MAX_MA;
 
-	chip->iterm_disabled = of_property_read_bool(node,
-					"qcom,iterm-disabled");
-
-
+	chip->iterm_disabled =
+		of_property_read_bool(node, "qcom,iterm-disabled");
 
 	rc = of_property_read_u32(node, "qcom,float-voltage-mv",
-						&chip->vfloat_mv);
+				  &chip->vfloat_mv);
 	if (rc)
 		chip->vfloat_mv = -EINVAL;
 
-	rc = of_property_read_u32(node, "qcom,recharge-mv",
-						&chip->recharge_mv);
+	rc = of_property_read_u32(node, "qcom,recharge-mv", &chip->recharge_mv);
 	if (rc)
 		chip->recharge_mv = -EINVAL;
 
-	chip->recharge_disabled = of_property_read_bool(node,
-					"qcom,recharge-disabled");
+	chip->recharge_disabled =
+		of_property_read_bool(node, "qcom,recharge-disabled");
 
 	/* thermal and jeita support */
 	rc = of_property_read_u32(node, "qcom,batt-cold-decidegc",
-						&chip->batt_cold_decidegc);
+				  &chip->batt_cold_decidegc);
 	if (rc < 0)
 		chip->batt_cold_decidegc = -EINVAL;
 
 	rc = of_property_read_u32(node, "qcom,batt-hot-decidegc",
-						&chip->batt_hot_decidegc);
+				  &chip->batt_hot_decidegc);
 	if (rc < 0)
 		chip->batt_hot_decidegc = -EINVAL;
 
 	rc = of_property_read_u32(node, "qcom,batt-warm-decidegc",
-						&chip->batt_warm_decidegc);
+				  &chip->batt_warm_decidegc);
 
 	rc |= of_property_read_u32(node, "qcom,batt-cool-decidegc",
-						&chip->batt_cool_decidegc);
+				   &chip->batt_cool_decidegc);
 
 	if (!rc) {
 		rc = of_property_read_u32(node, "qcom,batt-cool-mv",
-						&chip->batt_cool_mv);
+					  &chip->batt_cool_mv);
 
 		rc |= of_property_read_u32(node, "qcom,batt-warm-mv",
-						&chip->batt_warm_mv);
+					   &chip->batt_warm_mv);
 
 		rc |= of_property_read_u32(node, "qcom,batt-cool-ma",
-						&chip->batt_cool_ma);
+					   &chip->batt_cool_ma);
 
 		rc |= of_property_read_u32(node, "qcom,batt-warm-ma",
-						&chip->batt_warm_ma);
+					   &chip->batt_warm_ma);
 		if (rc)
 			chip->jeita_supported = false;
 		else
@@ -1876,7 +1929,7 @@ static int smb1351_parse_dt(struct smb1351_charger *chip)
 	pr_err("jeita_supported = %d\n", chip->jeita_supported);
 
 	rc = of_property_read_u32(node, "qcom,batt-missing-decidegc",
-						&chip->batt_missing_decidegc);
+				  &chip->batt_missing_decidegc);
 
 	chip->pinctrl_state_name = of_get_property(node, "pinctrl-names", NULL);
 
@@ -1980,8 +2033,8 @@ static int create_debugfs_entries(struct smb1351_charger *chip)
 			pr_err("Couldn't create cmd debug file\n");
 
 		ent = debugfs_create_x32("address", S_IFREG | S_IWUSR | S_IRUGO,
-					  chip->debug_root,
-					  &(chip->peek_poke_address));
+					 chip->debug_root,
+					 &(chip->peek_poke_address));
 		if (!ent)
 			pr_err("Couldn't create address debug file\n");
 
@@ -2007,13 +2060,12 @@ static int create_debugfs_entries(struct smb1351_charger *chip)
 	return 0;
 }
 
-
 static int oplus_chg_hw_init(void)
 {
-	
 #ifdef CONFIG_OPLUS_CHARGER_MTK
-	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT
-		|| get_boot_mode() == ADVMETA_BOOT || get_boot_mode() == ATE_FACTORY_BOOT) {
+	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT ||
+	    get_boot_mode() == ADVMETA_BOOT ||
+	    get_boot_mode() == ATE_FACTORY_BOOT) {
 		smb1351_suspend_charger();
 	} else {
 		smb1351_unsuspend_charger();
@@ -2032,9 +2084,9 @@ static int smb1351_kick_wdt(void)
 	if (atomic_read(&smb1351_chip->charger_suspended) == 1) {
 		return 0;
 	}
-	rc = smb1351_masked_write(smb1351_chip, WDOG_SAFETY_TIMER_CTRL_REG, WDOG_TIMER_EN_BIT, WDOG_TIMER_EN_BIT);
+	rc = smb1351_masked_write(smb1351_chip, WDOG_SAFETY_TIMER_CTRL_REG,
+				  WDOG_TIMER_EN_BIT, WDOG_TIMER_EN_BIT);
 	return 0;
-
 }
 
 #ifdef CONFIG_OPLUS_SHORT_C_BATT_CHECK
@@ -2045,13 +2097,12 @@ static int smb1351_kick_wdt(void)
 static int oplus_chg_get_dyna_aicl_result(void)
 {
 	return aicl_result;
-	
 }
 #endif /* CONFIG_OPLUS_SHORT_C_BATT_CHECK */
 
 static void smb1351_set_aicl_point(int vol)
 {
-	return ;
+	return;
 }
 
 static int smb1351_reset_charger(void)
@@ -2060,31 +2111,41 @@ static int smb1351_reset_charger(void)
 	u8 reg1;
 	u8 reg2;
 	u8 reg3;
-	rc = smb1351_masked_write(smb1351_chip, CHG_CURRENT_CTRL_REG, 0xff, 0x5a);
-	rc = smb1351_masked_write(smb1351_chip, CHG_OTH_CURRENT_CTRL_REG, 0xff, 0x01);
+	rc = smb1351_masked_write(smb1351_chip, CHG_CURRENT_CTRL_REG, 0xff,
+				  0x5a);
+	rc = smb1351_masked_write(smb1351_chip, CHG_OTH_CURRENT_CTRL_REG, 0xff,
+				  0x01);
 	rc = smb1351_masked_write(smb1351_chip, VARIOUS_FUNC_REG, 0xff, 0x97);
 	rc = smb1351_masked_write(smb1351_chip, VFLOAT_REG, 0xff, 0xeb);
 	rc = smb1351_masked_write(smb1351_chip, CHG_CTRL_REG, 0xff, 0x81);
-	rc = smb1351_masked_write(smb1351_chip, CHG_STAT_TIMERS_CTRL_REG, 0xff, 0x11);
-	rc = smb1351_masked_write(smb1351_chip, CHG_PIN_EN_CTRL_REG, 0xff, 0x18);
+	rc = smb1351_masked_write(smb1351_chip, CHG_STAT_TIMERS_CTRL_REG, 0xff,
+				  0x11);
+	rc = smb1351_masked_write(smb1351_chip, CHG_PIN_EN_CTRL_REG, 0xff,
+				  0x18);
 	rc = smb1351_masked_write(smb1351_chip, THERM_A_CTRL_REG, 0xff, 0xd5);
-	rc = smb1351_masked_write(smb1351_chip, WDOG_SAFETY_TIMER_CTRL_REG, 0xff, 0x80);
-	rc = smb1351_masked_write(smb1351_chip, OTG_USBIN_AICL_CTRL_REG, 0xff, 0x18);
+	rc = smb1351_masked_write(smb1351_chip, WDOG_SAFETY_TIMER_CTRL_REG,
+				  0xff, 0x80);
+	rc = smb1351_masked_write(smb1351_chip, OTG_USBIN_AICL_CTRL_REG, 0xff,
+				  0x18);
 	rc = smb1351_masked_write(smb1351_chip, OTG_TLIM_CTRL_REG, 0xff, 0x2c);
-	rc = smb1351_masked_write(smb1351_chip, HARD_SOFT_LIMIT_CELL_TEMP_REG, 0xff, 0x40);
+	rc = smb1351_masked_write(smb1351_chip, HARD_SOFT_LIMIT_CELL_TEMP_REG,
+				  0xff, 0x40);
 	rc = smb1351_masked_write(smb1351_chip, FAULT_INT_REG, 0xff, 0x00);
 	rc = smb1351_masked_write(smb1351_chip, STATUS_INT_REG, 0xff, 0x00);
 	rc = smb1351_masked_write(smb1351_chip, VARIOUS_FUNC_2_REG, 0xff, 0x98);
 	rc = smb1351_masked_write(smb1351_chip, FLEXCHARGER_REG, 0xff, 0x77);
 	rc = smb1351_masked_write(smb1351_chip, VARIOUS_FUNC_3_REG, 0xff, 0xa2);
-	rc = smb1351_masked_write(smb1351_chip, HVDCP_BATT_MISSING_CTRL_REG, 0xff, 0x60);
+	rc = smb1351_masked_write(smb1351_chip, HVDCP_BATT_MISSING_CTRL_REG,
+				  0xff, 0x60);
 	rc = smb1351_masked_write(smb1351_chip, PON_OPTIONS_REG, 0xff, 0x4c);
-	rc = smb1351_masked_write(smb1351_chip, OTG_MODE_POWER_OPTIONS_REG, 0xff, 0x1c);
+	rc = smb1351_masked_write(smb1351_chip, OTG_MODE_POWER_OPTIONS_REG,
+				  0xff, 0x1c);
 	smb1351_read_reg(smb1351_chip, 0x42, &reg1);
 	smb1351_read_reg(smb1351_chip, 0x44, &reg2);
 	smb1351_read_reg(smb1351_chip, 0x46, &reg3);
-	printk("smb1351_reset_charger reg[0]=0x%x,reg[1]=0x%x,reg[2]=0x%x\n",reg1,reg2,reg3);
-	
+	printk("smb1351_reset_charger reg[0]=0x%x,reg[1]=0x%x,reg[2]=0x%x\n",
+	       reg1, reg2, reg3);
+
 	return 0;
 }
 static int smb1351_registers_read_full(void)
@@ -2094,7 +2155,6 @@ static int smb1351_registers_read_full(void)
 static int smb1351_get_chg_current_step(void)
 {
 	return 100;
-	
 }
 
 int smbchg_otg_enable(void)
@@ -2105,12 +2165,11 @@ int smbchg_otg_enable(void)
 		return 0;
 	}
 	rc = smb1351_masked_write(smb1351_chip, CMD_CHG_REG, CMD_OTG_EN_BIT,
-							CMD_OTG_EN_BIT);
+				  CMD_OTG_EN_BIT);
 	if (rc)
 		pr_err("Couldn't enable  OTG mode rc=%d\n", rc);
-	pr_err("%s \n",__func__);
+	pr_err("%s \n", __func__);
 	return rc;
-	
 }
 
 int smbchg_otg_disable(void)
@@ -2123,7 +2182,7 @@ int smbchg_otg_disable(void)
 	rc = smb1351_masked_write(smb1351_chip, CMD_CHG_REG, CMD_OTG_EN_BIT, 0);
 	if (rc)
 		pr_err("Couldn't disable OTG mode rc=%d\n", rc);
-	pr_err("%s \n",__func__);
+	pr_err("%s \n", __func__);
 	return rc;
 }
 
@@ -2140,7 +2199,7 @@ static void register_charger_devinfo(void)
 extern int oplus_chg_shortc_hw_parse_dt(struct smb1351_charger *chip);
 extern bool oplus_chg_get_shortc_hw_gpio_status(void);
 //struct mutex charger_type_mutex;
-struct oplus_chg_operations  smb1351_chg_ops = {
+struct oplus_chg_operations smb1351_chg_ops = {
 	.dump_registers = smb1351_dump_regs,
 	.kick_wdt = smb1351_kick_wdt,
 	.hardware_init = oplus_chg_hw_init,
@@ -2161,39 +2220,39 @@ struct oplus_chg_operations  smb1351_chg_ops = {
 	.otg_disable = smbchg_otg_disable,
 	.set_charging_term_disable = smb1351_set_chging_term_disable,
 	.check_charger_resume = smb1351_check_charger_resume,
-	#ifdef CONFIG_OPLUS_CHARGER_MTK
+#ifdef CONFIG_OPLUS_CHARGER_MTK
 	.get_charger_type = mt_power_supply_type_check,
 	//.get_chg_pretype = charger_pretype_get,
 	.get_charger_volt = battery_meter_get_charger_voltage,
-	.check_chrdet_status = (bool (*) (void)) pmic_chrdet_status,
+	.check_chrdet_status = (bool (*)(void))pmic_chrdet_status,
 	.get_instant_vbatt = oplus_battery_meter_get_battery_voltage,
 	.get_boot_mode = (int (*)(void))get_boot_mode,
 	.get_boot_reason = (int (*)(void))get_boot_reason,
-//	#ifdef CONFIG_MTK_HAFG_20
+	//	#ifdef CONFIG_MTK_HAFG_20
 	.get_chargerid_volt = mt_get_chargerid_volt,
 
-	.set_chargerid_switch_val = mt_set_chargerid_switch_val ,
-	.get_chargerid_switch_val  = mt_get_chargerid_switch_val,
-	//.set_usb_shell_ctrl_val = mt_set_usb_shell_ctrl_val,
-	//.get_usb_shell_ctrl_val = mt_get_usb_shell_ctrl_val,
+	.set_chargerid_switch_val = mt_set_chargerid_switch_val,
+	.get_chargerid_switch_val = mt_get_chargerid_switch_val,
+//.set_usb_shell_ctrl_val = mt_set_usb_shell_ctrl_val,
+//.get_usb_shell_ctrl_val = mt_get_usb_shell_ctrl_val,
 //	#endif /* CONFIG_MTK_HAFG_20 */
-	#ifdef CONFIG_MTK_HAFG_20
+#ifdef CONFIG_MTK_HAFG_20
 	.get_rtc_soc = get_rtc_spare_oplus_fg_value,
 	.set_rtc_soc = set_rtc_spare_oplus_fg_value,
-	#elif defined(CONFIG_OPLUS_CHARGER_MTK6771)
-    .get_rtc_soc = oplus_get_rtc_ui_soc,
+#elif defined(CONFIG_OPLUS_CHARGER_MTK6771)
+	.get_rtc_soc = oplus_get_rtc_ui_soc,
 	.set_rtc_soc = oplus_set_rtc_ui_soc,
-	#elif defined(CONFIG_OPLUS_CHARGER_MTK6763)
-    .get_rtc_soc = get_rtc_spare_oplus_fg_value,
-    .set_rtc_soc = set_rtc_spare_oplus_fg_value,
-	#else /* CONFIG_MTK_HAFG_20 */
+#elif defined(CONFIG_OPLUS_CHARGER_MTK6763)
+	.get_rtc_soc = get_rtc_spare_oplus_fg_value,
+	.set_rtc_soc = set_rtc_spare_oplus_fg_value,
+#else /* CONFIG_MTK_HAFG_20 */
 	.get_rtc_soc = oplus_get_rtc_ui_soc,
 	.set_rtc_soc = set_rtc_spare_fg_value,
-	#endif /* CONFIG_MTK_HAFG_20 */
+#endif /* CONFIG_MTK_HAFG_20 */
 	.set_power_off = mt_power_off,
 	.usb_connect = mt_usb_connect,
 	.usb_disconnect = mt_usb_disconnect,
-	#else /* CONFIG_OPLUS_CHARGER_MTK */
+#else /* CONFIG_OPLUS_CHARGER_MTK */
 	.get_charger_type = qpnp_charger_type_get,
 	.get_charger_volt = qpnp_get_prop_charger_voltage_now,
 	.check_chrdet_status = qpnp_lbc_is_usb_chg_plugged_in,
@@ -2201,20 +2260,19 @@ struct oplus_chg_operations  smb1351_chg_ops = {
 	.get_boot_mode = get_boot_mode,
 	.get_rtc_soc = qpnp_get_pmic_soc_memory,
 	.set_rtc_soc = qpnp_set_pmic_soc_memory,
-	#endif /* CONFIG_OPLUS_CHARGER_MTK */
+#endif /* CONFIG_OPLUS_CHARGER_MTK */
 	.get_chg_current_step = smb1351_get_chg_current_step,
-	#ifdef CONFIG_OPLUS_SHORT_C_BATT_CHECK
+#ifdef CONFIG_OPLUS_SHORT_C_BATT_CHECK
 	.get_dyna_aicl_result = oplus_chg_get_dyna_aicl_result,
-	#endif
+#endif
 	.get_shortc_hw_gpio_status = oplus_chg_get_shortc_hw_gpio_status,
-	#ifdef CONFIG_OPLUS_RTC_DET_SUPPORT
+#ifdef CONFIG_OPLUS_RTC_DET_SUPPORT
 	.check_rtc_reset = rtc_reset_check,
-	#endif
+#endif
 };
 
-
 static int smb1351_charger_probe(struct i2c_client *client,
-				const struct i2c_device_id *id)
+				 const struct i2c_device_id *id)
 {
 	int rc;
 	struct smb1351_charger *chip = NULL;
@@ -2226,21 +2284,21 @@ static int smb1351_charger_probe(struct i2c_client *client,
 		pr_err("Couldn't allocate memory\n");
 		return -ENOMEM;
 	}
-	chg_debug( "SMB1351: call \n");
+	chg_debug("SMB1351: call \n");
 	chip->client = client;
 	chip->dev = &client->dev;
 	//chip->usb_psy = usb_psy;
 	chip->fake_battery_soc = -EINVAL;
 	smb1351_chip = chip;
 	smb1351_dump_regs();
-	if(charger_ic_flag != 3) {
-		pr_err("%s, read error,return \n",__func__);
+	if (charger_ic_flag != 3) {
+		pr_err("%s, read error,return \n", __func__);
 		return -ENODEV;
 	}
 	//oplus_chg_parse_dt(chip);
 	//oplus_chg_shortc_hw_parse_dt(chip);
 	atomic_set(&chip->charger_suspended, 0);
-	
+
 	//INIT_DELAYED_WORK(&chip->chg_remove_work, smb1351_chg_remove_work);
 	device_init_wakeup(chip->dev, true);
 
@@ -2258,7 +2316,6 @@ static int smb1351_charger_probe(struct i2c_client *client,
 		pr_err("Couldn't parse DT nodes rc=%d\n", rc);
 		return rc;
 	}
-
 
 	i2c_set_clientdata(client, chip);
 
@@ -2284,12 +2341,12 @@ static int smb1351_charger_probe(struct i2c_client *client,
 	/* STAT irq configuration */
 	if (client->irq) {
 		rc = devm_request_threaded_irq(&client->dev, client->irq, NULL,
-				smb1351_chg_stat_handler,
-				IRQF_TRIGGER_LOW | IRQF_ONESHOT,
-				"smb1351_chg_stat_irq", chip);
+					       smb1351_chg_stat_handler,
+					       IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+					       "smb1351_chg_stat_irq", chip);
 		if (rc) {
 			pr_err("Failed STAT irq=%d request rc = %d\n",
-				client->irq, rc);
+			       client->irq, rc);
 		}
 		enable_irq_wake(client->irq);
 	}
@@ -2299,15 +2356,12 @@ static int smb1351_charger_probe(struct i2c_client *client,
 	create_debugfs_entries(chip);
 
 	pr_err("smb1351 successfully probed. charger=%d,version=%s\n",
-			chip->chg_present,
-			smb1351_version_str[chip->version]);
+	       chip->chg_present, smb1351_version_str[chip->version]);
 	return 0;
-
 }
 
 static int smb1351_charger_remove(struct i2c_client *client)
 {
-
 	return 0;
 }
 
@@ -2342,7 +2396,8 @@ static int smb1351_suspend_noirq(struct device *dev)
 		return 0;
 
 	if (chip->irq_waiting) {
-		pr_err_ratelimited("Aborting suspend, an interrupt was detected while suspending\n");
+		pr_err_ratelimited(
+			"Aborting suspend, an interrupt was detected while suspending\n");
 		return -EBUSY;
 	}
 	return 0;
@@ -2370,18 +2425,20 @@ static int smb1351_resume(struct device *dev)
 }
 
 static const struct dev_pm_ops smb1351_pm_ops = {
-	.suspend	= smb1351_suspend,
-	.suspend_noirq	= smb1351_suspend_noirq,
-	.resume		= smb1351_resume,
+	.suspend = smb1351_suspend,
+	.suspend_noirq = smb1351_suspend_noirq,
+	.resume = smb1351_resume,
 };
 
 static struct of_device_id smb1351_match_table[] = {
-	{ .compatible = "qcom,smb1351-charger",},
-	{ },
+	{
+		.compatible = "qcom,smb1351-charger",
+	},
+	{},
 };
 
 static const struct i2c_device_id smb1351_charger_id[] = {
-	{"smb1351-charger", 0},
+	{ "smb1351-charger", 0 },
 	{},
 };
 MODULE_DEVICE_TABLE(i2c, smb1351_charger_id);

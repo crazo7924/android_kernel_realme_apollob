@@ -1389,14 +1389,8 @@ void opchg_set_switch_fast_charger(struct oplus_vooc_chip *chip)
 
 void opchg_set_vooc_chargerid_switch_val(struct oplus_vooc_chip *chip, int value)
 {
-	int level = 0;
+	return;
 
-	if (value == 1)
-		level = 1;
-	else if (value == 0)
-		level = 0;
-	else
-		return;
 	/*
 	if (chip->vooc_gpio.switch1_ctr1_gpio > 0) {//asic rk826/op10
 		if (level == 1) {

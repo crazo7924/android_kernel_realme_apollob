@@ -196,7 +196,7 @@ static void wk_auxadc_dbg_dump(void)
 /* BAT_TEMP filter Maxima and minima then average */
 static int bat_temp_filter(int *arr, unsigned short size)
 {
-	unsigned char i, i_max, i_min = 0;
+	unsigned char i;
 	int arr_max = 0, arr_min = arr[0];
 	int sum = 0;
 
@@ -204,10 +204,8 @@ static int bat_temp_filter(int *arr, unsigned short size)
 		sum += arr[i];
 		if (arr[i] > arr_max) {
 			arr_max = arr[i];
-			i_max = i;
 		} else if (arr[i] < arr_min) {
 			arr_min = arr[i];
-			i_min = i;
 		}
 	}
 	sum = sum - arr_max - arr_min;
@@ -216,11 +214,11 @@ static int bat_temp_filter(int *arr, unsigned short size)
 
 static int wk_bat_temp_dbg(int bat_temp_prev, int bat_temp)
 {
-	int vbif28, bat_temp_new = bat_temp;
-	int arr_bat_temp[5], vbat;
+	int bat_temp_new = bat_temp;
+	int arr_bat_temp[5];
 	unsigned short i;
 
-	vbif28 = auxadc_priv_read_channel(pmic_auxadc_dev, AUXADC_VBIF);
+	auxadc_priv_read_channel(pmic_auxadc_dev, AUXADC_VBIF);
 //#ifdef VENDOR_EDIT
 /*Dongru.Zhao@BSP.CHG.Basic, 2020/07/27, zdr Add for kernel log .*/
 /*
@@ -247,7 +245,7 @@ static int wk_bat_temp_dbg(int bat_temp_prev, int bat_temp)
 		/* Reset AuxADC to observe VBAT/IBAT/BAT_TEMP */
 		wk_auxadc_reset();
 		for (i = 0; i < 5; i++) {
-			vbat = auxadc_priv_read_channel(pmic_auxadc_dev,
+			auxadc_priv_read_channel(pmic_auxadc_dev,
 							AUXADC_BATADC);
 			arr_bat_temp[i] =
 				auxadc_priv_read_channel(pmic_auxadc_dev,

@@ -53,7 +53,7 @@ struct pe40_power_cap {
 };
 
 typedef enum {
-	STEP_CHG_STATUS_STEP1 = 0,	/*16C~44C*/
+	STEP_CHG_STATUS_STEP1 = 0, /*16C~44C*/
 	STEP_CHG_STATUS_STEP2,
 	STEP_CHG_STATUS_STEP3,
 	STEP_CHG_STATUS_STEP4,
@@ -64,7 +64,7 @@ typedef enum {
 /* Jianchao.Shi@BSP.CHG.Basic, 2018/11/09, sjc Add for charging */
 
 struct mtk_pmic {
-	struct charger_manager* oplus_info;
+	struct charger_manager *oplus_info;
 };
 
 //extern int mt_power_supply_type_check(void);
@@ -89,7 +89,6 @@ extern int mt6360_set_register(u8 addr, u8 mask, u8 data);
 //extern int mt_get_chargerid_volt(void);
 //extern void mt_set_chargerid_switch_val(int value);
 //extern int mt_get_chargerid_switch_val(void);
-
 
 extern void mt_power_off(void);
 extern void mt_usb_connect(void);

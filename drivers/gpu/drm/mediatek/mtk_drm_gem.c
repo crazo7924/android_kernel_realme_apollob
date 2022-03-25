@@ -182,7 +182,6 @@ struct mtk_drm_gem_obj *mtk_drm_fb_gem_insert(struct drm_device *dev,
 					      unsigned int vramsize)
 {
 	struct mtk_drm_gem_obj *mtk_gem;
-	struct drm_gem_object *obj;
 	struct sg_table *sgt;
 	unsigned long fb_pa = 0;
 
@@ -190,8 +189,6 @@ struct mtk_drm_gem_obj *mtk_drm_fb_gem_insert(struct drm_device *dev,
 	mtk_gem = mtk_drm_gem_init(dev, vramsize);
 	if (IS_ERR(mtk_gem))
 		return ERR_CAST(mtk_gem);
-
-	obj = &mtk_gem->base;
 
 	mtk_gem->size = size;
 	mtk_gem->dma_attrs = DMA_ATTR_WRITE_COMBINE;

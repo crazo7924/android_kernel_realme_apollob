@@ -389,8 +389,7 @@ int _gz_client_wait_ret(int32_t Fd, struct gz_syscall_cmd_param *data)
 {
 	ssize_t rc;
 	struct tipc_k_handle *handle;
-	int size;
-
+	int size __maybe_unused;
 	handle = _FdToHandle(Fd);
 	if (!handle) {
 		KREE_ERR("%s: get tipc handle failed\n", __func__);

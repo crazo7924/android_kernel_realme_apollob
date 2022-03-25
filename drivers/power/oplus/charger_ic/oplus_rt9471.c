@@ -20,7 +20,6 @@
 #include <linux/reboot.h>
 #include <linux/regmap.h>
 
-
 #include <mt-plat/upmu_common.h>
 //#include <mt-plat/charger_class.h>
 //#include <mt-plat/charger_type.h>
@@ -51,13 +50,13 @@ extern int oplus_get_rtc_ui_soc(void);
 extern int oplus_set_rtc_ui_soc(int value);
 int oplus_rt9471_get_charger_volt(void);
 extern unsigned int pmic_get_register_value(struct regmap *map,
-			unsigned int addr,
-			unsigned int mask,
-			unsigned int shift);
+					    unsigned int addr,
+					    unsigned int mask,
+					    unsigned int shift);
 int dump_more_reg = 0;
 static bool first_connect = false;
 
-#define RT9471_DRV_VERSION	"1.0.11_MTK"
+#define RT9471_DRV_VERSION "1.0.11_MTK"
 
 enum rt9471_stat_idx {
 	RT9471_STATIDX_STAT0 = 0,
@@ -90,10 +89,10 @@ enum rt9471_ic_stat {
 };
 
 static const char *rt9471_ic_stat_name[RT9471_ICSTAT_MAX] = {
-	"hz/sleep", "ready", "trickle-charge", "pre-charge",
-	"fast-charge", "ieoc-charge", "background-charge",
-	"done", "fault", "RESERVED", "RESERVED", "RESERVED",
-	"RESERVED", "RESERVED", "RESERVED", "OTG",
+	"hz/sleep",    "ready",	      "trickle-charge",	   "pre-charge",
+	"fast-charge", "ieoc-charge", "background-charge", "done",
+	"fault",       "RESERVED",    "RESERVED",	   "RESERVED",
+	"RESERVED",    "RESERVED",    "RESERVED",	   "OTG",
 };
 
 enum rt9471_mivr_track {
@@ -168,33 +167,34 @@ static struct rt9471_desc rt9471_default_desc = {
 };
 
 static const u8 rt9471_irq_maskall[RT9471_IRQIDX_MAX] = {
-	0xFF, 0xFF, 0xFF, 0xFF,
+	0xFF,
+	0xFF,
+	0xFF,
+	0xFF,
 };
 
 static const u32 rt9471_wdt[] = {
-	0, 40, 80, 160,
+	0,
+	40,
+	80,
+	160,
 };
 
 static u32 rt9471_otgcc[] = {
-	500000, 1200000,
+	500000,
+	1200000,
 };
 
 static const u8 rt9471_val_en_hidden_mode[] = {
-	0x69, 0x96,
+	0x69,
+	0x96,
 };
 
 static const char *rt9471_port_name[RT9471_PORTSTAT_MAX] = {
-	"NOINFO",
-	"RESERVED", "RESERVED", "RESERVED", "RESERVED",
-	"RESERVED", "RESERVED", "RESERVED",
-	"APPLE_10W",
-	"SAMSUNG_10W",
-	"APPLE_5W",
-	"APPLE_12W",
-	"NSDP",
-	"SDP",
-	"CDP",
-	"DCP",
+	"NOINFO",    "RESERVED",    "RESERVED", "RESERVED",
+	"RESERVED",  "RESERVED",    "RESERVED", "RESERVED",
+	"APPLE_10W", "SAMSUNG_10W", "APPLE_5W", "APPLE_12W",
+	"NSDP",	     "SDP",	    "CDP",	"DCP",
 };
 
 struct rt9471_chip {
@@ -215,9 +215,9 @@ struct rt9471_chip {
 	u32 ceb_gpio;
 	int irq;
 	u8 irq_mask[RT9471_IRQIDX_MAX];
-//#ifndef CONFIG_TCPC_CLASS
+	//#ifndef CONFIG_TCPC_CLASS
 	struct work_struct init_work;
-//#endif
+	//#endif
 	atomic_t vbus_gd;
 	bool attach;
 	enum rt9471_port_stat port;
@@ -268,11 +268,9 @@ static const u8 rt9471_reg_addr[] = {
 
 enum power_supply_type charger_type = POWER_SUPPLY_TYPE_UNKNOWN;
 
-static void pmic_set_register_value(struct regmap *map,
-			unsigned int addr,
-			unsigned int mask,
-			unsigned int shift,
-			unsigned int val)
+static void pmic_set_register_value(struct regmap *map, unsigned int addr,
+				    unsigned int mask, unsigned int shift,
+				    unsigned int val)
 {
 	regmap_update_bits(map, addr, mask << shift, val << shift);
 }
@@ -302,59 +300,41 @@ static void hw_bc11_init(void)
 		first_connect = false;
 	}
 	/* RG_bc11_BIAS_EN=1 */
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_BIAS_EN_ADDR,
-			PMIC_RG_BC11_BIAS_EN_MASK,
-			PMIC_RG_BC11_BIAS_EN_SHIFT,
-			0x1);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_BIAS_EN_ADDR,
+				PMIC_RG_BC11_BIAS_EN_MASK,
+				PMIC_RG_BC11_BIAS_EN_SHIFT, 0x1);
 	/* RG_bc11_VSRC_EN[1:0]=00 */
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VSRC_EN_ADDR,
-			PMIC_RG_BC11_VSRC_EN_MASK,
-			PMIC_RG_BC11_VSRC_EN_SHIFT,
-			0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VSRC_EN_ADDR,
+				PMIC_RG_BC11_VSRC_EN_MASK,
+				PMIC_RG_BC11_VSRC_EN_SHIFT, 0x0);
 	/* RG_bc11_VREF_VTH = [1:0]=00 */
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VREF_VTH_ADDR,
-			PMIC_RG_BC11_VREF_VTH_MASK,
-			PMIC_RG_BC11_VREF_VTH_SHIFT,
-			0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VREF_VTH_ADDR,
+				PMIC_RG_BC11_VREF_VTH_MASK,
+				PMIC_RG_BC11_VREF_VTH_SHIFT, 0x0);
 	/* RG_bc11_CMP_EN[1.0] = 00 */
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_CMP_EN_ADDR,
-			PMIC_RG_BC11_CMP_EN_MASK,
-			PMIC_RG_BC11_CMP_EN_SHIFT,
-			0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_CMP_EN_ADDR,
+				PMIC_RG_BC11_CMP_EN_MASK,
+				PMIC_RG_BC11_CMP_EN_SHIFT, 0x0);
 	/* RG_bc11_IPU_EN[1.0] = 00 */
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_IPU_EN_ADDR,
-			PMIC_RG_BC11_IPU_EN_MASK,
-			PMIC_RG_BC11_IPU_EN_SHIFT,
-			0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPU_EN_ADDR,
+				PMIC_RG_BC11_IPU_EN_MASK,
+				PMIC_RG_BC11_IPU_EN_SHIFT, 0x0);
 	/* RG_bc11_IPD_EN[1.0] = 00 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_IPD_EN_ADDR,
-		PMIC_RG_BC11_IPD_EN_MASK,
-		PMIC_RG_BC11_IPD_EN_SHIFT,
-		0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x0);
 	/* bc11_RST=1 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_RST_ADDR,
-		PMIC_RG_BC11_RST_MASK,
-		PMIC_RG_BC11_RST_SHIFT,
-		0x1);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_RST_ADDR,
+				PMIC_RG_BC11_RST_MASK, PMIC_RG_BC11_RST_SHIFT,
+				0x1);
 	/* bc11_BB_CTRL=1 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_BB_CTRL_ADDR,
-		PMIC_RG_BC11_BB_CTRL_MASK,
-		PMIC_RG_BC11_BB_CTRL_SHIFT,
-		0x1);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_BB_CTRL_ADDR,
+				PMIC_RG_BC11_BB_CTRL_MASK,
+				PMIC_RG_BC11_BB_CTRL_SHIFT, 0x1);
 	/* add pull down to prevent PMIC leakage */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_IPD_EN_ADDR,
-		PMIC_RG_BC11_IPD_EN_MASK,
-		PMIC_RG_BC11_IPD_EN_SHIFT,
-		0x1);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x1);
 	msleep(50);
 
 #if IS_ENABLED(CONFIG_USB_MTK_HDRC)
@@ -366,60 +346,44 @@ static unsigned int hw_bc11_DCD(void)
 {
 	unsigned int wChargerAvail = 0;
 	/* RG_bc11_IPU_EN[1.0] = 10 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_IPU_EN_ADDR,
-		PMIC_RG_BC11_IPU_EN_MASK,
-		PMIC_RG_BC11_IPU_EN_SHIFT,
-		0x2);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPU_EN_ADDR,
+				PMIC_RG_BC11_IPU_EN_MASK,
+				PMIC_RG_BC11_IPU_EN_SHIFT, 0x2);
 	/* RG_bc11_IPD_EN[1.0] = 01 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_IPD_EN_ADDR,
-		PMIC_RG_BC11_IPD_EN_MASK,
-		PMIC_RG_BC11_IPD_EN_SHIFT,
-		0x1);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x1);
 	/* RG_bc11_VREF_VTH = [1:0]=01 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_VREF_VTH_ADDR,
-		PMIC_RG_BC11_VREF_VTH_MASK,
-		PMIC_RG_BC11_VREF_VTH_SHIFT,
-		0x1);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VREF_VTH_ADDR,
+				PMIC_RG_BC11_VREF_VTH_MASK,
+				PMIC_RG_BC11_VREF_VTH_SHIFT, 0x1);
 	/* RG_bc11_CMP_EN[1.0] = 10 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_CMP_EN_ADDR,
-		PMIC_RG_BC11_CMP_EN_MASK,
-		PMIC_RG_BC11_CMP_EN_SHIFT,
-		0x2);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_CMP_EN_ADDR,
+				PMIC_RG_BC11_CMP_EN_MASK,
+				PMIC_RG_BC11_CMP_EN_SHIFT, 0x2);
 	msleep(80);
 	/* mdelay(80); */
 	wChargerAvail = pmic_get_register_value(mt6357_regmap,
-		PMIC_RGS_BC11_CMP_OUT_ADDR,
-		PMIC_RGS_BC11_CMP_OUT_MASK,
-		PMIC_RGS_BC11_CMP_OUT_SHIFT);
+						PMIC_RGS_BC11_CMP_OUT_ADDR,
+						PMIC_RGS_BC11_CMP_OUT_MASK,
+						PMIC_RGS_BC11_CMP_OUT_SHIFT);
 
 	/* RG_bc11_IPU_EN[1.0] = 00 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_IPU_EN_ADDR,
-		PMIC_RG_BC11_IPU_EN_MASK,
-		PMIC_RG_BC11_IPU_EN_SHIFT,
-		0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPU_EN_ADDR,
+				PMIC_RG_BC11_IPU_EN_MASK,
+				PMIC_RG_BC11_IPU_EN_SHIFT, 0x0);
 	/* RG_bc11_IPD_EN[1.0] = 00 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_IPD_EN_ADDR,
-		PMIC_RG_BC11_IPD_EN_MASK,
-		PMIC_RG_BC11_IPD_EN_SHIFT,
-		0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x0);
 	/* RG_bc11_CMP_EN[1.0] = 00 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_CMP_EN_ADDR,
-		PMIC_RG_BC11_CMP_EN_MASK,
-		PMIC_RG_BC11_CMP_EN_SHIFT,
-		0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_CMP_EN_ADDR,
+				PMIC_RG_BC11_CMP_EN_MASK,
+				PMIC_RG_BC11_CMP_EN_SHIFT, 0x0);
 	/* RG_bc11_VREF_VTH = [1:0]=00 */
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_VREF_VTH_ADDR,
-		PMIC_RG_BC11_VREF_VTH_MASK,
-		PMIC_RG_BC11_VREF_VTH_SHIFT,
-		0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VREF_VTH_ADDR,
+				PMIC_RG_BC11_VREF_VTH_MASK,
+				PMIC_RG_BC11_VREF_VTH_SHIFT, 0x0);
 
 	return wChargerAvail;
 }
@@ -427,161 +391,120 @@ static unsigned int hw_bc11_DCD(void)
 static unsigned int hw_bc11_stepA2(void)
 {
 	unsigned int wChargerAvail = 0;
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VSRC_EN_ADDR,
-			PMIC_RG_BC11_VSRC_EN_MASK,
-			PMIC_RG_BC11_VSRC_EN_SHIFT,
-			0x2);
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_IPD_EN_ADDR,
-			PMIC_RG_BC11_IPD_EN_MASK,
-			PMIC_RG_BC11_IPD_EN_SHIFT,
-			0x1);
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VREF_VTH_ADDR,
-			PMIC_RG_BC11_VREF_VTH_MASK,
-			PMIC_RG_BC11_VREF_VTH_SHIFT,
-			0x0);
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_CMP_EN_ADDR,
-			PMIC_RG_BC11_CMP_EN_MASK,
-			PMIC_RG_BC11_CMP_EN_SHIFT,
-			0x1);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VSRC_EN_ADDR,
+				PMIC_RG_BC11_VSRC_EN_MASK,
+				PMIC_RG_BC11_VSRC_EN_SHIFT, 0x2);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x1);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VREF_VTH_ADDR,
+				PMIC_RG_BC11_VREF_VTH_MASK,
+				PMIC_RG_BC11_VREF_VTH_SHIFT, 0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_CMP_EN_ADDR,
+				PMIC_RG_BC11_CMP_EN_MASK,
+				PMIC_RG_BC11_CMP_EN_SHIFT, 0x1);
 
 	msleep(80);
 	/* RG_bc11_VSRC_EN[1:0]=00 */
 	wChargerAvail = pmic_get_register_value(mt6357_regmap,
-			PMIC_RGS_BC11_CMP_OUT_ADDR,
-			PMIC_RGS_BC11_CMP_OUT_MASK,
-			PMIC_RGS_BC11_CMP_OUT_SHIFT);
+						PMIC_RGS_BC11_CMP_OUT_ADDR,
+						PMIC_RGS_BC11_CMP_OUT_MASK,
+						PMIC_RGS_BC11_CMP_OUT_SHIFT);
 	/* RG_bc11_IPD_EN[1.0] = 00 */
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VSRC_EN_ADDR,
-			PMIC_RG_BC11_VSRC_EN_MASK,
-			PMIC_RG_BC11_VSRC_EN_SHIFT,
-			0x0);
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_IPD_EN_ADDR,
-			PMIC_RG_BC11_IPD_EN_MASK,
-			PMIC_RG_BC11_IPD_EN_SHIFT,
-			0x0);
-	pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_CMP_EN_ADDR,
-			PMIC_RG_BC11_CMP_EN_MASK,
-			PMIC_RG_BC11_CMP_EN_SHIFT,
-			0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VSRC_EN_ADDR,
+				PMIC_RG_BC11_VSRC_EN_MASK,
+				PMIC_RG_BC11_VSRC_EN_SHIFT, 0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x0);
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_CMP_EN_ADDR,
+				PMIC_RG_BC11_CMP_EN_MASK,
+				PMIC_RG_BC11_CMP_EN_SHIFT, 0x0);
 
 	return wChargerAvail;
 }
 
 static unsigned int hw_bc11_stepB2(void)
 {
-    unsigned int wChargerAvail = 0;
+	unsigned int wChargerAvail = 0;
 
-	pmic_set_register_value(mt6357_regmap,
-		PMIC_RG_BC11_VSRC_EN_ADDR,
-		PMIC_RG_BC11_VSRC_EN_MASK,
-		PMIC_RG_BC11_VSRC_EN_SHIFT,
-		0x1);
-    //RG_bc11_IPD_EN[1:0]=10
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_IPD_EN_ADDR,
-			PMIC_RG_BC11_IPD_EN_MASK,
-			PMIC_RG_BC11_IPD_EN_SHIFT,
-			0x2);
-    //RG_bc11_VREF_VTH = [1:0]=01
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VREF_VTH_ADDR,
-			PMIC_RG_BC11_VREF_VTH_MASK,
-			PMIC_RG_BC11_VREF_VTH_SHIFT,
-			0x0);
-
-    //RG_bc11_CMP_EN[1.0] = 01
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_CMP_EN_ADDR,
-			PMIC_RG_BC11_CMP_EN_MASK,
-			PMIC_RG_BC11_CMP_EN_SHIFT,
-			0x2);
-    msleep(80);
-    wChargerAvail = pmic_get_register_value(mt6357_regmap,
-			PMIC_RGS_BC11_CMP_OUT_ADDR,
-			PMIC_RGS_BC11_CMP_OUT_MASK,
-			PMIC_RGS_BC11_CMP_OUT_SHIFT);
-
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VSRC_EN_ADDR,
-			PMIC_RG_BC11_VSRC_EN_MASK,
-			PMIC_RG_BC11_VSRC_EN_SHIFT,
-			0x0);
-    //RG_bc11_IPU_EN[1.0] = 00
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_IPD_EN_ADDR,
-			PMIC_RG_BC11_IPD_EN_MASK,
-			PMIC_RG_BC11_IPD_EN_SHIFT,
-			0x0);
-    //RG_bc11_CMP_EN[1.0] = 00
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_CMP_EN_ADDR,
-			PMIC_RG_BC11_CMP_EN_MASK,
-			PMIC_RG_BC11_CMP_EN_SHIFT,
-			0x0);
-    //RG_bc11_VREF_VTH = [1:0]=00
-    //pmic_set_register_value(PMIC_RG_BC11_VREF_VTH, 0x0);
-    if (wChargerAvail == 1) {
-        pmic_set_register_value(mt6357_regmap,
-				PMIC_RG_BC11_VSRC_EN_ADDR,
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VSRC_EN_ADDR,
 				PMIC_RG_BC11_VSRC_EN_MASK,
-				PMIC_RG_BC11_VSRC_EN_SHIFT,
-				0x2);
-        pr_notice("charger type: DCP, keep DM voltage source in stepB2\n");
-    }
+				PMIC_RG_BC11_VSRC_EN_SHIFT, 0x1);
+	//RG_bc11_IPD_EN[1:0]=10
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x2);
+	//RG_bc11_VREF_VTH = [1:0]=01
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VREF_VTH_ADDR,
+				PMIC_RG_BC11_VREF_VTH_MASK,
+				PMIC_RG_BC11_VREF_VTH_SHIFT, 0x0);
 
-    return  wChargerAvail;
+	//RG_bc11_CMP_EN[1.0] = 01
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_CMP_EN_ADDR,
+				PMIC_RG_BC11_CMP_EN_MASK,
+				PMIC_RG_BC11_CMP_EN_SHIFT, 0x2);
+	msleep(80);
+	wChargerAvail = pmic_get_register_value(mt6357_regmap,
+						PMIC_RGS_BC11_CMP_OUT_ADDR,
+						PMIC_RGS_BC11_CMP_OUT_MASK,
+						PMIC_RGS_BC11_CMP_OUT_SHIFT);
+
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VSRC_EN_ADDR,
+				PMIC_RG_BC11_VSRC_EN_MASK,
+				PMIC_RG_BC11_VSRC_EN_SHIFT, 0x0);
+	//RG_bc11_IPU_EN[1.0] = 00
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x0);
+	//RG_bc11_CMP_EN[1.0] = 00
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_CMP_EN_ADDR,
+				PMIC_RG_BC11_CMP_EN_MASK,
+				PMIC_RG_BC11_CMP_EN_SHIFT, 0x0);
+	//RG_bc11_VREF_VTH = [1:0]=00
+	//pmic_set_register_value(PMIC_RG_BC11_VREF_VTH, 0x0);
+	if (wChargerAvail == 1) {
+		pmic_set_register_value(mt6357_regmap,
+					PMIC_RG_BC11_VSRC_EN_ADDR,
+					PMIC_RG_BC11_VSRC_EN_MASK,
+					PMIC_RG_BC11_VSRC_EN_SHIFT, 0x2);
+		pr_notice(
+			"charger type: DCP, keep DM voltage source in stepB2\n");
+	}
+
+	return wChargerAvail;
 }
 
 static void hw_bc11_done(void)
 {
-    //RG_bc11_VSRC_EN[1:0]=00
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VSRC_EN_ADDR,
-			PMIC_RG_BC11_VSRC_EN_MASK,
-			PMIC_RG_BC11_VSRC_EN_SHIFT,
-			0x0);
-    //RG_bc11_VREF_VTH = [1:0]=0
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_VREF_VTH_ADDR,
-			PMIC_RG_BC11_VREF_VTH_MASK,
-			PMIC_RG_BC11_VREF_VTH_SHIFT,
-			0x0);
-    //RG_bc11_CMP_EN[1.0] = 00
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_CMP_EN_ADDR,
-			PMIC_RG_BC11_CMP_EN_MASK,
-			PMIC_RG_BC11_CMP_EN_SHIFT,
-			0x0);
-    //RG_bc11_IPU_EN[1.0] = 00
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_IPU_EN_ADDR,
-			PMIC_RG_BC11_IPU_EN_MASK,
-			PMIC_RG_BC11_IPU_EN_SHIFT,
-			0x0);
-    //RG_bc11_IPD_EN[1.0] = 00
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_IPD_EN_ADDR,
-			PMIC_RG_BC11_IPD_EN_MASK,
-			PMIC_RG_BC11_IPD_EN_SHIFT,
-			0x0);
-    //RG_bc11_BIAS_EN=0
-    pmic_set_register_value(mt6357_regmap,
-			PMIC_RG_BC11_BIAS_EN_ADDR,
-			PMIC_RG_BC11_BIAS_EN_MASK,
-			PMIC_RG_BC11_BIAS_EN_SHIFT,
-			0x0);
+	//RG_bc11_VSRC_EN[1:0]=00
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VSRC_EN_ADDR,
+				PMIC_RG_BC11_VSRC_EN_MASK,
+				PMIC_RG_BC11_VSRC_EN_SHIFT, 0x0);
+	//RG_bc11_VREF_VTH = [1:0]=0
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_VREF_VTH_ADDR,
+				PMIC_RG_BC11_VREF_VTH_MASK,
+				PMIC_RG_BC11_VREF_VTH_SHIFT, 0x0);
+	//RG_bc11_CMP_EN[1.0] = 00
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_CMP_EN_ADDR,
+				PMIC_RG_BC11_CMP_EN_MASK,
+				PMIC_RG_BC11_CMP_EN_SHIFT, 0x0);
+	//RG_bc11_IPU_EN[1.0] = 00
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPU_EN_ADDR,
+				PMIC_RG_BC11_IPU_EN_MASK,
+				PMIC_RG_BC11_IPU_EN_SHIFT, 0x0);
+	//RG_bc11_IPD_EN[1.0] = 00
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_IPD_EN_ADDR,
+				PMIC_RG_BC11_IPD_EN_MASK,
+				PMIC_RG_BC11_IPD_EN_SHIFT, 0x0);
+	//RG_bc11_BIAS_EN=0
+	pmic_set_register_value(mt6357_regmap, PMIC_RG_BC11_BIAS_EN_ADDR,
+				PMIC_RG_BC11_BIAS_EN_MASK,
+				PMIC_RG_BC11_BIAS_EN_SHIFT, 0x0);
 
 #if IS_ENABLED(CONFIG_USB_MTK_HDRC)
-    Charger_Detect_Release();
+	Charger_Detect_Release();
 #endif
-
 }
 
 static void dump_charger_name(int type)
@@ -608,50 +531,48 @@ static void dump_charger_name(int type)
 	}
 }
 
-
 static int hw_charging_get_charger_type(void)
 {
-
 	enum charger_type g_chr_type_num = CHARGER_UNKNOWN;
-    /********* Step initial  ***************/
-    hw_bc11_init();
+	/********* Step initial  ***************/
+	hw_bc11_init();
 
-    /********* Step DCD ***************/
-    if (hw_bc11_DCD()) {
+	/********* Step DCD ***************/
+	if (hw_bc11_DCD()) {
 		g_chr_type_num = NONSTANDARD_CHARGER;
-    } else {
-        /********* Step A2 ***************/
-        if (hw_bc11_stepA2()) {
-            /********* Step B2 ***************/
-            if (hw_bc11_stepB2()) {
-                g_chr_type_num = STANDARD_CHARGER;
-                pr_notice("step B2 : STANDARD CHARGER!\r\n");
-            } else {
-                g_chr_type_num = CHARGING_HOST;
-                pr_notice("step B2 :  Charging Host!\r\n");
-            }
-        } else {
-            g_chr_type_num = STANDARD_HOST;
-            pr_notice("step A2 : Standard USB Host!\r\n");
-        }
-
-    }
-
-    /********* Finally setting *******************************/
-	if (g_chr_type_num != STANDARD_CHARGER) {
-	    hw_bc11_done();
 	} else {
-		pr_notice("charger type: skip bc11 release for BC12 DCP SPEC\n");
+		/********* Step A2 ***************/
+		if (hw_bc11_stepA2()) {
+			/********* Step B2 ***************/
+			if (hw_bc11_stepB2()) {
+				g_chr_type_num = STANDARD_CHARGER;
+				pr_notice("step B2 : STANDARD CHARGER!\r\n");
+			} else {
+				g_chr_type_num = CHARGING_HOST;
+				pr_notice("step B2 :  Charging Host!\r\n");
+			}
+		} else {
+			g_chr_type_num = STANDARD_HOST;
+			pr_notice("step A2 : Standard USB Host!\r\n");
+		}
+	}
+
+	/********* Finally setting *******************************/
+	if (g_chr_type_num != STANDARD_CHARGER) {
+		hw_bc11_done();
+	} else {
+		pr_notice(
+			"charger type: skip bc11 release for BC12 DCP SPEC\n");
 	}
 
 	dump_charger_name(g_chr_type_num);
 
-    return g_chr_type_num;
+	return g_chr_type_num;
 }
 /***************BC1.2*****************/
 
-
-static void rt9471_get_charger_type(struct rt9471_chip *chip, enum charger_type *type)
+static void rt9471_get_charger_type(struct rt9471_chip *chip,
+				    enum charger_type *type)
 {
 	enum charger_type chg_type = CHARGER_UNKNOWN;
 	chg_type = hw_charging_get_charger_type();
@@ -680,7 +601,6 @@ static void rt9471_get_charger_type(struct rt9471_chip *chip, enum charger_type 
 	}
 
 	*type = chg_type;
-
 }
 
 static int rt9471_read_device(void *client, u32 addr, int len, void *dst)
@@ -691,9 +611,10 @@ static int rt9471_read_device(void *client, u32 addr, int len, void *dst)
 	rc = i2c_smbus_read_i2c_block_data(client, addr, len, dst);
 
 	if (rc < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
-			rc = i2c_smbus_read_i2c_block_data(client, addr, len, dst);
+			rc = i2c_smbus_read_i2c_block_data(client, addr, len,
+							   dst);
 			if (rc < 0) {
 				retry--;
 			} else {
@@ -705,8 +626,7 @@ static int rt9471_read_device(void *client, u32 addr, int len, void *dst)
 	return rc;
 }
 
-static int rt9471_write_device(void *client, u32 addr, int len,
-			       const void *src)
+static int rt9471_write_device(void *client, u32 addr, int len, const void *src)
 {
 	int rc = 0;
 	int retry = 3;
@@ -714,9 +634,10 @@ static int rt9471_write_device(void *client, u32 addr, int len,
 	rc = i2c_smbus_write_i2c_block_data(client, addr, len, src);
 
 	if (rc < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
-			rc = i2c_smbus_write_i2c_block_data(client, addr, len, src);
+			rc = i2c_smbus_write_i2c_block_data(client, addr, len,
+							    src);
 			if (rc < 0) {
 				retry--;
 			} else {
@@ -840,7 +761,7 @@ static inline int __rt9471_i2c_write_byte(struct rt9471_chip *chip, u8 cmd,
 
 	if (ret < 0)
 		dev_notice(chip->dev, "%s reg0x%02X = 0x%02X fail(%d)\n",
-				      __func__, cmd, data, ret);
+			   __func__, cmd, data, ret);
 	else
 		dev_dbg(chip->dev, "%s reg0x%02X = 0x%02X\n", __func__, cmd,
 			data);
@@ -873,8 +794,8 @@ static inline int __rt9471_i2c_read_byte(struct rt9471_chip *chip, u8 cmd,
 #endif
 
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s reg0x%02X fail(%d)\n",
-				      __func__, cmd, ret);
+		dev_notice(chip->dev, "%s reg0x%02X fail(%d)\n", __func__, cmd,
+			   ret);
 		return ret;
 	}
 
@@ -1043,8 +964,8 @@ static bool rt9471_is_vbusgd(struct rt9471_chip *chip)
 	ret = rt9471_i2c_test_bit(chip, RT9471_REG_STAT0,
 				  RT9471_ST_VBUSGD_SHIFT, &vbus_gd);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s check stat fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s check stat fail(%d)\n", __func__,
+			   ret);
 	dev_dbg(chip->dev, "%s vbus_gd = %d\n", __func__, vbus_gd);
 
 	return vbus_gd;
@@ -1105,11 +1026,11 @@ wait:
 			dev_info(chip->dev, "%s CDP free\n", __func__);
 	}
 	rt9471_set_usbsw_state(chip, en ? RT9471_USBSW_CHG : RT9471_USBSW_USB);
-	ret = (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_DPDMDET, RT9471_BC12_EN_MASK);
+	ret = (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_DPDMDET,
+						     RT9471_BC12_EN_MASK);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s en = %d fail(%d)\n",
-				      __func__, en, ret);
+		dev_notice(chip->dev, "%s en = %d fail(%d)\n", __func__, en,
+			   ret);
 relax_and_wait:
 	pm_relax(chip->dev);
 	goto wait;
@@ -1131,7 +1052,6 @@ static void rt9471_enable_bc12(struct rt9471_chip *chip, bool en)
 	complete(&chip->bc12_en_req);
 }
 
-
 static int rt9471_enable_hidden_mode(struct rt9471_chip *chip, bool en)
 {
 	int ret = 0;
@@ -1140,7 +1060,8 @@ static int rt9471_enable_hidden_mode(struct rt9471_chip *chip, bool en)
 
 	if (en) {
 		if (chip->hidden_mode_cnt == 0) {
-			ret = rt9471_i2c_block_write(chip, 0xA0,
+			ret = rt9471_i2c_block_write(
+				chip, 0xA0,
 				ARRAY_SIZE(rt9471_val_en_hidden_mode),
 				rt9471_val_en_hidden_mode);
 			if (ret < 0)
@@ -1154,8 +1075,8 @@ static int rt9471_enable_hidden_mode(struct rt9471_chip *chip, bool en)
 		if (ret < 0)
 			goto err;
 	}
-	dev_dbg(chip->dev, "%s en = %d, cnt = %d\n", __func__,
-			   en, chip->hidden_mode_cnt);
+	dev_dbg(chip->dev, "%s en = %d, cnt = %d\n", __func__, en,
+		chip->hidden_mode_cnt);
 	goto out;
 
 err:
@@ -1290,8 +1211,8 @@ static int __rt9471_is_shipmode(struct rt9471_chip *chip, bool *en)
 static int __rt9471_enable_shipmode(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_FUNCTION, RT9471_BATFETDIS_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_FUNCTION,
+						      RT9471_BATFETDIS_MASK);
 }
 
 /*Shouli.Wang@ODM_WT.BSP.CHG 2019/12/07, add for ship mode function*/
@@ -1303,64 +1224,64 @@ int rt9471_enable_shipmode(bool en)
 static int __rt9471_enable_safe_tmr(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_CHGTIMER, RT9471_SAFETMR_EN_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_CHGTIMER,
+						      RT9471_SAFETMR_EN_MASK);
 }
 
 static int __rt9471_enable_te(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_EOC, RT9471_TE_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_EOC,
+						      RT9471_TE_MASK);
 }
 
 static int __rt9471_enable_jeita(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_JEITA, RT9471_JEITA_EN_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_JEITA,
+						      RT9471_JEITA_EN_MASK);
 }
 
 static int __rt9471_disable_i2c_tout(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_TOP, RT9471_DISI2CTO_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_TOP,
+						      RT9471_DISI2CTO_MASK);
 }
 
 static int __rt9471_enable_qon_rst(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_TOP, RT9471_QONRST_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_TOP,
+						      RT9471_QONRST_MASK);
 }
 
 static int __rt9471_enable_autoaicr(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_IBUS, RT9471_AUTOAICR_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_IBUS,
+						      RT9471_AUTOAICR_MASK);
 }
 
 static int __rt9471_enable_hz(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_FUNCTION, RT9471_HZ_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_FUNCTION,
+						      RT9471_HZ_MASK);
 }
 
 static int __rt9471_enable_otg(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_FUNCTION, RT9471_OTG_EN_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_FUNCTION,
+						      RT9471_OTG_EN_MASK);
 }
 
 static int __rt9471_enable_chg(struct rt9471_chip *chip, bool en)
 {
 	dev_info(chip->dev, "%s en = %d\n", __func__, en);
-	return (en ? rt9471_set_bit : rt9471_clr_bit)
-		(chip, RT9471_REG_FUNCTION, RT9471_CHG_EN_MASK);
+	return (en ? rt9471_set_bit : rt9471_clr_bit)(chip, RT9471_REG_FUNCTION,
+						      RT9471_CHG_EN_MASK);
 }
 
 static int __rt9471_set_wdt(struct rt9471_chip *chip, u32 sec)
@@ -1383,8 +1304,8 @@ static int __rt9471_set_wdt(struct rt9471_chip *chip, u32 sec)
 static int __rt9471_set_otgcc(struct rt9471_chip *chip, u32 cc)
 {
 	dev_info(chip->dev, "%s cc = %d\n", __func__, cc);
-	return (cc <= rt9471_otgcc[0] ? rt9471_clr_bit : rt9471_set_bit)
-		(chip, RT9471_REG_OTGCFG, RT9471_OTGCC_MASK);
+	return (cc <= rt9471_otgcc[0] ? rt9471_clr_bit : rt9471_set_bit)(
+		chip, RT9471_REG_OTGCFG, RT9471_OTGCC_MASK);
 }
 
 static int __rt9471_set_ichg(struct rt9471_chip *chip, u32 ichg)
@@ -1435,8 +1356,7 @@ static int __rt9471_set_mivr(struct rt9471_chip *chip, u32 mivr)
 static int __rt9471_set_ovp(struct rt9471_chip *chip)
 {
 	return rt9471_i2c_update_bits(chip, RT9471_REG_VBUS,
-				      0x2 << RT9471_OVP_SHIFT,
-				      RT9471_OVP_MASK);
+				      0x2 << RT9471_OVP_SHIFT, RT9471_OVP_MASK);
 }
 
 static int __rt9471_set_cv(struct rt9471_chip *chip, u32 cv)
@@ -1505,10 +1425,10 @@ static void rt9471_buck_dwork_handler(struct work_struct *work)
 	struct rt9471_chip *chip =
 		container_of(work, struct rt9471_chip, buck_dwork.work);
 	bool chg_rdy = false, chg_done = false;
-	u8 reg_addrs[] = {RT9471_REG_BUCK_HDEN4, RT9471_REG_BUCK_HDEN1,
-			  RT9471_REG_BUCK_HDEN2, RT9471_REG_BUCK_HDEN4,
-			  RT9471_REG_BUCK_HDEN2, RT9471_REG_BUCK_HDEN1};
-	u8 reg_vals[] = {0x77, 0x2F, 0xA2, 0x71, 0x22, 0x2D};
+	u8 reg_addrs[] = { RT9471_REG_BUCK_HDEN4, RT9471_REG_BUCK_HDEN1,
+			   RT9471_REG_BUCK_HDEN2, RT9471_REG_BUCK_HDEN4,
+			   RT9471_REG_BUCK_HDEN2, RT9471_REG_BUCK_HDEN1 };
+	u8 reg_vals[] = { 0x77, 0x2F, 0xA2, 0x71, 0x22, 0x2D };
 
 	dev_info(chip->dev, "%s chip_rev = %d\n", __func__, chip->chip_rev);
 	if (chip->chip_rev > 4)
@@ -1524,8 +1444,8 @@ static void rt9471_buck_dwork_handler(struct work_struct *work)
 				  RT9471_ST_CHGDONE_SHIFT, &chg_done);
 	if (ret < 0)
 		return;
-	dev_info(chip->dev, "%s chg_done = %d, chg_done_once = %d\n",
-			    __func__, chg_done, chip->chg_done_once);
+	dev_info(chip->dev, "%s chg_done = %d, chg_done_once = %d\n", __func__,
+		 chg_done, chip->chg_done_once);
 
 	ret = rt9471_enable_hidden_mode(chip, true);
 	if (ret < 0)
@@ -1535,8 +1455,8 @@ static void rt9471_buck_dwork_handler(struct work_struct *work)
 		ret = rt9471_i2c_write_byte(chip, reg_addrs[i], reg_vals[i]);
 		if (ret < 0)
 			dev_notice(chip->dev,
-				   "%s reg0x%02X = 0x%02X fail(%d)\n",
-				   __func__, reg_addrs[i], reg_vals[i], ret);
+				   "%s reg0x%02X = 0x%02X fail(%d)\n", __func__,
+				   reg_addrs[i], reg_vals[i], ret);
 		if (i == 1)
 			udelay(1000);
 	}
@@ -1569,8 +1489,8 @@ static int rt9471_inform_psy_changed(struct rt9471_chip *chip)
 	union power_supply_propval propval;
 	bool vbus_gd = atomic_read(&chip->vbus_gd);
 
-	dev_info(chip->dev, "%s vbus_gd = %d, type = %d\n", __func__,
-			    vbus_gd, chip->chg_type);
+	dev_info(chip->dev, "%s vbus_gd = %d, type = %d\n", __func__, vbus_gd,
+		 chip->chg_type);
 
 	/* Get chg type det power supply */
 	chip->psy = power_supply_get_by_name("mtk-master-charger");
@@ -1583,8 +1503,8 @@ static int rt9471_inform_psy_changed(struct rt9471_chip *chip)
 	ret = power_supply_set_property(chip->psy, POWER_SUPPLY_PROP_ONLINE,
 					&propval);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s psy online fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s psy online fail(%d)\n", __func__,
+			   ret);
 
 	/*propval.intval = chip->chg_type;
 	ret = power_supply_get_property(chip->psy,
@@ -1609,8 +1529,8 @@ static int rt9471_bc12_postprocess(struct rt9471_chip *chip)
 
 	attach = atomic_read(&chip->vbus_gd);
 	if (chip->attach == attach) {
-		dev_info(chip->dev, "%s attach(%d) is the same\n",
-				    __func__, attach);
+		dev_info(chip->dev, "%s attach(%d) is the same\n", __func__,
+			 attach);
 		inform_psy = !attach;
 		goto out;
 	}
@@ -1629,8 +1549,8 @@ static int rt9471_bc12_postprocess(struct rt9471_chip *chip)
 	if (ret < 0)
 		chip->port = RT9471_PORTSTAT_NOINFO;
 	else
-		chip->port = (port & RT9471_PORTSTAT_MASK) >>
-				     RT9471_PORTSTAT_SHIFT;
+		chip->port =
+			(port & RT9471_PORTSTAT_MASK) >> RT9471_PORTSTAT_SHIFT;
 
 	switch (chip->port) {
 	case RT9471_PORTSTAT_NOINFO:
@@ -1653,11 +1573,11 @@ static int rt9471_bc12_postprocess(struct rt9471_chip *chip)
 		break;
 	case RT9471_PORTSTAT_APPLE_10W:
 		chip->chg_type = APPLE_2_1A_CHARGER;
-		charger_type =POWER_SUPPLY_TYPE_APPLE_BRICK_ID;
+		charger_type = POWER_SUPPLY_TYPE_APPLE_BRICK_ID;
 		break;
 	case RT9471_PORTSTAT_APPLE_5W:
 		chip->chg_type = APPLE_1_0A_CHARGER;
-		charger_type =POWER_SUPPLY_TYPE_APPLE_BRICK_ID;
+		charger_type = POWER_SUPPLY_TYPE_APPLE_BRICK_ID;
 		break;
 	case RT9471_PORTSTAT_NSDP:
 	default:
@@ -1678,8 +1598,8 @@ static int rt9471_detach_irq_handler(struct rt9471_chip *chip)
 	dev_info(chip->dev, "%s\n", __func__);
 //#ifndef CONFIG_TCPC_CLASS
 #ifdef OPLUS_FEATURE_CHG_BASIC
-		//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharge
-	if(true) {
+	//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharge
+	if (true) {
 		mutex_lock(&chip->bc12_lock);
 		atomic_set(&chip->vbus_gd, rt9471_is_vbusgd(chip));
 		if (chip->dev_id == RT9471_DEVID) {
@@ -1691,7 +1611,7 @@ static int rt9471_detach_irq_handler(struct rt9471_chip *chip)
 		mutex_unlock(&chip->bc12_lock);
 	}
 #endif
-//#endif
+	//#endif
 	return 0;
 }
 
@@ -1714,12 +1634,12 @@ static void rt9471_bc12_done_handler(struct rt9471_chip *chip)
 
 	ret = rt9471_i2c_read_byte(chip, RT9471_REG_STAT0, &regval);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s check stat fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s check stat fail(%d)\n", __func__,
+			   ret);
 	bc12_done = (regval & RT9471_ST_BC12_DONE_MASK ? true : false);
 	chg_rdy = (regval & RT9471_ST_CHGRDY_MASK ? true : false);
-	dev_info(chip->dev, "%s bc12_done = %d, chg_rdy = %d\n",
-			    __func__, bc12_done, chg_rdy);
+	dev_info(chip->dev, "%s bc12_done = %d, chg_rdy = %d\n", __func__,
+		 bc12_done, chg_rdy);
 	if (bc12_done) {
 		if (chip->chip_rev <= 3 && !chg_rdy) {
 			/* Workaround waiting for chg_rdy */
@@ -1729,7 +1649,7 @@ static void rt9471_bc12_done_handler(struct rt9471_chip *chip)
 		mutex_lock(&chip->bc12_lock);
 		ret = rt9471_bc12_postprocess(chip);
 		dev_info(chip->dev, "%s %d %s\n", __func__, chip->port,
-				    rt9471_port_name[chip->port]);
+			 rt9471_port_name[chip->port]);
 		mutex_unlock(&chip->bc12_lock);
 	}
 }
@@ -1781,7 +1701,7 @@ static int rt9471_vbus_gd_irq_handler(struct rt9471_chip *chip)
 //#ifndef CONFIG_TCPC_CLASS
 #ifdef OPLUS_FEATURE_CHG_BASIC
 	//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharge
-	if(true) {
+	if (true) {
 		mutex_lock(&chip->bc12_lock);
 		atomic_set(&chip->vbus_gd, rt9471_is_vbusgd(chip));
 		if (chip->dev_id == RT9471_DEVID) {
@@ -1792,7 +1712,7 @@ static int rt9471_vbus_gd_irq_handler(struct rt9471_chip *chip)
 		mutex_unlock(&chip->bc12_lock);
 	}
 #endif
-//#endif
+	//#endif
 	return 0;
 }
 
@@ -1840,8 +1760,8 @@ static int rt9471_chg_mivr_irq_handler(struct rt9471_chip *chip)
 	ret = rt9471_i2c_test_bit(chip, RT9471_REG_STAT1, RT9471_ST_MIVR_SHIFT,
 				  &mivr);
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s check stat fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s check stat fail(%d)\n", __func__,
+			   ret);
 		return ret;
 	}
 	dev_info(chip->dev, "%s mivr = %d\n", __func__, mivr);
@@ -1917,8 +1837,8 @@ static int rt9471_vac_ov_irq_handler(struct rt9471_chip *chip)
 	ret = rt9471_i2c_test_bit(chip, RT9471_REG_STAT3, RT9471_ST_VACOV_SHIFT,
 				  &vacov);
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s check stat fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s check stat fail(%d)\n", __func__,
+			   ret);
 		return ret;
 	}
 	dev_info(chip->dev, "%s vacov = %d\n", __func__, vacov);
@@ -1938,44 +1858,34 @@ struct irq_mapping_tbl {
 	int num;
 };
 
-#define RT9471_IRQ_MAPPING(_name, _num) \
-	{.name = #_name, .hdlr = rt9471_##_name##_irq_handler, .num = _num}
+#define RT9471_IRQ_MAPPING(_name, _num)                                        \
+	{                                                                      \
+		.name = #_name, .hdlr = rt9471_##_name##_irq_handler,          \
+		.num = _num                                                    \
+	}
 
 static const struct irq_mapping_tbl rt9471_irq_mapping_tbl[] = {
-	RT9471_IRQ_MAPPING(wdt, 29),
-	RT9471_IRQ_MAPPING(vbus_gd, 7),
-	RT9471_IRQ_MAPPING(chg_rdy, 6),
-	RT9471_IRQ_MAPPING(bc12_done, 0),
-	RT9471_IRQ_MAPPING(detach, 1),
-	RT9471_IRQ_MAPPING(rechg, 2),
-	RT9471_IRQ_MAPPING(chg_done, 3),
-	RT9471_IRQ_MAPPING(bg_chg, 4),
-	RT9471_IRQ_MAPPING(ieoc, 5),
-	RT9471_IRQ_MAPPING(chg_batov, 9),
-	RT9471_IRQ_MAPPING(chg_sysov, 10),
-	RT9471_IRQ_MAPPING(chg_tout, 11),
-	RT9471_IRQ_MAPPING(chg_busuv, 12),
-	RT9471_IRQ_MAPPING(chg_threg, 13),
-	RT9471_IRQ_MAPPING(chg_aicr, 14),
-	RT9471_IRQ_MAPPING(chg_mivr, 15),
-	RT9471_IRQ_MAPPING(sys_short, 16),
-	RT9471_IRQ_MAPPING(sys_min, 17),
-	RT9471_IRQ_MAPPING(jeita_cold, 20),
-	RT9471_IRQ_MAPPING(jeita_cool, 21),
-	RT9471_IRQ_MAPPING(jeita_warm, 22),
-	RT9471_IRQ_MAPPING(jeita_hot, 23),
-	RT9471_IRQ_MAPPING(otg_fault, 24),
-	RT9471_IRQ_MAPPING(otg_lbp, 25),
-	RT9471_IRQ_MAPPING(otg_cc, 26),
-	RT9471_IRQ_MAPPING(vac_ov, 30),
+	RT9471_IRQ_MAPPING(wdt, 29),	    RT9471_IRQ_MAPPING(vbus_gd, 7),
+	RT9471_IRQ_MAPPING(chg_rdy, 6),	    RT9471_IRQ_MAPPING(bc12_done, 0),
+	RT9471_IRQ_MAPPING(detach, 1),	    RT9471_IRQ_MAPPING(rechg, 2),
+	RT9471_IRQ_MAPPING(chg_done, 3),    RT9471_IRQ_MAPPING(bg_chg, 4),
+	RT9471_IRQ_MAPPING(ieoc, 5),	    RT9471_IRQ_MAPPING(chg_batov, 9),
+	RT9471_IRQ_MAPPING(chg_sysov, 10),  RT9471_IRQ_MAPPING(chg_tout, 11),
+	RT9471_IRQ_MAPPING(chg_busuv, 12),  RT9471_IRQ_MAPPING(chg_threg, 13),
+	RT9471_IRQ_MAPPING(chg_aicr, 14),   RT9471_IRQ_MAPPING(chg_mivr, 15),
+	RT9471_IRQ_MAPPING(sys_short, 16),  RT9471_IRQ_MAPPING(sys_min, 17),
+	RT9471_IRQ_MAPPING(jeita_cold, 20), RT9471_IRQ_MAPPING(jeita_cool, 21),
+	RT9471_IRQ_MAPPING(jeita_warm, 22), RT9471_IRQ_MAPPING(jeita_hot, 23),
+	RT9471_IRQ_MAPPING(otg_fault, 24),  RT9471_IRQ_MAPPING(otg_lbp, 25),
+	RT9471_IRQ_MAPPING(otg_cc, 26),	    RT9471_IRQ_MAPPING(vac_ov, 30),
 	RT9471_IRQ_MAPPING(otp, 31),
 };
 
 static irqreturn_t rt9471_irq_handler(int irq, void *data)
 {
 	int ret = 0, i = 0, irqnum = 0, irqbit = 0;
-	u8 evt[RT9471_IRQIDX_MAX] = {0};
-	u8 mask[RT9471_IRQIDX_MAX] = {0};
+	u8 evt[RT9471_IRQIDX_MAX] = { 0 };
+	u8 mask[RT9471_IRQIDX_MAX] = { 0 };
 	struct rt9471_chip *chip = (struct rt9471_chip *)data;
 
 	dev_info(chip->dev, "%s\n", __func__);
@@ -2022,17 +1932,17 @@ static int rt9471_register_irq(struct rt9471_chip *chip)
 	name = devm_kzalloc(chip->dev, len + 10, GFP_KERNEL);
 	if (!name)
 		return -ENOMEM;
-	snprintf(name,  len + 10, "%s-irq-gpio", chip->desc->chg_name);
+	snprintf(name, len + 10, "%s-irq-gpio", chip->desc->chg_name);
 	ret = devm_gpio_request_one(chip->dev, chip->intr_gpio, GPIOF_IN, name);
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s gpio request fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s gpio request fail(%d)\n", __func__,
+			   ret);
 		return ret;
 	}
 	chip->irq = gpio_to_irq(chip->intr_gpio);
 	if (chip->irq < 0) {
 		dev_notice(chip->dev, "%s gpio2irq fail(%d)\n", __func__,
-				      chip->irq);
+			   chip->irq);
 		return chip->irq;
 	}
 	dev_info(chip->dev, "%s irq = %d\n", __func__, chip->irq);
@@ -2049,7 +1959,7 @@ static int rt9471_register_irq(struct rt9471_chip *chip)
 					name, chip);
 	if (ret < 0) {
 		dev_notice(chip->dev, "%s request threaded irq fail(%d)\n",
-				      __func__, ret);
+			   __func__, ret);
 		return ret;
 	}
 	device_init_wakeup(chip->dev, true);
@@ -2145,7 +2055,7 @@ static int rt9471_parse_dt(struct rt9471_chip *chip)
 		chip->chg_props.alias_name = "rt9471_chg";
 	}
 	dev_info(chip->dev, "%s name %s, alias name %s\n", __func__,
-			    desc->chg_name, chip->chg_props.alias_name);
+		 desc->chg_name, chip->chg_props.alias_name);
 
 #if (!defined(CONFIG_MTK_GPIO) || defined(CONFIG_MTK_GPIOLIB_STAND))
 	ret = of_get_named_gpio(parent_np, "rt,intr_gpio", 0);
@@ -2154,13 +2064,13 @@ static int rt9471_parse_dt(struct rt9471_chip *chip)
 	chip->intr_gpio = ret;
 	if (strcmp(desc->chg_name, "secondary_chg") == 0) {
 		ret = of_get_named_gpio(parent_np, "rt,ceb_gpio", 0);
-//		if (ret < 0)
-//			return ret;
+		//		if (ret < 0)
+		//			return ret;
 		chip->ceb_gpio = ret;
 	}
 #else
-	ret = of_property_read_u32(parent_np,
-				   "rt,intr_gpio_num", &chip->intr_gpio);
+	ret = of_property_read_u32(parent_np, "rt,intr_gpio_num",
+				   &chip->intr_gpio);
 	if (ret < 0)
 		return ret;
 	if (strcmp(desc->chg_name, "secondary_chg") == 0) {
@@ -2173,19 +2083,19 @@ static int rt9471_parse_dt(struct rt9471_chip *chip)
 	dev_info(chip->dev, "%s intr_gpio %u\n", __func__, chip->intr_gpio);
 
 #ifndef OPLUS_FEATURE_CHG_BASIC
-//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharger
+	//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharger
 	/* ceb gpio */
 	if (strcmp(desc->chg_name, "secondary_chg") == 0) {
 		len = strlen(desc->chg_name);
 		ceb_name = devm_kzalloc(chip->dev, len + 10, GFP_KERNEL);
 		if (!ceb_name)
 			return -ENOMEM;
-		snprintf(ceb_name,  len + 10, "%s-ceb-gpio", desc->chg_name);
+		snprintf(ceb_name, len + 10, "%s-ceb-gpio", desc->chg_name);
 		ret = devm_gpio_request_one(chip->dev, chip->ceb_gpio,
 					    GPIOF_DIR_OUT, ceb_name);
 		if (ret < 0) {
 			dev_notice(chip->dev, "%s gpio request fail(%d)\n",
-					      __func__, ret);
+				   __func__, ret);
 			return ret;
 		}
 	}
@@ -2262,12 +2172,12 @@ static int rt9471_sw_workaround(struct rt9471_chip *chip)
 
 	ret = rt9471_i2c_read_byte(chip, RT9471_REG_HIDDEN_0, &regval);
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s read HIDDEN_0 fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s read HIDDEN_0 fail(%d)\n", __func__,
+			   ret);
 		goto out;
 	}
-	chip->chip_rev = (regval & RT9471_CHIP_REV_MASK) >>
-			 RT9471_CHIP_REV_SHIFT;
+	chip->chip_rev =
+		(regval & RT9471_CHIP_REV_MASK) >> RT9471_CHIP_REV_SHIFT;
 	dev_info(chip->dev, "%s chip_rev = %d\n", __func__, chip->chip_rev);
 
 	/* OTG load transient improvement */
@@ -2286,7 +2196,7 @@ static int rt9471_init_setting(struct rt9471_chip *chip)
 {
 	int ret = 0;
 	struct rt9471_desc *desc = chip->desc;
-	u8 evt[RT9471_IRQIDX_MAX] = {0};
+	u8 evt[RT9471_IRQIDX_MAX] = { 0 };
 
 	dev_info(chip->dev, "%s\n", __func__);
 
@@ -2308,11 +2218,11 @@ static int rt9471_init_setting(struct rt9471_chip *chip)
 	if (ret < 0)
 		dev_notice(chip->dev, "%s clear irq fail(%d)\n", __func__, ret);
 
-    if (strcmp(chip->desc->chg_name, "secondary_chg") == 0) {
+	if (strcmp(chip->desc->chg_name, "secondary_chg") == 0) {
 		ret = __rt9471_enable_chip(chip, false);
 		if (ret < 0)
-			dev_notice(chip->dev,
-			"%s set disable chip fail(%d)\n", __func__, ret);
+			dev_notice(chip->dev, "%s set disable chip fail(%d)\n",
+				   __func__, ret);
 	}
 
 	ret = __rt9471_set_ichg(chip, desc->ichg);
@@ -2337,18 +2247,18 @@ static int rt9471_init_setting(struct rt9471_chip *chip)
 
 	ret = __rt9471_set_safe_tmr(chip, desc->safe_tmr);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s set safe tmr fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s set safe tmr fail(%d)\n", __func__,
+			   ret);
 
 	ret = __rt9471_set_mivrtrack(chip, desc->mivr_track);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s set mivrtrack fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s set mivrtrack fail(%d)\n", __func__,
+			   ret);
 
 	ret = __rt9471_enable_safe_tmr(chip, desc->en_safe_tmr);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s en safe tmr fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s en safe tmr fail(%d)\n", __func__,
+			   ret);
 
 	ret = __rt9471_enable_te(chip, desc->en_te);
 	if (ret < 0)
@@ -2360,37 +2270,37 @@ static int rt9471_init_setting(struct rt9471_chip *chip)
 
 	ret = __rt9471_disable_i2c_tout(chip, desc->dis_i2c_tout);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s dis i2c tout fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s dis i2c tout fail(%d)\n", __func__,
+			   ret);
 
 	ret = __rt9471_enable_qon_rst(chip, desc->en_qon_rst);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s en qon rst fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s en qon rst fail(%d)\n", __func__,
+			   ret);
 
 	ret = __rt9471_enable_autoaicr(chip, desc->auto_aicr);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s en autoaicr fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s en autoaicr fail(%d)\n", __func__,
+			   ret);
 
 	rt9471_enable_bc12(chip, false);
 
 	ret = rt9471_sw_workaround(chip);
 	if (ret < 0)
 		dev_notice(chip->dev, "%s set sw workaround fail(%d)\n",
-				      __func__, ret);
+			   __func__, ret);
 
-    ret = __rt9471_set_ovp(chip);
+	ret = __rt9471_set_ovp(chip);
 	if (ret < 0)
 		dev_notice(chip->dev, "%s set ovp fail(%d)\n", __func__, ret);
 
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/*Shouli.Wang@ODM_WT.BSP.CHG 2019/11/18, disable charger ic system reset function*/
-	if(true){
+	/*Shouli.Wang@ODM_WT.BSP.CHG 2019/11/18, disable charger ic system reset function*/
+	if (true) {
 		ret = rt9471_clr_bit(chip, RT9471_REG_TOP, 0x80);
 		if (ret < 0) {
 			dev_notice(chip->dev, "%s: disable system reset fail\n",
-				__func__);
+				   __func__);
 		}
 	}
 #endif /*OPLUS_FEATURE_CHG_BASIC*/
@@ -2412,9 +2322,10 @@ static bool rt9471_check_devinfo(struct rt9471_chip *chip)
 	ret = i2c_smbus_read_byte_data(chip->client, RT9471_REG_INFO);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
-			ret = i2c_smbus_read_byte_data(chip->client, RT9471_REG_INFO);
+			ret = i2c_smbus_read_byte_data(chip->client,
+						       RT9471_REG_INFO);
 			if (ret < 0) {
 				retry--;
 			} else {
@@ -2424,15 +2335,15 @@ static bool rt9471_check_devinfo(struct rt9471_chip *chip)
 	}
 
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s get devinfo fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s get devinfo fail(%d)\n", __func__,
+			   ret);
 		return false;
 	}
 	chip->dev_id = (ret & RT9471_DEVID_MASK) >> RT9471_DEVID_SHIFT;
 	if (chip->dev_id != RT9470_DEVID && chip->dev_id != RT9470D_DEVID &&
-		chip->dev_id != RT9471_DEVID && chip->dev_id != RT9471D_DEVID) {
-		dev_notice(chip->dev, "%s incorrect devid 0x%02X\n",
-				      __func__, chip->dev_id);
+	    chip->dev_id != RT9471_DEVID && chip->dev_id != RT9471D_DEVID) {
+		dev_notice(chip->dev, "%s incorrect devid 0x%02X\n", __func__,
+			   chip->dev_id);
 		return false;
 	}
 	chip->dev_rev = (ret & RT9471_DEVREV_MASK) >> RT9471_DEVREV_SHIFT;
@@ -2448,7 +2359,7 @@ static int __rt9471_dump_registers(struct rt9471_chip *chip)
 	u32 ichg = 0, aicr = 0, mivr = 0, ieoc = 0, cv = 0;
 	bool chg_en = 0;
 	enum rt9471_ic_stat ic_stat = RT9471_ICSTAT_SLEEP;
-	u8 stats[RT9471_STATIDX_MAX] = {0}, regval = 0;
+	u8 stats[RT9471_STATIDX_MAX] = { 0 }, regval = 0;
 
 	ret = __rt9471_kick_wdt(chip);
 
@@ -2462,22 +2373,25 @@ static int __rt9471_dump_registers(struct rt9471_chip *chip)
 	ret = rt9471_i2c_block_read(chip, RT9471_REG_STAT0, RT9471_STATIDX_MAX,
 				    stats);
 
-	if ((ic_stat == RT9471_ICSTAT_CHGFAULT) ||dump_more_reg ){
+	if ((ic_stat == RT9471_ICSTAT_CHGFAULT) || dump_more_reg) {
 		for (i = 0; i < ARRAY_SIZE(rt9471_reg_addr); i++) {
 			ret = rt9471_i2c_read_byte(chip, rt9471_reg_addr[i],
 						   &regval);
 			if (ret < 0)
 				continue;
 			dev_info(chip->dev, "%s reg0x%02X = 0x%02X\n", __func__,
-					    rt9471_reg_addr[i], regval);
+				 rt9471_reg_addr[i], regval);
 		}
 	}
 
-	dev_info(chip->dev,
-		 "%s ICHG = %dmA, AICR = %dmA, MIVR = %dmV, IEOC = %dmA,CV = %dmV,"
-			"CHG_EN = %d, IC_STAT = %s, STAT0 = 0x%02X, STAT1 = 0x%02X, STAT2 = 0x%02X, STAT3 = 0x%02X\n",
-		 __func__, ichg / 1000, aicr / 1000, mivr / 1000, ieoc / 1000, cv / 1000, 
-		 chg_en, rt9471_ic_stat_name[ic_stat], stats[RT9471_STATIDX_STAT0], stats[RT9471_STATIDX_STAT1], stats[RT9471_STATIDX_STAT2], stats[RT9471_STATIDX_STAT3]);
+	dev_info(
+		chip->dev,
+		"%s ICHG = %dmA, AICR = %dmA, MIVR = %dmV, IEOC = %dmA,CV = %dmV,"
+		"CHG_EN = %d, IC_STAT = %s, STAT0 = 0x%02X, STAT1 = 0x%02X, STAT2 = 0x%02X, STAT3 = 0x%02X\n",
+		__func__, ichg / 1000, aicr / 1000, mivr / 1000, ieoc / 1000,
+		cv / 1000, chg_en, rt9471_ic_stat_name[ic_stat],
+		stats[RT9471_STATIDX_STAT0], stats[RT9471_STATIDX_STAT1],
+		stats[RT9471_STATIDX_STAT2], stats[RT9471_STATIDX_STAT3]);
 
 	return 0;
 }
@@ -2485,8 +2399,8 @@ static int __rt9471_dump_registers(struct rt9471_chip *chip)
 //#ifndef CONFIG_TCPC_CLASS
 static void rt9471_init_work_handler(struct work_struct *work)
 {
-	struct rt9471_chip *chip = container_of(work, struct rt9471_chip,
-						init_work);
+	struct rt9471_chip *chip =
+		container_of(work, struct rt9471_chip, init_work);
 
 	mutex_lock(&chip->bc12_lock);
 	atomic_set(&chip->vbus_gd, rt9471_is_vbusgd(chip));
@@ -2552,7 +2466,7 @@ static int rt9471_plug_out(struct charger_device *chg_dev)
 		ret = __rt9471_enable_hz(chip, true);
 		if (ret < 0)
 			dev_notice(chip->dev, "%s en hz of sec chg fail(%d)\n",
-					      __func__, ret);
+				   __func__, ret);
 	}
 
 	return ret;
@@ -2573,7 +2487,7 @@ static int __rt9471_enable_charging(struct rt9471_chip *chip, bool en)
 		ret = __rt9471_enable_hz(chip, !en);
 		if (ret < 0) {
 			dev_notice(chip->dev, "%s set hz of sec chg fail(%d)\n",
-					      __func__, ret);
+				   __func__, ret);
 			return ret;
 		}
 #ifndef OPLUS_FEATURE_CHG_BASIC
@@ -2584,7 +2498,6 @@ static int __rt9471_enable_charging(struct rt9471_chip *chip, bool en)
 			gpio_set_value(chip->ceb_gpio, !en);
 #endif
 	}
-
 
 	ret = __rt9471_enable_chg(chip, en);
 	if (ret >= 0 && chip->chip_rev <= 4)
@@ -2717,8 +2630,8 @@ static int rt9471_get_mivr_state(struct charger_device *chg_dev, bool *in_loop)
 {
 	struct rt9471_chip *chip = dev_get_drvdata(&chg_dev->dev);
 
-	return rt9471_i2c_test_bit(chip, RT9471_REG_STAT1,
-				   RT9471_ST_MIVR_SHIFT, in_loop);
+	return rt9471_i2c_test_bit(chip, RT9471_REG_STAT1, RT9471_ST_MIVR_SHIFT,
+				   in_loop);
 }
 
 static int rt9471_enable_powerpath(struct charger_device *chg_dev, bool en)
@@ -2776,8 +2689,8 @@ static int rt9471_enable_otg(struct charger_device *chg_dev, bool en)
 	if (en) {
 		ret = __rt9471_set_wdt(chip, chip->desc->wdt);
 		if (ret < 0) {
-			dev_notice(chip->dev, "%s set wdt fail(%d)\n",
-					      __func__, ret);
+			dev_notice(chip->dev, "%s set wdt fail(%d)\n", __func__,
+				   ret);
 			return ret;
 		}
 	}
@@ -2791,8 +2704,8 @@ static int rt9471_enable_otg(struct charger_device *chg_dev, bool en)
 	if (!en) {
 		ret = __rt9471_set_wdt(chip, 0);
 		if (ret < 0)
-			dev_notice(chip->dev, "%s set wdt fail(%d)\n",
-					      __func__, ret);
+			dev_notice(chip->dev, "%s set wdt fail(%d)\n", __func__,
+				   ret);
 	}
 
 	return ret;
@@ -2809,11 +2722,11 @@ static int rt9471_enable_discharge(struct charger_device *chg_dev, bool en)
 	if (ret < 0)
 		return ret;
 
-	ret = (en ? rt9471_set_bit : rt9471_clr_bit)(chip,
-		RT9471_REG_TOP_HDEN, RT9471_FORCE_EN_VBUS_SINK_MASK);
+	ret = (en ? rt9471_set_bit : rt9471_clr_bit)(
+		chip, RT9471_REG_TOP_HDEN, RT9471_FORCE_EN_VBUS_SINK_MASK);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s en = %d fail(%d)\n",
-				      __func__, en, ret);
+		dev_notice(chip->dev, "%s en = %d fail(%d)\n", __func__, en,
+			   ret);
 
 	rt9471_enable_hidden_mode(chip, false);
 
@@ -2832,18 +2745,20 @@ static int rt9471_enable_chg_type_det(struct charger_device *chg_dev, bool en)
 {
 	int ret = 0;
 #ifdef CONFIG_TCPC_CLASS
-if(true) {
-	struct rt9471_chip *chip = dev_get_drvdata(&chg_dev->dev);
+	if (true) {
+		struct rt9471_chip *chip = dev_get_drvdata(&chg_dev->dev);
 
-	dev_info(chip->dev, "%s en = %d\n", __func__, en);
+		dev_info(chip->dev, "%s en = %d\n", __func__, en);
 
-	mutex_lock(&chip->bc12_lock);
-	atomic_set(&chip->vbus_gd, en);
-	ret = (en ? rt9471_bc12_preprocess : rt9471_bc12_postprocess)(chip);
-	mutex_unlock(&chip->bc12_lock);
-	if (ret < 0)
-		dev_notice(chip->dev, "%s en bc12 fail(%d)\n", __func__, ret);
-}
+		mutex_lock(&chip->bc12_lock);
+		atomic_set(&chip->vbus_gd, en);
+		ret = (en ? rt9471_bc12_preprocess :
+				  rt9471_bc12_postprocess)(chip);
+		mutex_unlock(&chip->bc12_lock);
+		if (ret < 0)
+			dev_notice(chip->dev, "%s en bc12 fail(%d)\n", __func__,
+				   ret);
+	}
 #endif /* CONFIG_TCPC_CLASS */
 	return ret;
 }
@@ -2886,8 +2801,8 @@ static int __rt9471_enable_chip(struct rt9471_chip *chip, bool en)
 		return ret;
 
 	ret = rt9471_i2c_update_bits(chip, RT9471_HD_CHG_DIG2,
-				      is_enable << RT9471_FORCE_HZ_SHIFT,
-				      RT9471_FORCE_HZ_MASK);
+				     is_enable << RT9471_FORCE_HZ_SHIFT,
+				     RT9471_FORCE_HZ_MASK);
 	if (ret < 0) {
 		dev_notice(chip->dev, "%s : fail\n", __func__);
 		return ret;
@@ -2902,7 +2817,6 @@ static int rt9471_enable_chip(struct charger_device *chg_dev, bool en)
 
 	return __rt9471_enable_chip(chip, en);
 }
-
 
 #if 0
 static int rt9471_enable_hz(struct charger_device *chg_dev, bool en)
@@ -2974,11 +2888,11 @@ static struct charger_ops rt9471_chg_ops = {
 	.is_charging_done = rt9471_is_charging_done,
 	.dump_registers = rt9471_dump_registers,
 
-    /* enable chip */
+	/* enable chip */
 	.enable_chip = rt9471_enable_chip,
 
 	/*enable hz*/
-//	.enable_hz = rt9471_enable_hz,
+	//	.enable_hz = rt9471_enable_hz,
 };
 
 void oplus_rt9471_dump_registers(void)
@@ -2993,29 +2907,29 @@ int oplus_rt9471_kick_wdt(void)
 
 int oplus_rt9471_set_ichg(int cur)
 {
-	u32 uA = cur*1000;
+	u32 uA = cur * 1000;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-		//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharger
-   if (strcmp(rt9471->desc->chg_name, "secondary_chg") == 0){ 
-		if(cur){
-			__rt9471_enable_chip(rt9471,true);
-		}else{
-			__rt9471_enable_chip(rt9471,false);
+	//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharger
+	if (strcmp(rt9471->desc->chg_name, "secondary_chg") == 0) {
+		if (cur) {
+			__rt9471_enable_chip(rt9471, true);
+		} else {
+			__rt9471_enable_chip(rt9471, false);
 		}
-   	}
+	}
 #endif
 	return __rt9471_set_ichg(rt9471, uA);
 }
 
 void oplus_rt9471_set_mivr(int vbatt)
 {
-	u32 uV = vbatt*1000 + 200000;
+	u32 uV = vbatt * 1000 + 200000;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for pe20
-    if(uV<4200000)
-        uV = 4200000;
-	
-#endif	
+	//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for pe20
+	if (uV < 4200000)
+		uV = 4200000;
+
+#endif
 	__rt9471_set_mivr(rt9471, uV);
 }
 
@@ -3028,39 +2942,39 @@ int oplus_rt9471_set_aicr(int current_ma)
 	int chg_vol = 0;
 	int aicl_point = 0;
 	int aicl_point_temp = 0;
-	
 
-     if (strcmp(rt9471->desc->chg_name, "secondary_chg") == 0){ 
-	    if(current_ma){
-			__rt9471_enable_chip(rt9471,true);
-		}else{
-			__rt9471_enable_chip(rt9471,false);
+	if (strcmp(rt9471->desc->chg_name, "secondary_chg") == 0) {
+		if (current_ma) {
+			__rt9471_enable_chip(rt9471, true);
+		} else {
+			__rt9471_enable_chip(rt9471, false);
 		}
-		return __rt9471_set_aicr(rt9471, current_ma*1000);
+		return __rt9471_set_aicr(rt9471, current_ma * 1000);
 	}
-	
+
 	if (rt9471->desc->pre_current_ma == current_ma)
 		return rc;
 	else
 		rt9471->desc->pre_current_ma = current_ma;
-		
-	dev_info(rt9471->dev, "%s usb input max current limit=%d\n", __func__,current_ma);
+
+	dev_info(rt9471->dev, "%s usb input max current limit=%d\n", __func__,
+		 current_ma);
 	aicl_point_temp = aicl_point = 4500;
-//	__rt9471_enable_autoaicr(rt9471,false);
+	//	__rt9471_enable_autoaicr(rt9471,false);
 	__rt9471_set_mivr(rt9471, 4200000);
-	
+
 	if (current_ma < 500) {
 		i = 0;
 		goto aicl_end;
 	}
-	
+
 	i = 1; /* 500 */
 	__rt9471_set_aicr(rt9471, usb_icl[i] * 1000);
 	msleep(90);
-	
+
 	chg_vol = oplus_rt9471_get_charger_volt();
 	if (chg_vol < aicl_point_temp) {
-		chg_debug( "use 500 here\n");
+		chg_debug("use 500 here\n");
 		goto aicl_end;
 	} else if (current_ma < 900)
 		goto aicl_end;
@@ -3113,7 +3027,7 @@ int oplus_rt9471_set_aicr(int current_ma)
 	__rt9471_set_aicr(rt9471, usb_icl[i] * 1000);
 	msleep(90);
 	if (chg_vol < aicl_point_temp) {
-		i =  i - 2;//1.5
+		i = i - 2; //1.5
 		goto aicl_pre_step;
 	} else if (current_ma < 3000)
 		goto aicl_end;
@@ -3130,25 +3044,31 @@ int oplus_rt9471_set_aicr(int current_ma)
 
 aicl_pre_step:
 	__rt9471_set_aicr(rt9471, usb_icl[i] * 1000);
-	dev_info(rt9471->dev, "%s:usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n",__func__, chg_vol, i, usb_icl[i], aicl_point_temp);
+	dev_info(
+		rt9471->dev,
+		"%s:usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n",
+		__func__, chg_vol, i, usb_icl[i], aicl_point_temp);
 	//__rt9471_enable_autoaicr(rt9471,true);
 	return rc;
 aicl_end:
 	__rt9471_set_aicr(rt9471, usb_icl[i] * 1000);
-	dev_info(rt9471->dev, "%s:usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n",__func__, chg_vol, i, usb_icl[i], aicl_point_temp);
+	dev_info(
+		rt9471->dev,
+		"%s:usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n",
+		__func__, chg_vol, i, usb_icl[i], aicl_point_temp);
 	//__rt9471_enable_autoaicr(rt9471,true);
 	return rc;
 }
 
 int oplus_rt9471_set_cv(int cur)
 {
-	u32 uV = cur*1000;
+	u32 uV = cur * 1000;
 	return __rt9471_set_cv(rt9471, uV);
 }
 
 int oplus_rt9471_set_ieoc(int cur)
 {
-	u32 uA = cur*1000;
+	u32 uA = cur * 1000;
 	return __rt9471_set_ieoc(rt9471, uA);
 }
 
@@ -3159,18 +3079,17 @@ int oplus_rt9471_charging_enable(void)
 
 int oplus_rt9471_charging_disable(void)
 {
-
 #ifdef OPLUS_FEATURE_CHG_BASIC
-		//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharger
-   if (strcmp(rt9471->desc->chg_name, "secondary_chg") == 0){ 
-	  __rt9471_enable_chip(rt9471,false);
-   	}
- 
+	//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharger
+	if (strcmp(rt9471->desc->chg_name, "secondary_chg") == 0) {
+		__rt9471_enable_chip(rt9471, false);
+	}
+
 	/* Disable WDT */
-	 __rt9471_set_wdt(rt9471, 0);
+	__rt9471_set_wdt(rt9471, 0);
 
 #endif
-    rt9471->desc->pre_current_ma = -1;
+	rt9471->desc->pre_current_ma = -1;
 	return __rt9471_enable_charging(rt9471, false);
 }
 
@@ -3199,12 +3118,11 @@ int oplus_rt9471_hardware_init(void)
 	if (ret < 0)
 		dev_notice(rt9471->dev, "%s en fail(%d)\n", __func__, ret);
 
-	
 #ifdef OPLUS_FEATURE_CHG_BASIC
-		//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharger
-   if (strcmp(rt9471->desc->chg_name, "secondary_chg") == 0){ 
-	  __rt9471_enable_chip(rt9471,true);
-   	}
+	//Junbo.Guo@ODM_WT.BSP.CHG, 2019/11/11, Modify for subcharger
+	if (strcmp(rt9471->desc->chg_name, "secondary_chg") == 0) {
+		__rt9471_enable_chip(rt9471, true);
+	}
 #endif
 
 	return ret;
@@ -3235,8 +3153,7 @@ int oplus_rt9471_enable_otg(void)
 
 	ret = __rt9471_set_wdt(rt9471, rt9471->desc->wdt);
 	if (ret < 0) {
-		dev_notice(rt9471->dev, "%s set wdt fail(%d)\n",
-				      __func__, ret);
+		dev_notice(rt9471->dev, "%s set wdt fail(%d)\n", __func__, ret);
 		return ret;
 	}
 
@@ -3261,8 +3178,7 @@ int oplus_rt9471_disable_otg(void)
 
 	ret = __rt9471_set_wdt(rt9471, 0);
 	if (ret < 0)
-		dev_notice(rt9471->dev, "%s set wdt fail(%d)\n",
-				      __func__, ret);
+		dev_notice(rt9471->dev, "%s set wdt fail(%d)\n", __func__, ret);
 
 	return ret;
 }
@@ -3332,7 +3248,7 @@ int oplus_rt9471_get_dyna_aicl_result(void)
 	int mA = 0;
 
 	__rt9471_get_aicr(rt9471, &uA);
-	mA = (int)uA/1000;
+	mA = (int)uA / 1000;
 	return mA;
 }
 
@@ -3363,19 +3279,20 @@ int oplus_rt9471_enable_shipmode(bool en)
 	return 0;
 }
 
-
 static void oplus_mt_power_off(void)
 {
 	if (!g_oplus_chip) {
-		printk(KERN_ERR "[OPLUS_CHG][%s]: oplus_chip not ready!\n", __func__);
+		printk(KERN_ERR "[OPLUS_CHG][%s]: oplus_chip not ready!\n",
+		       __func__);
 		return;
 	}
 
 	if (g_oplus_chip->ac_online != true) {
-		if(!mt6357_get_vbus_status())
+		if (!mt6357_get_vbus_status())
 			kernel_power_off();
 	} else {
-		printk(KERN_ERR "[OPLUS_CHG][%s]: ac_online is true, return!\n", __func__);
+		printk(KERN_ERR "[OPLUS_CHG][%s]: ac_online is true, return!\n",
+		       __func__);
 	}
 }
 
@@ -3383,7 +3300,7 @@ extern int oplus_battery_meter_get_battery_voltage(void);
 extern void mt_usb_connect(void);
 extern void mt_usb_disconnect(void);
 
-struct oplus_chg_operations  oplus_chg_rt9471_ops = {
+struct oplus_chg_operations oplus_chg_rt9471_ops = {
 	.dump_registers = oplus_rt9471_dump_registers,
 	.kick_wdt = oplus_rt9471_kick_wdt,
 	.hardware_init = oplus_rt9471_hardware_init,
@@ -3407,10 +3324,10 @@ struct oplus_chg_operations  oplus_chg_rt9471_ops = {
 
 	.get_charger_type = oplus_rt9471_get_charger_type,
 	.get_charger_volt = oplus_rt9471_get_charger_volt,
-//	int (*get_charger_current)(void);
+	//	int (*get_charger_current)(void);
 	.get_chargerid_volt = oplus_rt9471_get_chargerid_volt,
-    .set_chargerid_switch_val = oplus_rt9471_set_chargerid_switch_val,
-    .get_chargerid_switch_val = oplus_rt9471_get_chargerid_switch_val,
+	.set_chargerid_switch_val = oplus_rt9471_set_chargerid_switch_val,
+	.get_chargerid_switch_val = oplus_rt9471_get_chargerid_switch_val,
 	.check_chrdet_status = oplus_rt9471_check_chrdet_status,
 
 	.get_boot_mode = (int (*)(void))get_boot_mode,
@@ -3421,13 +3338,13 @@ struct oplus_chg_operations  oplus_chg_rt9471_ops = {
 	.set_power_off = oplus_mt_power_off,
 	.usb_connect = mt_usb_connect,
 	.usb_disconnect = mt_usb_disconnect,
-    .get_chg_current_step = oplus_rt9471_get_chg_current_step,
-    .need_to_check_ibatt = oplus_rt9471_need_to_check_ibatt,
-    .get_dyna_aicl_result = oplus_rt9471_get_dyna_aicl_result,
-    .get_shortc_hw_gpio_status = oplus_rt9471_get_shortc_hw_gpio_status,
-//	void (*check_is_iindpm_mode) (void);
-    .oplus_chg_get_pd_type = NULL,
-    .oplus_chg_pd_setup = NULL,
+	.get_chg_current_step = oplus_rt9471_get_chg_current_step,
+	.need_to_check_ibatt = oplus_rt9471_need_to_check_ibatt,
+	.get_dyna_aicl_result = oplus_rt9471_get_dyna_aicl_result,
+	.get_shortc_hw_gpio_status = oplus_rt9471_get_shortc_hw_gpio_status,
+	//	void (*check_is_iindpm_mode) (void);
+	.oplus_chg_get_pd_type = NULL,
+	.oplus_chg_pd_setup = NULL,
 	.get_charger_subtype = oplus_chg_get_charger_subtype,
 	.set_qc_config = NULL,
 	.enable_qc_detect = NULL,
@@ -3450,14 +3367,14 @@ static ssize_t shipping_mode_store(struct device *dev,
 		return -EINVAL;
 	ret = rt9471_reset_register(chip);
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s reset register fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s reset register fail(%d)\n", __func__,
+			   ret);
 		return ret;
 	}
 	ret = __rt9471_enable_shipmode(chip, true);
 	if (ret < 0) {
-		dev_notice(dev, "%s enter shipping mode fail(%d)\n",
-				__func__, ret);
+		dev_notice(dev, "%s enter shipping mode fail(%d)\n", __func__,
+			   ret);
 		return ret;
 	}
 
@@ -3472,13 +3389,13 @@ static ssize_t dump_more_reg_store(struct device *dev,
 {
 	struct rt9471_chip *chip = dev_get_drvdata(dev);
 	int ret = 0;
-	
+
 	ret = kstrtoint(buf, 10, &dump_more_reg);
 	if (ret < 0) {
 		dev_notice(dev, "%s parsing number fail(%d)\n", __func__, ret);
 		return -EINVAL;
 	}
-	
+
 	return count;
 }
 
@@ -3503,9 +3420,9 @@ static int rt9471_probe(struct i2c_client *client,
 	mutex_init(&chip->bc12_en_lock);
 	mutex_init(&chip->hidden_mode_lock);
 	chip->hidden_mode_cnt = 0;
-//#ifndef CONFIG_TCPC_CLASS
+	//#ifndef CONFIG_TCPC_CLASS
 	INIT_WORK(&chip->init_work, rt9471_init_work_handler);
-//#endif
+	//#endif
 	atomic_set(&chip->vbus_gd, 0);
 	chip->attach = false;
 	chip->port = RT9471_PORTSTAT_NOINFO;
@@ -3526,13 +3443,12 @@ static int rt9471_probe(struct i2c_client *client,
 		chip->bc12_en_buf[0] = chip->bc12_en_buf[1] = -1;
 		chip->bc12_en_buf_idx = 0;
 		init_completion(&chip->bc12_en_req);
-		chip->bc12_en_kthread =
-			kthread_run(rt9471_bc12_en_kthread, chip,
-				    chip->bc12_en_name);
+		chip->bc12_en_kthread = kthread_run(rt9471_bc12_en_kthread,
+						    chip, chip->bc12_en_name);
 		if (IS_ERR_OR_NULL(chip->bc12_en_kthread)) {
 			ret = PTR_ERR(chip->bc12_en_kthread);
 			dev_notice(chip->dev, "%s kthread run fail(%d)\n",
-					      __func__, ret);
+				   __func__, ret);
 			goto err_kthread_run;
 		}
 	}
@@ -3555,8 +3471,8 @@ static int rt9471_probe(struct i2c_client *client,
 
 	ret = rt9471_reset_register(chip);
 	if (ret < 0)
-		dev_notice(chip->dev, "%s reset register fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s reset register fail(%d)\n", __func__,
+			   ret);
 
 	ret = rt9471_init_setting(chip);
 	if (ret < 0) {
@@ -3565,19 +3481,20 @@ static int rt9471_probe(struct i2c_client *client,
 	}
 
 	/* Register charger device */
-	chip->chg_dev = charger_device_register(chip->desc->chg_name,
-			chip->dev, chip, &rt9471_chg_ops, &chip->chg_props);
+	chip->chg_dev =
+		charger_device_register(chip->desc->chg_name, chip->dev, chip,
+					&rt9471_chg_ops, &chip->chg_props);
 	if (IS_ERR_OR_NULL(chip->chg_dev)) {
 		ret = PTR_ERR(chip->chg_dev);
 		dev_notice(chip->dev, "%s register chg dev fail(%d)\n",
-				      __func__, ret);
+			   __func__, ret);
 		goto err_register_chg_dev;
 	}
 
 	ret = rt9471_register_irq(chip);
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s register irq fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s register irq fail(%d)\n", __func__,
+			   ret);
 		goto err_register_irq;
 	}
 
@@ -3589,22 +3506,22 @@ static int rt9471_probe(struct i2c_client *client,
 
 	ret = device_create_file(chip->dev, &dev_attr_shipping_mode);
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s create file fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s create file fail(%d)\n", __func__,
+			   ret);
 		goto err_create_file;
 	}
 	ret = device_create_file(chip->dev, &dev_attr_dump_more_reg);
 	if (ret < 0) {
-		dev_notice(chip->dev, "%s create file fail(%d)\n",
-				      __func__, ret);
+		dev_notice(chip->dev, "%s create file fail(%d)\n", __func__,
+			   ret);
 		goto err_create_file;
 	}
 
 	first_connect = true;
 
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/*Sidong.Zhao@ODM_WT.BSP.CHG 2019/11/4,for BC1.2 charger detection*/
-	if(true) {
+	/*Sidong.Zhao@ODM_WT.BSP.CHG 2019/11/4,for BC1.2 charger detection*/
+	if (true) {
 		if (strcmp(chip->desc->chg_name, "primary_chg") == 0)
 			schedule_work(&chip->init_work);
 	} else {
@@ -3655,11 +3572,11 @@ static void rt9471_shutdown(struct i2c_client *client)
 
 	dev_info(chip->dev, "%s\n", __func__);
 #ifndef OPLUS_FEATURE_CHG_BASIC
-/* Junbo.Guo@ODM_WT.BSP.CHG.Basic, 20191109,Add for charger connect error */
+	/* Junbo.Guo@ODM_WT.BSP.CHG.Basic, 20191109,Add for charger connect error */
 	disable_irq_nosync(chip->irq);
 #endif
 	rt9471_reset_register(chip);
-	__rt9471_enable_hz(chip,false);
+	__rt9471_enable_hz(chip, false);
 }
 
 static int rt9471_remove(struct i2c_client *client)
@@ -3715,15 +3632,19 @@ static int rt9471_resume(struct device *dev)
 static SIMPLE_DEV_PM_OPS(rt9471_pm_ops, rt9471_suspend, rt9471_resume);
 
 static const struct of_device_id rt9471_of_device_id[] = {
-	{ .compatible = "richtek,rt9471", },
-	{ .compatible = "richtek,swchg", },
-	{ },
+	{
+		.compatible = "richtek,rt9471",
+	},
+	{
+		.compatible = "richtek,swchg",
+	},
+	{},
 };
 MODULE_DEVICE_TABLE(of, rt9471_of_device_id);
 
 static const struct i2c_device_id rt9471_i2c_device_id[] = {
 	{ "rt9471", 0 },
-	{ },
+	{},
 };
 MODULE_DEVICE_TABLE(i2c, rt9471_i2c_device_id);
 
@@ -3740,7 +3661,6 @@ static struct i2c_driver rt9471_i2c_driver = {
 	.id_table = rt9471_i2c_device_id,
 };
 module_i2c_driver(rt9471_i2c_driver);
-
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("ShuFanLee <shufan_lee@richtek.com>");

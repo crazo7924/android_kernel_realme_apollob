@@ -401,9 +401,8 @@ void mtk_release_fence(unsigned int session_id, unsigned int layer_id,
 	int current_timeline_idx = 0;
 	int ion_release_count = 0;
 	struct mtk_fence_info *layer_info = NULL;
-	struct mtk_fence_session_sync_info *session_info = NULL;
 
-	session_info = _get_session_sync_info(session_id);
+	_get_session_sync_info(session_id);
 	layer_info = _disp_sync_get_sync_info(session_id, layer_id);
 
 	if (layer_info == NULL) {
@@ -788,7 +787,6 @@ struct mtk_fence_buf_info *mtk_fence_prepare_buf(struct drm_device *dev,
 	struct mtk_fence_buf_info *buf_info = NULL;
 	struct fence_data data;
 	struct mtk_fence_info *layer_info = NULL;
-	struct mtk_fence_session_sync_info *session_info = NULL;
 #if defined(CONFIG_MTK_IOMMU_V2)
 	struct mtk_drm_private *priv = dev->dev_private;
 #endif
@@ -800,7 +798,7 @@ struct mtk_fence_buf_info *mtk_fence_prepare_buf(struct drm_device *dev,
 
 	session_id = buf->session_id;
 	timeline_id = buf->layer_id;
-	session_info = _get_session_sync_info(session_id);
+	_get_session_sync_info(session_id);
 	layer_info = _disp_sync_get_sync_info(session_id, timeline_id);
 
 	if (layer_info == NULL) {

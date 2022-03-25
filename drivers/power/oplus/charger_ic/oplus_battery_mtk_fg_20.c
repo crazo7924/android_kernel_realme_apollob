@@ -3,10 +3,8 @@
  * Copyright (C) 2018-2020 Oplus. All rights reserved.
  */
 
-    
-
-#include <linux/init.h>        /* For init/exit macros */
-#include <linux/module.h>      /* For MODULE_ marcros  */
+#include <linux/init.h> /* For init/exit macros */
+#include <linux/module.h> /* For MODULE_ marcros  */
 #include <linux/fs.h>
 #include <linux/device.h>
 #include <linux/interrupt.h>
@@ -53,7 +51,6 @@
 #include <mach/mt_gpt.h>
 #include <mach/mt_boot.h>
 
-
 #include <mach/upmu_common.h>
 #include <mach/upmu_hw.h>
 #include <mach/charging.h>
@@ -66,14 +63,9 @@
 #include <mach/mt_gpio.h>
 #include <linux/compat.h>
 
-
-
-
-
 #include "../oplus_charger.h"
 #include "../oplus_gauge.h"
 #include "../oplus_vooc.h"
-
 
 /* ////////////////////////////////////////////////////////////////////////////// */
 /* Battery Logging Entry */
@@ -81,8 +73,6 @@
 /* static struct proc_dir_entry *proc_entry; */
 //char proc_bat_data[32];
 //int Enable_BATDRV_LOG = BAT_LOG_FULL;
-
-
 
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
 /* // Global Variable */
@@ -113,47 +103,47 @@ extern U32 suspend_time;
 
 //kal_bool g_ADC_Cali = KAL_FALSE;
 
-#define TEST_ADC_CALI_PRINT 			_IO('k', 0)
-#define SET_ADC_CALI_Slop 				_IOW('k', 1, int)
-#define SET_ADC_CALI_Offset 			_IOW('k', 2, int)
-#define SET_ADC_CALI_Cal 				_IOW('k', 3, int)
-#define ADC_CHANNEL_READ 				_IOW('k', 4, int)
-#define BAT_STATUS_READ 				_IOW('k', 5, int)
-#define Set_Charger_Current 			_IOW('k', 6, int)
-#define Get_FakeOff_Param 				_IOW('k', 7, int)
-#define Get_Notify_Param 				_IOW('k', 8, int)
-#define Turn_Off_Charging 				_IOW('k', 9, int)
+#define TEST_ADC_CALI_PRINT _IO('k', 0)
+#define SET_ADC_CALI_Slop _IOW('k', 1, int)
+#define SET_ADC_CALI_Offset _IOW('k', 2, int)
+#define SET_ADC_CALI_Cal _IOW('k', 3, int)
+#define ADC_CHANNEL_READ _IOW('k', 4, int)
+#define BAT_STATUS_READ _IOW('k', 5, int)
+#define Set_Charger_Current _IOW('k', 6, int)
+#define Get_FakeOff_Param _IOW('k', 7, int)
+#define Get_Notify_Param _IOW('k', 8, int)
+#define Turn_Off_Charging _IOW('k', 9, int)
 //add for auto test
-#define K_AT_CHG_CHGR_IN   				_IOW('k', 10, int)
-#define K_AT_CHG_CHGR_OFF  				_IOW('k', 11, int)
-#define K_AT_CHG_ON      				_IOW('k', 12, int)
-#define K_AT_CHG_OFF      				_IOW('k', 13, int)
-#define K_AT_CHG_INFO         			_IOW('k', 14, int)
-#define	SET_SPI_CS_LOW					_IOW('k', 16, int)
+#define K_AT_CHG_CHGR_IN _IOW('k', 10, int)
+#define K_AT_CHG_CHGR_OFF _IOW('k', 11, int)
+#define K_AT_CHG_ON _IOW('k', 12, int)
+#define K_AT_CHG_OFF _IOW('k', 13, int)
+#define K_AT_CHG_INFO _IOW('k', 14, int)
+#define SET_SPI_CS_LOW _IOW('k', 16, int)
 //add for meta tool-----------------------------------------
-#define Get_META_BAT_VOL 				_IOW('k', 17, int) 
-#define Get_META_BAT_SOC 				_IOW('k', 18, int) 
+#define Get_META_BAT_VOL _IOW('k', 17, int)
+#define Get_META_BAT_SOC _IOW('k', 18, int)
 //add for meta tool-----------------------------------------
 
 #ifdef CONFIG_COMPAT
-#define COMPAT_TEST_ADC_CALI_PRINT 		_IO('k', 0)
-#define COMPAT_SET_ADC_CALI_Slop 		_IOW('k', 1, compat_int_t)
-#define COMPAT_SET_ADC_CALI_Offset 		_IOW('k', 2, compat_int_t)
-#define COMPAT_SET_ADC_CALI_Cal 		_IOW('k', 3, compat_int_t)
-#define COMPAT_ADC_CHANNEL_READ 		_IOW('k', 4, compat_int_t)
-#define COMPAT_BAT_STATUS_READ 			_IOW('k', 5, compat_int_t)
-#define COMPAT_Set_Charger_Current 		_IOW('k', 6, compat_int_t)
-#define COMPAT_Get_FakeOff_Param 		_IOW('k', 7, compat_int_t)
-#define COMPAT_Get_Notify_Param 		_IOW('k', 8, compat_int_t)
-#define COMPAT_Turn_Off_Charging 		_IOW('k', 9, compat_int_t)
-#define COMPAT_K_AT_CHG_CHGR_IN   		_IOW('k', 10, compat_int_t)
-#define COMPAT_K_AT_CHG_CHGR_OFF  		_IOW('k', 11, compat_int_t)
-#define COMPAT_K_AT_CHG_ON      		_IOW('k', 12, compat_int_t)
-#define COMPAT_K_AT_CHG_OFF      		_IOW('k', 13, compat_int_t)
-#define COMPAT_K_AT_CHG_INFO         	_IOW('k', 14, compat_int_t)
-#define	COMPAT_SET_SPI_CS_LOW			_IOW('k', 16, compat_int_t)
-#define COMPAT_Get_META_BAT_VOL 		_IOW('k', 17, compat_int_t) 
-#define COMPAT_Get_META_BAT_SOC 		_IOW('k', 18, compat_int_t) 
+#define COMPAT_TEST_ADC_CALI_PRINT _IO('k', 0)
+#define COMPAT_SET_ADC_CALI_Slop _IOW('k', 1, compat_int_t)
+#define COMPAT_SET_ADC_CALI_Offset _IOW('k', 2, compat_int_t)
+#define COMPAT_SET_ADC_CALI_Cal _IOW('k', 3, compat_int_t)
+#define COMPAT_ADC_CHANNEL_READ _IOW('k', 4, compat_int_t)
+#define COMPAT_BAT_STATUS_READ _IOW('k', 5, compat_int_t)
+#define COMPAT_Set_Charger_Current _IOW('k', 6, compat_int_t)
+#define COMPAT_Get_FakeOff_Param _IOW('k', 7, compat_int_t)
+#define COMPAT_Get_Notify_Param _IOW('k', 8, compat_int_t)
+#define COMPAT_Turn_Off_Charging _IOW('k', 9, compat_int_t)
+#define COMPAT_K_AT_CHG_CHGR_IN _IOW('k', 10, compat_int_t)
+#define COMPAT_K_AT_CHG_CHGR_OFF _IOW('k', 11, compat_int_t)
+#define COMPAT_K_AT_CHG_ON _IOW('k', 12, compat_int_t)
+#define COMPAT_K_AT_CHG_OFF _IOW('k', 13, compat_int_t)
+#define COMPAT_K_AT_CHG_INFO _IOW('k', 14, compat_int_t)
+#define COMPAT_SET_SPI_CS_LOW _IOW('k', 16, compat_int_t)
+#define COMPAT_Get_META_BAT_VOL _IOW('k', 17, compat_int_t)
+#define COMPAT_Get_META_BAT_SOC _IOW('k', 18, compat_int_t)
 #endif
 
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
@@ -176,7 +166,6 @@ int charger_pretype_get(void)
 {
 	return 0;
 }
-
 
 #if 0
 struct timespec batteryThreadRunTime;
@@ -221,10 +210,9 @@ kal_uint8 bat_is_kpoc(void)
 }
 #endif
 ///////////////////////////////////////////////////////////////////////////////////////////
-//// fop API 
+//// fop API
 ///////////////////////////////////////////////////////////////////////////////////////////
 extern bool mt_usb_is_device(void);
-
 
 /*mt_sleep*/
 #if 0
@@ -275,7 +263,7 @@ kal_bool upmu_is_chr_det(void)
 	if (tmp32 == 0) {
 		return KAL_FALSE;
 	} else {
-		#if !defined(CONFIG_MTK_DUAL_INPUT_CHARGER_SUPPORT)
+#if !defined(CONFIG_MTK_DUAL_INPUT_CHARGER_SUPPORT)
 		if (mt_usb_is_device()) {
 			battery_xlog_printk(BAT_LOG_FULL,
 					    "[upmu_is_chr_det] Charger exist and USB is not host\n");
@@ -287,9 +275,9 @@ kal_bool upmu_is_chr_det(void)
 
 			return KAL_FALSE;
 		}
-		#else
+#else
 		return KAL_TRUE;
-		#endif
+#endif
 	}
 }
 EXPORT_SYMBOL(upmu_is_chr_det);
@@ -309,7 +297,6 @@ void wake_up_bat(void)
 }
 EXPORT_SYMBOL(wake_up_bat);
 #endif
-
 
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
 /* // Battery Temprature Parameters and functions */
@@ -348,7 +335,8 @@ kal_bool bat_is_charger_exist(void)
 /*battery_meter for qmax*/
 kal_bool bat_is_charging_full(void)
 {
-	if ((oplus_chg_get_batt_full() == KAL_TRUE) && (oplus_chg_get_rechging_status() == KAL_FALSE))
+	if ((oplus_chg_get_batt_full() == KAL_TRUE) &&
+	    (oplus_chg_get_rechging_status() == KAL_FALSE))
 		return KAL_TRUE;
 	else
 		return KAL_FALSE;
@@ -387,7 +375,7 @@ CHARGER_TYPE mt_get_charger_type(void)
 //	battery_log(BAT_LOG_CRTI, "[BATTERY] CONFIG_POWER_EXT, no update Android.\n");
 //#else
 //	if (g_battery_soc_ready) {
-		//wireless_update(&wireless_main);
+//wireless_update(&wireless_main);
 //		battery_update(&battery_main);
 //		ac_update(&ac_main);
 //		usb_update(&usb_main);
@@ -428,94 +416,123 @@ extern CHARGER_TYPE mt_charger_type_detection(void);
 int mt_power_supply_type_check(void)
 {
 	int charger_type = POWER_SUPPLY_TYPE_UNKNOWN;
-	chg_debug("mt_power_supply_type_check------1--------charger_type = %d\r\n",charger_type);
+	chg_debug(
+		"mt_power_supply_type_check------1--------charger_type = %d\r\n",
+		charger_type);
 
-	switch(mt_charger_type_detection()){
-		case CHARGER_UNKNOWN:		
-			break;
-		case CHARGING_HOST:
-		case STANDARD_HOST:
-			charger_type = POWER_SUPPLY_TYPE_USB;
-			break;
-		case NONSTANDARD_CHARGER:
-		case APPLE_0_5A_CHARGER:		
-		case STANDARD_CHARGER:		
-		case APPLE_2_1A_CHARGER:
-		case APPLE_1_0A_CHARGER:
-			charger_type = POWER_SUPPLY_TYPE_USB_DCP;
-			break;
-		default:
-			break;	
+	switch (mt_charger_type_detection()) {
+	case CHARGER_UNKNOWN:
+		break;
+	case CHARGING_HOST:
+	case STANDARD_HOST:
+		charger_type = POWER_SUPPLY_TYPE_USB;
+		break;
+	case NONSTANDARD_CHARGER:
+	case APPLE_0_5A_CHARGER:
+	case STANDARD_CHARGER:
+	case APPLE_2_1A_CHARGER:
+	case APPLE_1_0A_CHARGER:
+		charger_type = POWER_SUPPLY_TYPE_USB_DCP;
+		break;
+	default:
+		break;
 	}
-	chg_debug("mt_power_supply_type_check-----2---------charger_type = %d\r\n",charger_type);
+	chg_debug(
+		"mt_power_supply_type_check-----2---------charger_type = %d\r\n",
+		charger_type);
 
-	return charger_type;	
-
+	return charger_type;
 }
 
-
 int g_temp_CC_value = 0;
- kal_uint32 g_bcct_flag=0;
- kal_uint32 g_usb_state = USB_UNCONFIGURED;
- /*-------battery_meter.c  get_charging_setting_current()------*/
+kal_uint32 g_bcct_flag = 0;
+kal_uint32 g_usb_state = USB_UNCONFIGURED;
+/*-------battery_meter.c  get_charging_setting_current()------*/
 void BATTERY_SetUSBState(int usb_state_value)
 {
 #if defined(CONFIG_POWER_EXT)
-	battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY_SetUSBState] in FPGA/EVB, no service\r\n");
+	battery_xlog_printk(
+		BAT_LOG_CRTI,
+		"[BATTERY_SetUSBState] in FPGA/EVB, no service\r\n");
 #else
-    if ( (usb_state_value < USB_SUSPEND) || ((usb_state_value > USB_CONFIGURED))){
-        battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] BAT_SetUSBState Fail! Restore to default value\r\n");    
-        usb_state_value = USB_UNCONFIGURED;
-    } else {
-        battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] BAT_SetUSBState Success! Set %d\r\n", usb_state_value);    
-        g_usb_state = usb_state_value;    
-    }
-#endif	
+	if ((usb_state_value < USB_SUSPEND) ||
+	    ((usb_state_value > USB_CONFIGURED))) {
+		battery_xlog_printk(
+			BAT_LOG_CRTI,
+			"[BATTERY] BAT_SetUSBState Fail! Restore to default value\r\n");
+		usb_state_value = USB_UNCONFIGURED;
+	} else {
+		battery_xlog_printk(
+			BAT_LOG_CRTI,
+			"[BATTERY] BAT_SetUSBState Success! Set %d\r\n",
+			usb_state_value);
+		g_usb_state = usb_state_value;
+	}
+#endif
 }
 
 //mtk_cooler_bcct.c
 kal_uint32 set_bat_charging_current_limit(int current_limit)
 {
-    battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] set_bat_charging_current_limit (%d)\r\n", current_limit);
+	battery_xlog_printk(BAT_LOG_CRTI,
+			    "[BATTERY] set_bat_charging_current_limit (%d)\r\n",
+			    current_limit);
 
-    if(current_limit != -1)
-    {
-        g_bcct_flag=1;
-        
-        if(current_limit < 70)         g_temp_CC_value=CHARGE_CURRENT_0_00_MA;
-        else if(current_limit < 200)   g_temp_CC_value=CHARGE_CURRENT_70_00_MA;
-        else if(current_limit < 300)   g_temp_CC_value=CHARGE_CURRENT_200_00_MA;
-        else if(current_limit < 400)   g_temp_CC_value=CHARGE_CURRENT_300_00_MA;
-        else if(current_limit < 450)   g_temp_CC_value=CHARGE_CURRENT_400_00_MA;
-        else if(current_limit < 550)   g_temp_CC_value=CHARGE_CURRENT_450_00_MA;
-        else if(current_limit < 650)   g_temp_CC_value=CHARGE_CURRENT_550_00_MA;
-        else if(current_limit < 700)   g_temp_CC_value=CHARGE_CURRENT_650_00_MA;
-        else if(current_limit < 800)   g_temp_CC_value=CHARGE_CURRENT_700_00_MA;
-        else if(current_limit < 900)   g_temp_CC_value=CHARGE_CURRENT_800_00_MA;
-        else if(current_limit < 1000)  g_temp_CC_value=CHARGE_CURRENT_900_00_MA;
-        else if(current_limit < 1100)  g_temp_CC_value=CHARGE_CURRENT_1000_00_MA;
-        else if(current_limit < 1200)  g_temp_CC_value=CHARGE_CURRENT_1100_00_MA;
-        else if(current_limit < 1300)  g_temp_CC_value=CHARGE_CURRENT_1200_00_MA;
-        else if(current_limit < 1400)  g_temp_CC_value=CHARGE_CURRENT_1300_00_MA;
-        else if(current_limit < 1500)  g_temp_CC_value=CHARGE_CURRENT_1400_00_MA;
-        else if(current_limit < 1600)  g_temp_CC_value=CHARGE_CURRENT_1500_00_MA;
-        else if(current_limit == 1600) g_temp_CC_value=CHARGE_CURRENT_1600_00_MA;
-        else                           g_temp_CC_value=CHARGE_CURRENT_450_00_MA;
-    }
-    else
-    {
-        //change to default current setting
-        g_bcct_flag=0;
-    }
-    
-    wake_up_bat();
+	if (current_limit != -1) {
+		g_bcct_flag = 1;
 
-    return g_bcct_flag;
+		if (current_limit < 70)
+			g_temp_CC_value = CHARGE_CURRENT_0_00_MA;
+		else if (current_limit < 200)
+			g_temp_CC_value = CHARGE_CURRENT_70_00_MA;
+		else if (current_limit < 300)
+			g_temp_CC_value = CHARGE_CURRENT_200_00_MA;
+		else if (current_limit < 400)
+			g_temp_CC_value = CHARGE_CURRENT_300_00_MA;
+		else if (current_limit < 450)
+			g_temp_CC_value = CHARGE_CURRENT_400_00_MA;
+		else if (current_limit < 550)
+			g_temp_CC_value = CHARGE_CURRENT_450_00_MA;
+		else if (current_limit < 650)
+			g_temp_CC_value = CHARGE_CURRENT_550_00_MA;
+		else if (current_limit < 700)
+			g_temp_CC_value = CHARGE_CURRENT_650_00_MA;
+		else if (current_limit < 800)
+			g_temp_CC_value = CHARGE_CURRENT_700_00_MA;
+		else if (current_limit < 900)
+			g_temp_CC_value = CHARGE_CURRENT_800_00_MA;
+		else if (current_limit < 1000)
+			g_temp_CC_value = CHARGE_CURRENT_900_00_MA;
+		else if (current_limit < 1100)
+			g_temp_CC_value = CHARGE_CURRENT_1000_00_MA;
+		else if (current_limit < 1200)
+			g_temp_CC_value = CHARGE_CURRENT_1100_00_MA;
+		else if (current_limit < 1300)
+			g_temp_CC_value = CHARGE_CURRENT_1200_00_MA;
+		else if (current_limit < 1400)
+			g_temp_CC_value = CHARGE_CURRENT_1300_00_MA;
+		else if (current_limit < 1500)
+			g_temp_CC_value = CHARGE_CURRENT_1400_00_MA;
+		else if (current_limit < 1600)
+			g_temp_CC_value = CHARGE_CURRENT_1500_00_MA;
+		else if (current_limit == 1600)
+			g_temp_CC_value = CHARGE_CURRENT_1600_00_MA;
+		else
+			g_temp_CC_value = CHARGE_CURRENT_450_00_MA;
+	} else {
+		//change to default current setting
+		g_bcct_flag = 0;
+	}
+
+	wake_up_bat();
+
+	return g_bcct_flag;
 }
 
 kal_uint32 set_chr_input_current_limit(int current_limit)
 {
-	battery_xlog_printk(BAT_LOG_CRTI, "set_chr_input_current_limit _NOT_ supported\n");
+	battery_xlog_printk(BAT_LOG_CRTI,
+			    "set_chr_input_current_limit _NOT_ supported\n");
 	return 0;
 }
 #if 0
@@ -560,11 +577,11 @@ void wake_up_bat2(void)
 	wake_up(&bat_thread_wq);
 }
 EXPORT_SYMBOL(wake_up_bat2);
-#endif	
+#endif
 
 bool oplus_pmic_check_chip_is_null(void)
 {
-	if(!g_bat_init_flag) 
+	if (!g_bat_init_flag)
 		return true;
 	else
 		return false;
@@ -1198,9 +1215,9 @@ static struct platform_driver battery_driver = {
 	.shutdown = battery_shutdown,
 	.driver = {
 		.name = "battery",
-		#if 0	
+#if 0	
         .of_match_table = mt_battery_of_match,
-        #endif
+#endif
 		.pm = &battery_pm_ops,		
 		   },
 };

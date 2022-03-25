@@ -147,8 +147,6 @@ static int fgauge_set_info(
 	struct gauge_device *gauge_dev,
 	enum gauge_info ginfo, int value)
 {
-	int ret = 0;
-
 	if (ginfo == GAUGE_2SEC_REBOOT)
 		pmic_config_interface(
 		PMIC_RG_SYSTEM_INFO_CON0_ADDR, value, 0x0001, 0x0);
@@ -171,8 +169,7 @@ static int fgauge_set_info(
 		value = value / 100;
 		pmic_config_interface(
 			PMIC_RG_SYSTEM_INFO_CON0_ADDR, value, 0x007F, 0x9);
-	} else
-		ret = -1;
+	}
 
 	return 0;
 }
@@ -182,8 +179,6 @@ static int fgauge_get_info(
 	enum gauge_info ginfo,
 	int *value)
 {
-	int ret = 0;
-
 	if (ginfo == GAUGE_2SEC_REBOOT)
 		pmic_read_interface(
 			PMIC_RG_SYSTEM_INFO_CON0_ADDR, value, 0x0001, 0x0);
@@ -205,18 +200,15 @@ static int fgauge_get_info(
 	else if (ginfo == GAUGE_CON0_SOC)
 		pmic_read_interface(
 			PMIC_RG_SYSTEM_INFO_CON0_ADDR, value, 0x007F, 0x9);
-	else
-		ret = -1;
 
 	return 0;
 }
 
 static unsigned int fg_get_data_ready_status(void)
 {
-	unsigned int ret = 0;
 	unsigned int temp_val = 0;
 
-	ret = pmic_read_interface(
+	pmic_read_interface(
 			PMIC_FG_LATCHDATA_ST_ADDR, &temp_val, 0xFFFF, 0x0);
 
 	temp_val =
@@ -351,11 +343,6 @@ static void read_fg_hw_info_Iavg(
 			fg_iavg_reg = 0xfffffff - fg_iavg_reg_tmp + 1;
 		}
 
-		if (sign_bit)
-			is_bat_charging = 0;	/* discharge */
-		else
-			is_bat_charging = 1;	/* charge */
-
 		fg_iavg_ma = fg_iavg_reg * UNIT_FG_IAVG *
 			gauge_dev->fg_cust_data->car_tune_value;
 
@@ -419,22 +406,21 @@ static signed int fg_get_current_iavg(
 	int fg_iavg_reg_27_16 = 0;
 	int fg_iavg_reg_15_00 = 0;
 	int sign_bit = 0;
-	int is_bat_charging;
 	int m;
 
 	/* Set Read Latchdata */
 	pmic_set_register_value(PMIC_FG_SW_READ_PRE, 1);
 
 	m = 0;
-		while (fg_get_data_ready_status() == 0) {
-			m++;
-			if (m > 1000) {
-				bm_err(
-				"[%s] fg_get_data_ready_status timeout1!\r\n",
-					__func__);
-				break;
-			}
+	while (fg_get_data_ready_status() == 0) {
+		m++;
+		if (m > 1000) {
+			bm_err(
+			"[%s] fg_get_data_ready_status timeout1!\r\n",
+				__func__);
+			break;
 		}
+	}
 
 	if (pmic_get_register_value(PMIC_FG_IAVG_VLD) == 1) {
 		fg_iavg_reg_27_16 =
@@ -455,11 +441,6 @@ static signed int fg_get_current_iavg(
 			/*fg_iavg_reg = fg_iavg_reg_tmp - 0xfffffff - 1;*/
 			fg_iavg_reg = 0xfffffff - fg_iavg_reg_tmp + 1;
 		}
-
-		if (sign_bit == 1)
-			is_bat_charging = 0;	/* discharge */
-		else
-			is_bat_charging = 1;	/* charge */
 
 		fg_iavg_ma = fg_iavg_reg * UNIT_FG_IAVG *
 			gauge_dev->fg_cust_data->car_tune_value;
@@ -552,13 +533,12 @@ static signed int fg_set_iavg_intr(struct gauge_device *gauge_dev, void *data)
 	int iavg_gap = *(unsigned int *) (data);
 	int iavg;
 	long long iavg_ht, iavg_lt;
-	int ret;
 	long long fg_iavg_reg_ht, fg_iavg_reg_lt;
 	int fg_iavg_lth_28_16, fg_iavg_lth_15_00;
 	int fg_iavg_hth_28_16, fg_iavg_hth_15_00;
 
 
-	ret = fg_get_current_iavg(gauge_dev, &iavg);
+	fg_get_current_iavg(gauge_dev, &iavg);
 
 	iavg_ht = abs(iavg) + iavg_gap;
 	iavg_lt = abs(iavg) - iavg_gap;
@@ -916,7 +896,6 @@ static int fgauge_get_average_current(
 	int fg_iavg_reg_27_16 = 0;
 	int fg_iavg_reg_15_00 = 0;
 	int sign_bit = 0;
-	int is_bat_charging;
 	int m;
 
 	/* Set Read Latchdata */
@@ -950,11 +929,6 @@ static int fgauge_get_average_current(
 			/*fg_iavg_reg = fg_iavg_reg_tmp - 0xfffffff - 1;*/
 			fg_iavg_reg = 0xfffffff - fg_iavg_reg_tmp + 1;
 		}
-
-		if (sign_bit == 1)
-			is_bat_charging = 0;	/* discharge */
-		else
-			is_bat_charging = 1;	/* charge */
 
 		fg_iavg_ma = fg_iavg_reg * UNIT_FG_IAVG *
 			gauge_dev->fg_cust_data->car_tune_value;
@@ -2520,7 +2494,7 @@ int fgauge_get_hw_status(
 	struct gauge_hw_status *gauge_status,
 	int intr_no)
 {
-	int ret, m;
+	int m;
 	char intr_name[32];
 	int is_iavg_valid;
 	int iavg_th;
@@ -2557,7 +2531,7 @@ int fgauge_get_hw_status(
 			is_iavg_valid, gauge_status->iavg_intr_flag);
 		gauge_status->iavg_intr_flag = 1;
 		iavg_th = gauge_dev->fg_cust_data->diff_iavg_th;
-		ret = fg_set_iavg_intr(gauge_dev, &iavg_th);
+		fg_set_iavg_intr(gauge_dev, &iavg_th);
 	} else if (is_iavg_valid == 0) {
 		gauge_status->iavg_intr_flag = 0;
 		gauge_enable_interrupt(FG_IAVG_H_NO, 0);
@@ -3043,8 +3017,6 @@ int fgauge_set_reset_status(struct gauge_device *gauge_dev, int reset)
 
 static void fgauge_dump_type0(struct seq_file *m)
 {
-	int vbif28;
-
 	if (m != NULL) {
 		seq_puts(m, "fgauge dump\n");
 		seq_printf(m, "AUXADC_ADC_RDY_LBAT2 :%x\n",
@@ -3068,7 +3040,7 @@ static void fgauge_dump_type0(struct seq_file *m)
 			pmic_in_zcv, swocv, zcv_from, zcv_tmp);
 	}
 
-	vbif28 = pmic_get_auxadc_value(AUXADC_LIST_VBIF);
+	pmic_get_auxadc_value(AUXADC_LIST_VBIF);
 
 	bm_debug(
 		"1st chr_zcv:%d pmic_zcv:%d %d pmic_in_zcv:%d swocv:%d zcv_from:%d tmp:%d\n",

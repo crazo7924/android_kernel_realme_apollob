@@ -51,8 +51,6 @@
 #endif
 #include <soc/oppo/device_info.h>
 
-
-
 extern void mt_power_off(void);
 #else
 
@@ -84,7 +82,7 @@ void (*enable_aggressive_segmentation_fn)(bool);
 #include "../oplus_vooc.h"
 #include "../oplus_gauge.h"
 #include "oplus_sy6974.h"
-#define SY6974 4 
+#define SY6974 4
 /* Qiao.Hu@BSP.BaseDrv.CHG.Basic, 2017/11/27, add for mt6771 charger */
 extern int oplus_get_rtc_ui_soc(void);
 extern int oplus_set_rtc_ui_soc(int value);
@@ -116,11 +114,12 @@ static int __sy6974_read_reg(struct chip_sy6974 *chip, int reg, int *returnData)
 		*returnData = ret;
 	}
 #else
-	char cmd_buf[1] = {0x00};
+	char cmd_buf[1] = { 0x00 };
 	char readData = 0;
 	int ret = 0;
 
-	chip->client->ext_flag = ((chip->client->ext_flag) & I2C_MASK_FLAG) | I2C_WR_FLAG | I2C_DIRECTION_FLAG;
+	chip->client->ext_flag = ((chip->client->ext_flag) & I2C_MASK_FLAG) |
+				 I2C_WR_FLAG | I2C_DIRECTION_FLAG;
 	chip->client->timing = 300;
 	cmd_buf[0] = reg;
 	ret = i2c_master_send(chip->client, &cmd_buf[0], (1 << 8 | 1));
@@ -167,17 +166,19 @@ static int __sy6974_write_reg(struct chip_sy6974 *chip, int reg, int val)
 
 	ret = i2c_smbus_write_byte_data(chip->client, reg, val);
 	if (ret < 0) {
-		chg_err("i2c write fail: can't write %02x to %02x: %d\n", val, reg, ret);
+		chg_err("i2c write fail: can't write %02x to %02x: %d\n", val,
+			reg, ret);
 		return ret;
 	}
 #else
-	char write_data[2] = {0};
+	char write_data[2] = { 0 };
 	int ret = 0;
 
 	write_data[0] = reg;
 	write_data[1] = val;
 
-	chip->client->ext_flag = ((chip->client->ext_flag) & I2C_MASK_FLAG) | I2C_DIRECTION_FLAG;
+	chip->client->ext_flag =
+		((chip->client->ext_flag) & I2C_MASK_FLAG) | I2C_DIRECTION_FLAG;
 	chip->client->timing = 300;
 	ret = i2c_master_send(chip->client, write_data, 2);
 	if (ret < 0) {
@@ -192,7 +193,8 @@ static int __sy6974_write_reg(struct chip_sy6974 *chip, int reg, int val)
 
 	ret = i2c_smbus_write_byte_data(chip->client, reg, val);
 	if (ret < 0) {
-		chg_err("i2c write fail: can't write %02x to %02x: %d\n", val, reg, ret);
+		chg_err("i2c write fail: can't write %02x to %02x: %d\n", val,
+			reg, ret);
 		return ret;
 	}
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
@@ -200,7 +202,8 @@ static int __sy6974_write_reg(struct chip_sy6974 *chip, int reg, int val)
 	return 0;
 }
 
-static int sy6974_config_interface (struct chip_sy6974 *chip, int RegNum, int val, int MASK)
+static int sy6974_config_interface(struct chip_sy6974 *chip, int RegNum,
+				   int val, int MASK)
 {
 	int sy6974_reg = 0;
 	int ret = 0;
@@ -226,13 +229,12 @@ static int sy6974_config_interface (struct chip_sy6974 *chip, int RegNum, int va
 }
 
 static int sy6974_usbin_input_current_limit[] = {
-	100,    300,    500,    900,
-	1200,   1500,   2000,   3000,
+	100, 300, 500, 900, 1200, 1500, 2000, 3000,
 };
 
 #if defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_CHARGER_SY6974)
-#define AICL_COUNT	10
-static  int __maybe_unused chg_vol_mini(int *chg_vol)
+#define AICL_COUNT 10
+static int __maybe_unused chg_vol_mini(int *chg_vol)
 {
 	int chg_vol_temp = 0;
 	int i = 0;
@@ -248,35 +250,40 @@ static  int __maybe_unused chg_vol_mini(int *chg_vol)
 #endif
 
 #define SY6974_INLIM_OFFSET 100
-#define SY6974_INLIM_STEP   100
-#define SY6974_INLIM_SHIFT  0
+#define SY6974_INLIM_STEP 100
+#define SY6974_INLIM_SHIFT 0
 static int sy6974_input_current_limit_write(int value)
 {
 	int rc = 0;
-//	int i = 0;
-//	int j = 0;
-    u8 reg_val;
-//	int chg_vol = 0;
-//	int aicl_point_temp = 0;
-//	int chg_vol_all[10] = {0};
+	//	int i = 0;
+	//	int j = 0;
+	u8 reg_val;
+	//	int chg_vol = 0;
+	//	int aicl_point_temp = 0;
+	//	int chg_vol_all[10] = {0};
 	struct chip_sy6974 *chip = charger_ic;
 
 	if (atomic_read(&chip->charger_suspended) == 1) {
 		chg_err("charger in suspended.\n");
 		return 0;
 	}
-    if(value <= 0) {
-        sy6974_suspend_charger();
-        sy6974_disable_charging();
-	    rc = sy6974_config_interface(chip, REG00_SY6974_ADDRESS, 0, REG00_SY6974_INPUT_CURRENT_LIMIT_MASK);
-        chg_debug("%s, aicr <= 0, disable sub ic\n", __func__);
-    } else {
-        sy6974_unsuspend_charger();
+	if (value <= 0) {
+		sy6974_suspend_charger();
+		sy6974_disable_charging();
+		rc = sy6974_config_interface(
+			chip, REG00_SY6974_ADDRESS, 0,
+			REG00_SY6974_INPUT_CURRENT_LIMIT_MASK);
+		chg_debug("%s, aicr <= 0, disable sub ic\n", __func__);
+	} else {
+		sy6974_unsuspend_charger();
 		sy6974_enable_charging();
-        reg_val = (value - SY6974_INLIM_OFFSET) / SY6974_INLIM_STEP << SY6974_INLIM_SHIFT;
-        chg_debug("%s, aicr = %d,reg = %d\n", __func__, value, reg_val);
-        rc = sy6974_config_interface(chip, REG00_SY6974_ADDRESS, reg_val, REG00_SY6974_INPUT_CURRENT_LIMIT_MASK);
-    }
+		reg_val = (value - SY6974_INLIM_OFFSET) / SY6974_INLIM_STEP
+			  << SY6974_INLIM_SHIFT;
+		chg_debug("%s, aicr = %d,reg = %d\n", __func__, value, reg_val);
+		rc = sy6974_config_interface(
+			chip, REG00_SY6974_ADDRESS, reg_val,
+			REG00_SY6974_INPUT_CURRENT_LIMIT_MASK);
+	}
 #if 0
     chg_debug("usb input max current limit=%d setting %02x\n", value, i);
 	aicl_point_temp = chip->sw_aicl_point;
@@ -414,14 +421,15 @@ static int sy6974_charging_current_write_fast(int chg_cur)
 
 	chg_debug("chg_cur = %d\r\n", chg_cur);
 
-	if (chg_cur > REG02_SY6974_MAX_FAST_CHG_CURRENT_MA
-			|| chg_cur < REG02_SY6974_MIN_FAST_CHG_CURRENT_MA)
+	if (chg_cur > REG02_SY6974_MAX_FAST_CHG_CURRENT_MA ||
+	    chg_cur < REG02_SY6974_MIN_FAST_CHG_CURRENT_MA)
 		chg_cur = REG02_SY6974_MAX_FAST_CHG_CURRENT_MA;
-	value = (chg_cur - REG02_SY6974_MIN_FAST_CHG_CURRENT_MA) / REG02_SY6974_FAST_CHG_CURRENT_STEP_MA;
+	value = (chg_cur - REG02_SY6974_MIN_FAST_CHG_CURRENT_MA) /
+		REG02_SY6974_FAST_CHG_CURRENT_STEP_MA;
 	value <<= REG02_SY6974_FAST_CHG_CURRENT_LIMIT_SHIFT;
 
 	rc = sy6974_config_interface(chip, REG02_SY6974_ADDRESS, value,
-			REG02_SY6974_FAST_CHG_CURRENT_LIMIT_MASK);
+				     REG02_SY6974_FAST_CHG_CURRENT_LIMIT_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't write fast charge current rc = %d\n", rc);
 	}
@@ -442,11 +450,12 @@ static int sy6974_set_vindpm_vol(int vol)
 
 	if (vol < REG06_SY6974_VINDPM_OFFSET)
 		vol = REG06_SY6974_VINDPM_OFFSET;
-	value = (vol - REG06_SY6974_VINDPM_OFFSET) / REG06_SY6974_VINDPM_STEP_MV;
+	value = (vol - REG06_SY6974_VINDPM_OFFSET) /
+		REG06_SY6974_VINDPM_STEP_MV;
 	value <<= REG06_SY6974_VINDPM_SHIFT;
 
-	rc = sy6974_config_interface(chip, REG06_SY6974_ADDRESS,
-			value, REG06_SY6974_VINDPM_MASK);
+	rc = sy6974_config_interface(chip, REG06_SY6974_ADDRESS, value,
+				     REG06_SY6974_VINDPM_MASK);
 	return rc;
 }
 
@@ -505,15 +514,20 @@ static int sy6974_set_complete_charge_timeout(int val)
 	}
 
 	if (val == OVERTIME_AC) {
-		val = REG05_SY6974_CHG_SAFETY_TIMER_ENABLE | REG05_SY6974_FAST_CHG_TIMEOUT_10H;
+		val = REG05_SY6974_CHG_SAFETY_TIMER_ENABLE |
+		      REG05_SY6974_FAST_CHG_TIMEOUT_10H;
 	} else if (val == OVERTIME_USB) {
-		val = REG05_SY6974_CHG_SAFETY_TIMER_ENABLE | REG05_SY6974_FAST_CHG_TIMEOUT_10H;
+		val = REG05_SY6974_CHG_SAFETY_TIMER_ENABLE |
+		      REG05_SY6974_FAST_CHG_TIMEOUT_10H;
 	} else {
-		val = REG05_SY6974_CHG_SAFETY_TIMER_DISABLE | REG05_SY6974_FAST_CHG_TIMEOUT_10H;
+		val = REG05_SY6974_CHG_SAFETY_TIMER_DISABLE |
+		      REG05_SY6974_FAST_CHG_TIMEOUT_10H;
 	}
 
-	rc = sy6974_config_interface(chip, REG05_SY6974_ADDRESS, val,
-			REG05_SY6974_CHG_SAFETY_TIMER_MASK | REG05_SY6974_FAST_CHG_TIMEOUT_MASK);
+	rc = sy6974_config_interface(
+		chip, REG05_SY6974_ADDRESS, val,
+		REG05_SY6974_CHG_SAFETY_TIMER_MASK |
+			REG05_SY6974_FAST_CHG_TIMEOUT_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't complete charge timeout rc = %d\n", rc);
 	}
@@ -536,11 +550,14 @@ static int sy6974_float_voltage_write(int vfloat_mv)
 		chg_err("bad vfloat_mv:%d,return\n", vfloat_mv);
 		return 0;
 	}
-	value = (vfloat_mv - REG04_SY6974_MIN_FLOAT_MV) / REG04_SY6974_VFLOAT_STEP_MV;
+	value = (vfloat_mv - REG04_SY6974_MIN_FLOAT_MV) /
+		REG04_SY6974_VFLOAT_STEP_MV;
 	value <<= REG04_SY6974_CHG_VOL_LIMIT_SHIFT;
-	chg_debug("sy6974_set_float_voltage vfloat_mv = %d value=%d\n", vfloat_mv, value);
+	chg_debug("sy6974_set_float_voltage vfloat_mv = %d value=%d\n",
+		  vfloat_mv, value);
 
-	rc = sy6974_config_interface(chip, REG04_SY6974_ADDRESS, value, REG04_SY6974_CHG_VOL_LIMIT_MASK);
+	rc = sy6974_config_interface(chip, REG04_SY6974_ADDRESS, value,
+				     REG04_SY6974_CHG_VOL_LIMIT_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't set float voltage rc = %d\n", rc);
 	}
@@ -562,11 +579,12 @@ static int sy6974_set_prechg_current(int ipre_ma)
 		ipre_ma = REG03_SY6974_MIN_PRE_CHG_CURRENT_MA;
 	if (ipre_ma > REG03_SY6974_MAX_PRE_CHG_CURRENT_MA)
 		ipre_ma = REG03_SY6974_MAX_PRE_CHG_CURRENT_MA;
-	value = (ipre_ma - REG03_SY6974_MIN_PRE_CHG_CURRENT_MA) / REG03_SY6974_PRE_CHG_CURRENT_STEP_MA;
+	value = (ipre_ma - REG03_SY6974_MIN_PRE_CHG_CURRENT_MA) /
+		REG03_SY6974_PRE_CHG_CURRENT_STEP_MA;
 	value <<= REG03_SY6974_PRE_CHG_CURRENT_LIMIT_SHIFT;
 
 	return sy6974_config_interface(chip, REG03_SY6974_ADDRESS, value,
-			REG03_SY6974_PRE_CHG_CURRENT_LIMIT_MASK);
+				       REG03_SY6974_PRE_CHG_CURRENT_LIMIT_MASK);
 }
 
 static int sy6974_set_termchg_current(int term_curr)
@@ -583,12 +601,13 @@ static int sy6974_set_termchg_current(int term_curr)
 	if (term_curr < REG03_SY6974_MIN_TERM_CHG_CURRENT_MA) {
 		term_curr = REG03_SY6974_MIN_TERM_CHG_CURRENT_MA;
 	}
-	value = (term_curr - REG03_SY6974_MIN_TERM_CHG_CURRENT_MA) / REG03_SY6974_TERM_CHG_CURRENT_STEP_MA;
+	value = (term_curr - REG03_SY6974_MIN_TERM_CHG_CURRENT_MA) /
+		REG03_SY6974_TERM_CHG_CURRENT_STEP_MA;
 	value <<= REG03_SY6974_TERM_CHG_CURRENT_LIMIT_SHIFT;
 	chg_debug("value=%d\n", value);
 
 	rc = sy6974_config_interface(chip, REG03_SY6974_ADDRESS, value,
-			REG03_SY6974_TERM_CHG_CURRENT_LIMIT_MASK);
+				     REG03_SY6974_TERM_CHG_CURRENT_LIMIT_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't set termination curren rc = %d\n", rc);
 	}
@@ -601,7 +620,7 @@ static int sy6974_set_rechg_voltage(int recharge_mv)
 	int reg = 0;
 	int rc = 0;
 	struct chip_sy6974 *chip = charger_ic;
-	
+
 	if (atomic_read(&chip->charger_suspended) == 1) {
 		chg_err("charger in suspended.\n");
 		return 0;
@@ -613,7 +632,8 @@ static int sy6974_set_rechg_voltage(int recharge_mv)
 	} else {
 		reg = REG04_SY6974_RECHG_THRESHOLD_VOL_100MV;
 	}
-	rc = sy6974_config_interface(chip, REG04_SY6974_ADDRESS, reg, REG04_SY6974_RECHG_THRESHOLD_VOL_MASK);
+	rc = sy6974_config_interface(chip, REG04_SY6974_ADDRESS, reg,
+				     REG04_SY6974_RECHG_THRESHOLD_VOL_MASK);
 	if (rc) {
 		chg_err("Couldn't set rechg threshold rc = %d\n", rc);
 	}
@@ -632,7 +652,7 @@ static int sy6974_set_wdt_timer(int reg)
 	}
 
 	rc = sy6974_config_interface(chip, REG05_SY6974_ADDRESS, reg,
-			REG05_SY6974_WATCHDOG_TIMER_MASK);
+				     REG05_SY6974_WATCHDOG_TIMER_MASK);
 
 	return rc;
 }
@@ -648,7 +668,8 @@ static int sy6974_set_chging_term_disable(void)
 	}
 
 	rc = sy6974_config_interface(chip, REG05_SY6974_ADDRESS,
-			REG05_SY6974_TERMINATION_DISABLE, REG05_SY6974_TERMINATION_MASK);
+				     REG05_SY6974_TERMINATION_DISABLE,
+				     REG05_SY6974_TERMINATION_MASK);
 
 	return rc;
 }
@@ -664,7 +685,8 @@ static int sy6974_kick_wdt(void)
 	}
 
 	rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-			REG01_SY6974_WDT_TIMER_RESET, REG01_SY6974_WDT_TIMER_RESET_MASK);
+				     REG01_SY6974_WDT_TIMER_RESET,
+				     REG01_SY6974_WDT_TIMER_RESET_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't sy6974_kick_wdt rc = %d\n", rc);
 	}
@@ -685,9 +707,9 @@ static int sy6974_enable_charging(void)
 	}
 
 #ifdef CONFIG_OPLUS_CHARGER_MTK
-	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT
-		|| get_boot_mode() == ADVMETA_BOOT
-		|| get_boot_mode() == ATE_FACTORY_BOOT) {
+	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT ||
+	    get_boot_mode() == ADVMETA_BOOT ||
+	    get_boot_mode() == ATE_FACTORY_BOOT) {
 		return 0;
 	}
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
@@ -697,7 +719,8 @@ static int sy6974_enable_charging(void)
 	}
 
 	rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-			REG01_SY6974_CHARGING_ENABLE, REG01_SY6974_CHARGING_MASK);
+				     REG01_SY6974_CHARGING_ENABLE,
+				     REG01_SY6974_CHARGING_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't sy6974_enable_charging rc = %d\n", rc);
 	}
@@ -716,10 +739,11 @@ static int sy6974_disable_charging(void)
 		return 0;
 	}
 
-    sy6974_suspend_charger();
+	sy6974_suspend_charger();
 
 	rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-			REG01_SY6974_CHARGING_DISABLE, REG01_SY6974_CHARGING_MASK);
+				     REG01_SY6974_CHARGING_DISABLE,
+				     REG01_SY6974_CHARGING_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't sy6974_disable_charging  rc = %d\n", rc);
 	} else {
@@ -738,10 +762,11 @@ static int sy6974_enable_charging(void)
 		return 0;
 	}
 
-    	sy6974_unsuspend_charger();
+	sy6974_unsuspend_charger();
 
 	rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-			REG01_SY6974_CHARGING_ENABLE, REG01_SY6974_CHARGING_MASK);
+				     REG01_SY6974_CHARGING_ENABLE,
+				     REG01_SY6974_CHARGING_MASK);
 	if (rc < 0) {
 		chg_err("Couldn'tsy6974_enable_charging rc = %d\n", rc);
 	}
@@ -759,10 +784,11 @@ static int sy6974_disable_charging(void)
 		return 0;
 	}
 
-    	sy6974_suspend_charger();
+	sy6974_suspend_charger();
 
 	rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-			REG01_SY6974_CHARGING_DISABLE, REG01_SY6974_CHARGING_MASK);
+				     REG01_SY6974_CHARGING_DISABLE,
+				     REG01_SY6974_CHARGING_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't sy6974_disable_charging  rc = %d\n", rc);
 	}
@@ -790,7 +816,10 @@ static bool sy6974_check_charger_suspend_enable(void)
 		return 0;
 	}
 
-	charger_suspend_enable = ((reg_val & REG00_SY6974_SUSPEND_MODE_MASK) == REG00_SY6974_SUSPEND_MODE_ENABLE) ? true : false;
+	charger_suspend_enable = ((reg_val & REG00_SY6974_SUSPEND_MODE_MASK) ==
+				  REG00_SY6974_SUSPEND_MODE_ENABLE) ?
+					 true :
+					       false;
 
 	return charger_suspend_enable;
 }
@@ -830,7 +859,10 @@ static int sy6974_check_charging_enable(void)
 		return 0;
 	}
 
-	charging_enable = ((reg_val & REG01_SY6974_CHARGING_MASK) == REG01_SY6974_CHARGING_ENABLE) ? 1 : 0;
+	charging_enable = ((reg_val & REG01_SY6974_CHARGING_MASK) ==
+			   REG01_SY6974_CHARGING_ENABLE) ?
+				  1 :
+					0;
 
 	return charging_enable;
 }
@@ -853,14 +885,20 @@ static int sy6974_registers_read_full(void)
 		chg_err("Couldn't read REG08_SY6974_ADDRESS rc = %d\n", rc);
 		return 0;
 	}
-	reg_full = ((reg_full & REG08_SY6974_CHG_STAT_MASK) == REG08_SY6974_CHG_STAT_CHG_TERMINATION) ? 1 : 0;
+	reg_full = ((reg_full & REG08_SY6974_CHG_STAT_MASK) ==
+		    REG08_SY6974_CHG_STAT_CHG_TERMINATION) ?
+			   1 :
+				 0;
 
 	rc = sy6974_read_reg(chip, REG09_SY6974_ADDRESS, &reg_ovp);
 	if (rc) {
 		chg_err("Couldn't read REG09_SY6974_ADDRESS rc = %d\n", rc);
 		return 0;
 	}
-	reg_ovp = ((reg_ovp & REG09_SY6974_BAT_FAULT_MASK) == REG09_SY6974_BAT_FAULT_BATOVP) ? 1 : 0;
+	reg_ovp = ((reg_ovp & REG09_SY6974_BAT_FAULT_MASK) ==
+		   REG09_SY6974_BAT_FAULT_BATOVP) ?
+			  1 :
+				0;
 
 	//chg_err("sy6974_registers_read_full, reg_full = %d, reg_ovp = %d\r\n", reg_full, reg_ovp);
 	return (reg_full || reg_ovp);
@@ -884,16 +922,18 @@ int sy6974_otg_enable(void)
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
 
 	sy6974_config_interface(chip, REG00_SY6974_ADDRESS,
-			REG00_SY6974_SUSPEND_MODE_DISABLE, REG00_SY6974_SUSPEND_MODE_MASK);
+				REG00_SY6974_SUSPEND_MODE_DISABLE,
+				REG00_SY6974_SUSPEND_MODE_MASK);
 
 	rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-			REG01_SY6974_OTG_ENABLE, REG01_SY6974_OTG_MASK);
+				     REG01_SY6974_OTG_ENABLE,
+				     REG01_SY6974_OTG_MASK);
 	if (rc) {
 		chg_err("Couldn't enable OTG mode rc=%d\n", rc);
 	} else {
 		chg_debug("sy6974_otg_enable rc=%d\n", rc);
 	}
-	
+
 	sy6974_set_wdt_timer(REG05_SY6974_WATCHDOG_TIMER_DISABLE);
 	oplus_otg_online = 1;
 	oplus_chg_set_otg_online(true);
@@ -917,12 +957,13 @@ int sy6974_otg_disable(void)
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
 
 	rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-			REG01_SY6974_OTG_DISABLE, REG01_SY6974_OTG_MASK);
+				     REG01_SY6974_OTG_DISABLE,
+				     REG01_SY6974_OTG_MASK);
 	if (rc)
 		chg_err("Couldn't disable OTG mode rc=%d\n", rc);
 	else
 		chg_debug("sy6974_otg_disable rc=%d\n", rc);
-	
+
 	sy6974_set_wdt_timer(REG05_SY6974_WATCHDOG_TIMER_40S);
 	oplus_otg_online = 0;
 	oplus_chg_set_otg_online(false);
@@ -935,7 +976,6 @@ static int sy6974_suspend_charger(void)
 	int rc = 0;
 
 	struct chip_sy6974 *chip = charger_ic;
-
 
 	if (atomic_read(&chip->charger_suspended) == 1) {
 		chg_err("charger in suspended.\n");
@@ -950,11 +990,13 @@ static int sy6974_suspend_charger(void)
 		return 0;
 #endif
 
-	if((g_oplus_chip != NULL) && (g_oplus_chip->batt_full != true)) {
+	if ((g_oplus_chip != NULL) && (g_oplus_chip->batt_full != true)) {
 		rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-				REG01_SY6974_CHARGING_DISABLE, REG01_SY6974_CHARGING_MASK);
+					     REG01_SY6974_CHARGING_DISABLE,
+					     REG01_SY6974_CHARGING_MASK);
 		if (rc < 0) {
-			chg_err("Couldn't sy6974_suspend_charger rc = %d\n", rc);
+			chg_err("Couldn't sy6974_suspend_charger rc = %d\n",
+				rc);
 		} else {
 			chg_debug("rc = %d\n", rc);
 		}
@@ -974,21 +1016,25 @@ static int sy6974_unsuspend_charger(void)
 	}
 	chg_err("unsuspend sy6974\n");
 
-	if((g_oplus_chip != NULL) && (g_oplus_chip->batt_full != true)) {
+	if ((g_oplus_chip != NULL) && (g_oplus_chip->batt_full != true)) {
 		rc = sy6974_config_interface(chip, REG01_SY6974_ADDRESS,
-				REG01_SY6974_CHARGING_ENABLE, REG01_SY6974_CHARGING_MASK);
+					     REG01_SY6974_CHARGING_ENABLE,
+					     REG01_SY6974_CHARGING_MASK);
 		if (rc < 0) {
-			chg_err("Couldn't sy6974_unsuspend_charger rc = %d\n", rc);
+			chg_err("Couldn't sy6974_unsuspend_charger rc = %d\n",
+				rc);
 		} else {
 			chg_debug("rc = %d\n", rc);
 		}
 	}
-//	sy6974_input_current_limit_write(700);
+	//	sy6974_input_current_limit_write(700);
 
 	return rc;
 }
 
-#if defined (CONFIG_MTK_PMIC_CHIP_MT6353) || defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_CHARGER_SY6974)
+#if defined(CONFIG_MTK_PMIC_CHIP_MT6353) ||                                    \
+	defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                               \
+	defined(CONFIG_CHARGER_SY6974)
 static int sy6974_reset_charger(void)
 {
 	int rc = 0;
@@ -1051,7 +1097,8 @@ static int sy6974_reset_charger(void)
 	}
 
 	rc = sy6974_config_interface(chip, REG0B_SY6974_ADDRESS,
-			REG0B_SY6974_REG_RST_RESET, REG0B_SY6974_REG_RST_MASK);
+				     REG0B_SY6974_REG_RST_RESET,
+				     REG0B_SY6974_REG_RST_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't sy6974_reset_charger rc = %d\n", rc);
 	} else {
@@ -1073,12 +1120,12 @@ static bool sy6974_check_charger_resume(void)
 	}
 }
 
-#define DUMP_REG_LOG_CNT_30S  1
+#define DUMP_REG_LOG_CNT_30S 1
 static void sy6974_dump_registers(void)
 {
 	int rc = 0;
 	int addr = 0;
-	unsigned int val_buf[SY6974_REG_NUMBER] = {0x0};
+	unsigned int val_buf[SY6974_REG_NUMBER] = { 0x0 };
 	static int dump_count = 0;
 	struct chip_sy6974 *chip = charger_ic;
 
@@ -1090,16 +1137,18 @@ static void sy6974_dump_registers(void)
 	for (addr = SY6974_FIRST_REG; addr <= SY6974_LAST_REG; addr++) {
 		rc = sy6974_read_reg(chip, addr, &val_buf[addr]);
 		if (rc) {
-			 chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
-			 return;
+			chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
+			return;
 		}
 	}
 
 	if (dump_count == DUMP_REG_LOG_CNT_30S) {
 		dump_count = 0;
-		chg_debug("sy6974_reg: [0x%02x,0x%02x,0x%02x,0x%02x], [0x%02x,0x%02x,0x%02x,0x%02x], [0x%02x,0x%02x,0x%02x,0x%02x]\n",
-			val_buf[0], val_buf[1], val_buf[2], val_buf[3], val_buf[4], val_buf[5], 
-			val_buf[6], val_buf[7], val_buf[8], val_buf[9], val_buf[10], val_buf[11]);
+		chg_debug(
+			"sy6974_reg: [0x%02x,0x%02x,0x%02x,0x%02x], [0x%02x,0x%02x,0x%02x,0x%02x], [0x%02x,0x%02x,0x%02x,0x%02x]\n",
+			val_buf[0], val_buf[1], val_buf[2], val_buf[3],
+			val_buf[4], val_buf[5], val_buf[6], val_buf[7],
+			val_buf[8], val_buf[9], val_buf[10], val_buf[11]);
 	}
 	dump_count++;
 
@@ -1110,7 +1159,7 @@ static int sy6974_check_registers(void)
 {
 	int rc = 0;
 	int addr = 0;
-	unsigned int val_buf[SY6974_REG_NUMBER] = {0x0};
+	unsigned int val_buf[SY6974_REG_NUMBER] = { 0x0 };
 	struct chip_sy6974 *chip = charger_ic;
 
 	if (atomic_read(&chip->charger_suspended) == 1) {
@@ -1121,12 +1170,12 @@ static int sy6974_check_registers(void)
 	for (addr = SY6974_FIRST_REG; addr <= SY6974_LAST_REG; addr++) {
 		rc = sy6974_read_reg(chip, addr, &val_buf[addr]);
 		if (rc) {
-			 chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
-			 return -1;
+			chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
+			return -1;
 		}
 	}
 
-  	return 0;
+	return 0;
 }
 
 static int sy6974_get_chg_current_step(void)
@@ -1169,8 +1218,9 @@ static int sy6974_hardware_init(void)
 	sy6974_set_vindpm_vol(chip->hw_aicl_point);
 
 #ifdef CONFIG_OPLUS_CHARGER_MTK
-	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT
-			|| get_boot_mode() == ADVMETA_BOOT || get_boot_mode() == ATE_FACTORY_BOOT) {
+	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT ||
+	    get_boot_mode() == ADVMETA_BOOT ||
+	    get_boot_mode() == ATE_FACTORY_BOOT) {
 		sy6974_suspend_charger();
 		sy6974_disable_charging();
 	} else {
@@ -1196,36 +1246,38 @@ static int rtc_reset_check(void)
 
 	rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
 	if (rtc == NULL) {
-		pr_err("%s: unable to open rtc device (%s)\n",
-			__FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
+		pr_err("%s: unable to open rtc device (%s)\n", __FILE__,
+		       CONFIG_RTC_HCTOSYS_DEVICE);
 		return 0;
 	}
 
 	rc = rtc_read_time(rtc, &tm);
 	if (rc) {
 		pr_err("Error reading rtc device (%s) : %d\n",
-			CONFIG_RTC_HCTOSYS_DEVICE, rc);
+		       CONFIG_RTC_HCTOSYS_DEVICE, rc);
 		goto close_time;
 	}
 
 	rc = rtc_valid_tm(&tm);
 	if (rc) {
-		pr_err("Invalid RTC time (%s): %d\n",
-			CONFIG_RTC_HCTOSYS_DEVICE, rc);
+		pr_err("Invalid RTC time (%s): %d\n", CONFIG_RTC_HCTOSYS_DEVICE,
+		       rc);
 		goto close_time;
 	}
 
 	if ((tm.tm_year == 70) && (tm.tm_mon == 0) && (tm.tm_mday <= 1)) {
-		chg_debug(": Sec: %d, Min: %d, Hour: %d, Day: %d, Mon: %d, Year: %d  @@@ wday: %d, yday: %d, isdst: %d\n",
-			tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon, tm.tm_year,
-			tm.tm_wday, tm.tm_yday, tm.tm_isdst);
+		chg_debug(
+			": Sec: %d, Min: %d, Hour: %d, Day: %d, Mon: %d, Year: %d  @@@ wday: %d, yday: %d, isdst: %d\n",
+			tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon,
+			tm.tm_year, tm.tm_wday, tm.tm_yday, tm.tm_isdst);
 		rtc_class_close(rtc);
 		return 1;
 	}
 
-	chg_debug(": Sec: %d, Min: %d, Hour: %d, Day: %d, Mon: %d, Year: %d  ###  wday: %d, yday: %d, isdst: %d\n",
-		tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon, tm.tm_year,
-		tm.tm_wday, tm.tm_yday, tm.tm_isdst);
+	chg_debug(
+		": Sec: %d, Min: %d, Hour: %d, Day: %d, Mon: %d, Year: %d  ###  wday: %d, yday: %d, isdst: %d\n",
+		tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon,
+		tm.tm_year, tm.tm_wday, tm.tm_yday, tm.tm_isdst);
 
 close_time:
 	rtc_class_close(rtc);
@@ -1235,7 +1287,7 @@ close_time:
 
 extern bool oplus_chg_get_shortc_hw_gpio_status(void);
 
-struct oplus_chg_operations  oplus_chg_sy6974_ops = {
+struct oplus_chg_operations oplus_chg_sy6974_ops = {
 	.dump_registers = sy6974_dump_registers,
 	.kick_wdt = sy6974_kick_wdt,
 	.hardware_init = sy6974_hardware_init,
@@ -1260,13 +1312,13 @@ struct oplus_chg_operations  oplus_chg_sy6974_ops = {
 #ifdef CONFIG_OPLUS_CHARGER_MTK
 	.get_charger_type = NULL,
 	.get_charger_volt = battery_meter_get_charger_voltage,
-	.check_chrdet_status = (bool (*) (void)) pmic_chrdet_status,
+	.check_chrdet_status = (bool (*)(void))pmic_chrdet_status,
 	.get_instant_vbatt = oplus_battery_meter_get_battery_voltage,
 	.get_boot_mode = (int (*)(void))get_boot_mode,
 	.get_boot_reason = (int (*)(void))get_boot_reason,
 	.get_chargerid_volt = mt_get_chargerid_volt,
-	.set_chargerid_switch_val = mt_set_chargerid_switch_val ,
-	.get_chargerid_switch_val  = mt_get_chargerid_switch_val,
+	.set_chargerid_switch_val = mt_set_chargerid_switch_val,
+	.get_chargerid_switch_val = mt_get_chargerid_switch_val,
 #ifdef CONFIG_MTK_HAFG_20
 	.get_rtc_soc = get_rtc_spare_oplus_fg_value,
 	.set_rtc_soc = set_rtc_spare_oplus_fg_value,
@@ -1360,9 +1412,9 @@ enum charger_type mt_charger_type_detection_sy6974(void)
 		return CHARGER_UNKNOWN;
 	}
 
-	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT
-			|| get_boot_mode() == ADVMETA_BOOT
-			|| get_boot_mode() == ATE_FACTORY_BOOT) {
+	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT ||
+	    get_boot_mode() == ADVMETA_BOOT ||
+	    get_boot_mode() == ATE_FACTORY_BOOT) {
 		return STANDARD_HOST;
 	}
 
@@ -1382,14 +1434,16 @@ enum charger_type mt_charger_type_detection_sy6974(void)
 
 	printk("mt_charger_type_detection1\n");
 	sy6974_config_interface(charger_ic, REG07_SY6974_ADDRESS,
-			REG07_SY6974_IINDET_EN_FORCE_DET, REG07_SY6974_IINDET_EN_MASE);
+				REG07_SY6974_IINDET_EN_FORCE_DET,
+				REG07_SY6974_IINDET_EN_MASE);
 	sy6974_dump_registers();
 
 	rc = sy6974_read_reg(charger_ic, REG07_SY6974_ADDRESS, &val_buf);
 	val_buf &= REG07_SY6974_IINDET_EN_MASE;
 	while (val_buf == REG07_SY6974_IINDET_EN_FORCE_DET && count < 20) {
 		count++;
-		rc = sy6974_read_reg(charger_ic, REG07_SY6974_ADDRESS, &val_buf);
+		rc = sy6974_read_reg(charger_ic, REG07_SY6974_ADDRESS,
+				     &val_buf);
 		val_buf &= REG07_SY6974_IINDET_EN_MASE;
 		usleep_range(50000, 50200);
 		if (!upmu_get_rgs_chrdet()) {
@@ -1411,12 +1465,12 @@ enum charger_type mt_charger_type_detection_sy6974(void)
 
 	if (val_buf == REG08_SY6974_VBUS_STAT_UNKNOWN) {
 		MTK_CHR_Type_num = CHARGER_UNKNOWN;
-	} else if (val_buf == REG08_SY6974_VBUS_STAT_SDP
-			|| val_buf == REG08_SY6974_VBUS_STAT_CDP) {
+	} else if (val_buf == REG08_SY6974_VBUS_STAT_SDP ||
+		   val_buf == REG08_SY6974_VBUS_STAT_CDP) {
 		MTK_CHR_Type_num = STANDARD_HOST;
-	} else if (val_buf == REG08_SY6974_VBUS_STAT_DCP
-			|| val_buf == REG08_SY6974_VBUS_STAT_OCP
-			|| val_buf == REG08_SY6974_VBUS_STAT_FLOAT) {
+	} else if (val_buf == REG08_SY6974_VBUS_STAT_DCP ||
+		   val_buf == REG08_SY6974_VBUS_STAT_OCP ||
+		   val_buf == REG08_SY6974_VBUS_STAT_FLOAT) {
 		MTK_CHR_Type_num = APPLE_2_1A_CHARGER;
 	} else {
 		MTK_CHR_Type_num = CHARGER_UNKNOWN;
@@ -1426,15 +1480,19 @@ enum charger_type mt_charger_type_detection_sy6974(void)
 	if (MTK_CHR_Type_num == CHARGER_UNKNOWN && upmu_get_rgs_chrdet()) {
 		printk("mt_charger_type_detection: 2nd...\n");
 		sy6974_config_interface(charger_ic, REG07_SY6974_ADDRESS,
-				REG07_SY6974_IINDET_EN_FORCE_DET, REG07_SY6974_IINDET_EN_MASE);
+					REG07_SY6974_IINDET_EN_FORCE_DET,
+					REG07_SY6974_IINDET_EN_MASE);
 		sy6974_dump_registers();
 
-		rc = sy6974_read_reg(charger_ic, REG07_SY6974_ADDRESS, &val_buf);
+		rc = sy6974_read_reg(charger_ic, REG07_SY6974_ADDRESS,
+				     &val_buf);
 		val_buf &= REG07_SY6974_IINDET_EN_MASE;
 		count = 0;
-		while (val_buf == REG07_SY6974_IINDET_EN_FORCE_DET && count < 20) {
+		while (val_buf == REG07_SY6974_IINDET_EN_FORCE_DET &&
+		       count < 20) {
 			count++;
-			rc = sy6974_read_reg(charger_ic, REG07_SY6974_ADDRESS, &val_buf);
+			rc = sy6974_read_reg(charger_ic, REG07_SY6974_ADDRESS,
+					     &val_buf);
 			val_buf &= REG07_SY6974_IINDET_EN_MASE;
 			usleep_range(50000, 50200);
 			if (!upmu_get_rgs_chrdet()) {
@@ -1452,15 +1510,16 @@ enum charger_type mt_charger_type_detection_sy6974(void)
 		rc = sy6974_read_reg(charger_ic, chgr_type_addr, &val_buf);
 		sy6974_dump_registers();
 		val_buf = val_buf & REG08_SY6974_VBUS_STAT_MASK;
-		printk("mt_charger_type_detection: 2nd, val_buf=[0x%x]\n", val_buf);
+		printk("mt_charger_type_detection: 2nd, val_buf=[0x%x]\n",
+		       val_buf);
 		if (val_buf == REG08_SY6974_VBUS_STAT_UNKNOWN) {
 			MTK_CHR_Type_num = APPLE_2_1A_CHARGER;
-		} else if (val_buf == REG08_SY6974_VBUS_STAT_SDP
-				|| val_buf == REG08_SY6974_VBUS_STAT_CDP) {
+		} else if (val_buf == REG08_SY6974_VBUS_STAT_SDP ||
+			   val_buf == REG08_SY6974_VBUS_STAT_CDP) {
 			MTK_CHR_Type_num = STANDARD_HOST;
-		} else if (val_buf == REG08_SY6974_VBUS_STAT_DCP
-				|| val_buf == REG08_SY6974_VBUS_STAT_OCP
-				|| val_buf == REG08_SY6974_VBUS_STAT_FLOAT) {
+		} else if (val_buf == REG08_SY6974_VBUS_STAT_DCP ||
+			   val_buf == REG08_SY6974_VBUS_STAT_OCP ||
+			   val_buf == REG08_SY6974_VBUS_STAT_FLOAT) {
 			MTK_CHR_Type_num = APPLE_2_1A_CHARGER;
 		} else {
 			MTK_CHR_Type_num = APPLE_2_1A_CHARGER;
@@ -1590,7 +1649,7 @@ static void do_charger_modefy_work(struct work_struct *data)
 	}
 	*/
 }
-	
+
 static struct delayed_work sy6974_irq_delay_work;
 bool fg_sy6974_irq_delay_work_running = false;
 static void do_sy6974_irq_delay_work(struct work_struct *data)
@@ -1600,7 +1659,7 @@ static void do_sy6974_irq_delay_work(struct work_struct *data)
 	int i = 0;
 	int otg_overcurrent_flag = 0;
 	struct chip_sy6974 *chip = charger_ic;
-	
+
 	if (!chip) {
 		pr_err("%s chip null,return\n", __func__);
 		return;
@@ -1612,15 +1671,16 @@ static void do_sy6974_irq_delay_work(struct work_struct *data)
 		if (val_buf == 0x40) {
 			otg_overcurrent_flag++;
 		}
-		
+
 		usleep_range(10000, 10200);
 	}
-	printk("[OPLUS_CHG] do_sy6974_irq_delay_work disable vbus out flag=%d, val_reg[0x%x]\n", otg_overcurrent_flag, val_reg);
+	printk("[OPLUS_CHG] do_sy6974_irq_delay_work disable vbus out flag=%d, val_reg[0x%x]\n",
+	       otg_overcurrent_flag, val_reg);
 	if (otg_overcurrent_flag >= 8) {
 		sy6974_otg_disable();
 	}
 	fg_sy6974_irq_delay_work_running = false;
-	return; 
+	return;
 }
 
 static irqreturn_t sy6974_irq_handler_fn(int irq, void *dev_id)
@@ -1638,7 +1698,9 @@ static irqreturn_t sy6974_irq_handler_fn(int irq, void *dev_id)
 	}
 	if (fg_sy6974_irq_delay_work_running == false) {
 		fg_sy6974_irq_delay_work_running = true;
-		schedule_delayed_work(&sy6974_irq_delay_work, round_jiffies_relative(msecs_to_jiffies(50)));
+		schedule_delayed_work(
+			&sy6974_irq_delay_work,
+			round_jiffies_relative(msecs_to_jiffies(50)));
 	}
 
 	return IRQ_HANDLED;
@@ -1654,7 +1716,8 @@ static int sy6974_parse_dts(void)
 		return -1;
 	}
 
-	chip->irq_gpio = of_get_named_gpio(chip->client->dev.of_node, "chg-irq-gpio", 0);
+	chip->irq_gpio =
+		of_get_named_gpio(chip->client->dev.of_node, "chg-irq-gpio", 0);
 	if (chip->irq_gpio <= 0) {
 		chg_err("Couldn't read chg-irq-gpio:%d\n", chip->irq_gpio);
 		return -1;
@@ -1662,13 +1725,15 @@ static int sy6974_parse_dts(void)
 		if (gpio_is_valid(chip->irq_gpio)) {
 			ret = gpio_request(chip->irq_gpio, "chg-irq-gpio");
 			if (ret) {
-				chg_err("unable to request chg-irq-gpio[%d]\n", chip->irq_gpio);
+				chg_err("unable to request chg-irq-gpio[%d]\n",
+					chip->irq_gpio);
 				chip->irq_gpio = -EINVAL;
 			} else {
 				gpio_direction_input(chip->irq_gpio);
 			}
 		} else {
-			chg_err("gpio_is_valid fail chg-irq-gpio[%d]\n", chip->irq_gpio);
+			chg_err("gpio_is_valid fail chg-irq-gpio[%d]\n",
+				chip->irq_gpio);
 			chip->irq_gpio = -EINVAL;
 			return -1;
 		}
@@ -1688,9 +1753,9 @@ static int sy6974_irq_registration(void)
 	}
 
 	ret = request_threaded_irq(gpio_to_irq(chip->irq_gpio), NULL,
-			sy6974_irq_handler_fn,
-			IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-			"SY6974-eint", chip);
+				   sy6974_irq_handler_fn,
+				   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+				   "SY6974-eint", chip);
 	if (ret < 0) {
 		printk("SY6974 request_irq IRQ LINE NOT AVAILABLE!");
 		return -EFAULT;
@@ -1699,7 +1764,8 @@ static int sy6974_irq_registration(void)
 }
 
 extern int charger_ic_flag;
-static int sy6974_driver_probe(struct i2c_client *client, const struct i2c_device_id *id)
+static int sy6974_driver_probe(struct i2c_client *client,
+			       const struct i2c_device_id *id)
 {
 	int reg = 0;
 	struct chip_sy6974 *chip = NULL;
@@ -1711,10 +1777,11 @@ static int sy6974_driver_probe(struct i2c_client *client, const struct i2c_devic
 		chg_err("USB psy not found; deferring probe\n");
 		return -EPROBE_DEFER;
 	}
-#endif  /* CONFIG_OPLUS_CHARGER_MTK */
+#endif /* CONFIG_OPLUS_CHARGER_MTK */
 	chg_debug("call \n");
 
-	chip = devm_kzalloc(&client->dev, sizeof(struct chip_sy6974), GFP_KERNEL);
+	chip = devm_kzalloc(&client->dev, sizeof(struct chip_sy6974),
+			    GFP_KERNEL);
 	if (!chip) {
 		chg_err("kzalloc() failed\n");
 		return -ENOMEM;
@@ -1722,13 +1789,13 @@ static int sy6974_driver_probe(struct i2c_client *client, const struct i2c_devic
 	charger_ic = chip;
 	chip->client = client;
 	chip->dev = &client->dev;
-	
+
 	reg = sy6974_check_registers();
 	if (reg < 0) {
 		return -ENODEV;
 	}
 	//charger_ic_flag = 2;
-	
+
 	INIT_DELAYED_WORK(&sy6974_irq_delay_work, do_sy6974_irq_delay_work);
 	sy6974_parse_dts();
 	sy6974_irq_registration();
@@ -1740,9 +1807,9 @@ static int sy6974_driver_probe(struct i2c_client *client, const struct i2c_devic
 	INIT_DELAYED_WORK(&charger_modefy_work, do_charger_modefy_work);
 	schedule_delayed_work(&charger_modefy_work, 0);
 	chg_debug("call OK!\n");
-    sy6974_suspend_charger();
-    set_charger_ic(SY6974);
-    pr_info("SY6974 charger driver probe successfully\n");
+	sy6974_suspend_charger();
+	set_charger_ic(SY6974);
+	pr_info("SY6974 charger driver probe successfully\n");
 
 	return 0;
 }
@@ -1763,8 +1830,8 @@ static int get_current_time(unsigned long *now_tm_sec)
 
 	rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
 	if (rtc == NULL) {
-		chg_err("%s: unable to open rtc device (%s)\n",
-			__FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
+		chg_err("%s: unable to open rtc device (%s)\n", __FILE__,
+			CONFIG_RTC_HCTOSYS_DEVICE);
 		return -EINVAL;
 	}
 
@@ -1810,7 +1877,7 @@ static int sy6974_resume(struct device *dev)
 	if (sleep_time < 0) {
 		sleep_time = 0;
 	}
-	chg_err("resume_sec:%ld,sleep_time:%ld\n\n",resume_tm_sec,sleep_time);
+	chg_err("resume_sec:%ld,sleep_time:%ld\n\n", resume_tm_sec, sleep_time);
 	oplus_chg_soc_update_when_resume(sleep_time);
 	return 0;
 }
@@ -1825,13 +1892,13 @@ static int sy6974_suspend(struct device *dev)
 		chg_err("RTC read failed\n");
 		suspend_tm_sec = -1;
 	}
-	chg_err("suspend_sec:%ld\n",suspend_tm_sec);
+	chg_err("suspend_sec:%ld\n", suspend_tm_sec);
 	return 0;
 }
 
 static const struct dev_pm_ops sy6974_pm_ops = {
-	.resume		= sy6974_resume,
-	.suspend		= sy6974_suspend,
+	.resume = sy6974_resume,
+	.suspend = sy6974_suspend,
 };
 
 #else //(LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
@@ -1893,12 +1960,12 @@ static void sy6974_reset(struct i2c_client *client)
  * *********************************************************/
 
 static const struct of_device_id sy6974_match[] = {
-	{ .compatible = "ti,sy6974-charger"},
-	{ },
+	{ .compatible = "ti,sy6974-charger" },
+	{},
 };
 
 static const struct i2c_device_id sy6974_id[] = {
-	{"sy6974-charger", 0},
+	{ "sy6974-charger", 0 },
 	{},
 };
 MODULE_DEVICE_TABLE(i2c, sy6974_id);

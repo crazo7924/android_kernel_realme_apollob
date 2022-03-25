@@ -5036,7 +5036,7 @@ static void mtk_ddp_ext_insert_dual_pipe_MT6885(struct mtk_drm_crtc *mtk_crtc,
 
 void mtk_ddp_dual_pipe_dump(struct mtk_drm_crtc *mtk_crtc)
 {
-	unsigned int addr, shift, reg;
+	unsigned int addr, reg;
 	void __iomem *config_regs = mtk_crtc->config_regs;
 
 	DDPDUMP("%s\n", __func__);
@@ -5059,7 +5059,6 @@ void mtk_ddp_dual_pipe_dump(struct mtk_drm_crtc *mtk_crtc)
 	DDPDUMP("MT6885_MMSYS_OVL_CON:0x%x\n", reg);
 
 	/*OVL3 Ultra/pre ultra from RDMA setting,  "00"RDMA4;"01"RDMA5*/
-	shift = REG_FLD_SHIFT(FLD_OVL3_2L_ULTRA_SEL);
 	addr = DISP_REG_CONFIG_MMSYS_MISC;
 	reg = readl_relaxed(config_regs + addr);
 	DDPDUMP("DISP_REG_CONFIG_MMSYS_MISC:0x%x\n", reg);
@@ -5074,8 +5073,6 @@ void mtk_ddp_dual_pipe_dump(struct mtk_drm_crtc *mtk_crtc)
 	DDPDUMP("MT6885_DISP_DP_WRAP_SEL_IN:0x%x\n", reg);
 
 }
-
-
 
 void mtk_ddp_connect_dual_pipe_path(struct mtk_drm_crtc *mtk_crtc,
 	struct mtk_disp_mutex *mutex)

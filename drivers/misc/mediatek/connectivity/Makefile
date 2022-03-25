@@ -83,9 +83,9 @@ endif
             $(error $(ABS_PATH_TO_WLAN_DRV) is not existed)
         endif
 
-        $(warning symbolic link to $(PATH_TO_WMT_DRV))
-        $(warning symbolic link to $(PATH_TO_WLAN_CHR_DRV))
-        $(warning symbolic link to $(PATH_TO_WLAN_DRV))
+        (info symbolic link to $(PATH_TO_WMT_DRV))
+        (info symbolic link to $(PATH_TO_WLAN_CHR_DRV))
+        (info symbolic link to $(PATH_TO_WLAN_DRV))
 
         $(shell unlink $(srctree)/$(src)/wmt_drv)
         $(shell unlink $(srctree)/$(src)/wmt_chrdev_wifi)
@@ -169,7 +169,7 @@ endif
         # ifeq (,$(wildcard $(ABS_PATH_TO_GPS_DRV)))
         #     $(error $(ABS_PATH_TO_GPS_DRV) is not existed)
         # endif
-        # $(warning symbolic link to $(PATH_TO_GPS_DRV))
+        # (info symbolic link to $(PATH_TO_GPS_DRV))
         # $(shell unlink $(srctree)/$(src)/gps_drv)
         # $(shell ln -s $(ABS_PATH_TO_GPS_DRV)      $(srctree)/$(src)/gps_drv)
         # obj-y += gps_drv/

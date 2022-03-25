@@ -754,7 +754,6 @@ static unsigned int mtk_drm_calculate_capture_interval(struct drm_crtc *crtc,
 
 static int mtk_drm_wdma_capt_monitor_thread(void *data)
 {
-	int ret = 0;
 	struct drm_crtc *crtc = (struct drm_crtc *)data;
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	struct mtk_drm_private *priv = crtc->dev->dev_private;
@@ -764,7 +763,7 @@ static int mtk_drm_wdma_capt_monitor_thread(void *data)
 
 	msleep(16000);
 	while (1) {
-		ret = wait_event_interruptible(
+		wait_event_interruptible(
 			mtk_crtc->capt_wq,
 			atomic_read(&mtk_crtc->capt_task_active));
 

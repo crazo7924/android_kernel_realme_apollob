@@ -24,7 +24,8 @@
 #include <mt-plat/mt_gpio.h>
 #include <mt_boot_common.h>
 #include <mt-plat/mtk_rtc.h>
-#elif defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_OPLUS_CHARGER_MTK6771)
+#elif defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                 \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771)
 #include <linux/module.h>
 
 #include <mt-plat/mtk_gpio.h>
@@ -40,8 +41,6 @@
 #include <mach/mtk_rtc.h>
 #endif
 #include <soc/oppo/device_info.h>
-
-
 
 extern void mt_power_off(void);
 #else
@@ -84,17 +83,20 @@ static struct delayed_work charger_modefy_work;
 
 static DEFINE_MUTEX(bq25601d_i2c_access);
 
-static int __bq25601d_read_reg(struct chip_bq25601d *chip, int reg, int *returnData)
+static int __bq25601d_read_reg(struct chip_bq25601d *chip, int reg,
+			       int *returnData)
 {
 #ifdef CONFIG_OPLUS_CHARGER_MTK
-#if defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_OPLUS_CHARGER_MTK6771) || defined(CONFIG_OPLUS_CHARGER_MTK6873)
+#if defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                   \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771) ||                               \
+	defined(CONFIG_OPLUS_CHARGER_MTK6873)
 	int ret = 0;
 	int retry = 3;
 
 	ret = i2c_smbus_read_byte_data(chip->client, reg);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
 			ret = i2c_smbus_read_byte_data(chip->client, reg);
 			if (ret < 0) {
@@ -112,11 +114,12 @@ static int __bq25601d_read_reg(struct chip_bq25601d *chip, int reg, int *returnD
 		*returnData = ret;
 	}
 #else
-	char cmd_buf[1] = {0x00};
+	char cmd_buf[1] = { 0x00 };
 	char readData = 0;
 	int ret = 0;
 
-	chip->client->ext_flag = ((chip->client->ext_flag) & I2C_MASK_FLAG) | I2C_WR_FLAG | I2C_DIRECTION_FLAG;
+	chip->client->ext_flag = ((chip->client->ext_flag) & I2C_MASK_FLAG) |
+				 I2C_WR_FLAG | I2C_DIRECTION_FLAG;
 	chip->client->timing = 300;
 	cmd_buf[0] = reg;
 	ret = i2c_master_send(chip->client, &cmd_buf[0], (1 << 8 | 1));
@@ -137,7 +140,7 @@ static int __bq25601d_read_reg(struct chip_bq25601d *chip, int reg, int *returnD
 	ret = i2c_smbus_read_byte_data(chip->client, reg);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
 			ret = i2c_smbus_read_byte_data(chip->client, reg);
 			if (ret < 0) {
@@ -159,7 +162,8 @@ static int __bq25601d_read_reg(struct chip_bq25601d *chip, int reg, int *returnD
 	return 0;
 }
 
-static int bq25601d_read_reg(struct chip_bq25601d *chip, int reg, int *returnData)
+static int bq25601d_read_reg(struct chip_bq25601d *chip, int reg,
+			     int *returnData)
 {
 	int ret = 0;
 
@@ -172,14 +176,16 @@ static int bq25601d_read_reg(struct chip_bq25601d *chip, int reg, int *returnDat
 static int __bq25601d_write_reg(struct chip_bq25601d *chip, int reg, int val)
 {
 #ifdef CONFIG_OPLUS_CHARGER_MTK
-#if defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_OPLUS_CHARGER_MTK6771) || defined(CONFIG_OPLUS_CHARGER_MTK6873)
+#if defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                   \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771) ||                               \
+	defined(CONFIG_OPLUS_CHARGER_MTK6873)
 	int ret = 0;
 	int retry = 3;
 
 	ret = i2c_smbus_write_byte_data(chip->client, reg, val);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
 			ret = i2c_smbus_write_byte_data(chip->client, reg, val);
 			if (ret < 0) {
@@ -191,17 +197,19 @@ static int __bq25601d_write_reg(struct chip_bq25601d *chip, int reg, int val)
 	}
 
 	if (ret < 0) {
-		chg_err("i2c write fail: can't write %02x to %02x: %d\n", val, reg, ret);
+		chg_err("i2c write fail: can't write %02x to %02x: %d\n", val,
+			reg, ret);
 		return ret;
 	}
 #else
-	char write_data[2] = {0};
+	char write_data[2] = { 0 };
 	int ret = 0;
 
 	write_data[0] = reg;
 	write_data[1] = val;
 
-	chip->client->ext_flag = ((chip->client->ext_flag) & I2C_MASK_FLAG) | I2C_DIRECTION_FLAG;
+	chip->client->ext_flag =
+		((chip->client->ext_flag) & I2C_MASK_FLAG) | I2C_DIRECTION_FLAG;
 	chip->client->timing = 300;
 	ret = i2c_master_send(chip->client, write_data, 2);
 	if (ret < 0) {
@@ -218,7 +226,7 @@ static int __bq25601d_write_reg(struct chip_bq25601d *chip, int reg, int val)
 	ret = i2c_smbus_write_byte_data(chip->client, reg, val);
 
 	if (ret < 0) {
-		while(retry > 0) {
+		while (retry > 0) {
 			usleep_range(5000, 5000);
 			ret = i2c_smbus_write_byte_data(chip->client, reg, val);
 			if (ret < 0) {
@@ -230,7 +238,8 @@ static int __bq25601d_write_reg(struct chip_bq25601d *chip, int reg, int val)
 	}
 
 	if (ret < 0) {
-		chg_err("i2c write fail: can't write %02x to %02x: %d\n", val, reg, ret);
+		chg_err("i2c write fail: can't write %02x to %02x: %d\n", val,
+			reg, ret);
 		return ret;
 	}
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
@@ -238,7 +247,8 @@ static int __bq25601d_write_reg(struct chip_bq25601d *chip, int reg, int val)
 	return 0;
 }
 
-static int bq25601d_config_interface (struct chip_bq25601d *chip, int RegNum, int val, int MASK)
+static int bq25601d_config_interface(struct chip_bq25601d *chip, int RegNum,
+				     int val, int MASK)
 {
 	int bq25601d_reg = 0;
 	int ret = 0;
@@ -264,12 +274,12 @@ static int bq25601d_config_interface (struct chip_bq25601d *chip, int RegNum, in
 }
 
 static int bq25601d_usbin_input_current_limit[] = {
-	100,    300,    500,    900,
-	1200,   1500,   2000,   3000,
+	100, 300, 500, 900, 1200, 1500, 2000, 3000,
 };
 
-#if defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_OPLUS_CHARGER_MTK6771)
-#define AICL_COUNT	10
+#if defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                   \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771)
+#define AICL_COUNT 10
 static int chg_vol_mini(int *chg_vol)
 {
 	int chg_vol_temp = 0;
@@ -292,7 +302,7 @@ static int bq25601d_input_current_limit_write(int value)
 	int j = 0;
 	int chg_vol = 0;
 	int aicl_point_temp = 0;
-	int chg_vol_all[10] = {0};
+	int chg_vol_all[10] = { 0 };
 	struct chip_bq25601d *chip = charger_ic;
 
 	if (atomic_read(&chip->charger_suspended) == 1) {
@@ -313,7 +323,9 @@ static int bq25601d_input_current_limit_write(int value)
 	}
 
 	j = 2; /* 500 */
-	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_500MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS,
+				       REG00_BQ25601D_INPUT_CURRENT_LIMIT_500MA,
+				       REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
 	msleep(90);
 	chg_vol = battery_meter_get_charger_voltage();
 	if (chg_vol < aicl_point_temp) {
@@ -323,7 +335,9 @@ static int bq25601d_input_current_limit_write(int value)
 		goto aicl_end;
 
 	j = 3; /* 900 */
-	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_900MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS,
+				       REG00_BQ25601D_INPUT_CURRENT_LIMIT_900MA,
+				       REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
 	msleep(90);
 	chg_vol = battery_meter_get_charger_voltage();
 	if (chg_vol < aicl_point_temp) {
@@ -333,7 +347,10 @@ static int bq25601d_input_current_limit_write(int value)
 		goto aicl_end;
 
 	j = 4; /* 1200 */
-	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_1200MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(
+		chip, REG00_BQ25601D_ADDRESS,
+		REG00_BQ25601D_INPUT_CURRENT_LIMIT_1200MA,
+		REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
 	msleep(90);
 	chg_vol = battery_meter_get_charger_voltage();
 	if (chg_vol < aicl_point_temp) {
@@ -342,7 +359,10 @@ static int bq25601d_input_current_limit_write(int value)
 	}
 
 	j = 5; /* 1500 */
-	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_1500MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(
+		chip, REG00_BQ25601D_ADDRESS,
+		REG00_BQ25601D_INPUT_CURRENT_LIMIT_1500MA,
+		REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
 	msleep(90);
 	chg_vol = battery_meter_get_charger_voltage();
 	if (chg_vol < aicl_point_temp) {
@@ -355,9 +375,14 @@ static int bq25601d_input_current_limit_write(int value)
 		goto aicl_end;
 
 	j = 6; /* 2000 */
-	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_2000MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(
+		chip, REG00_BQ25601D_ADDRESS,
+		REG00_BQ25601D_INPUT_CURRENT_LIMIT_2000MA,
+		REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
 	msleep(90);
-#if defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_OPLUS_CHARGER_MTK6771) || defined(CONFIG_OPLUS_CHARGER_MTK6873)
+#if defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                                   \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771) ||                               \
+	defined(CONFIG_OPLUS_CHARGER_MTK6873)
 	for (i = 0; i < AICL_COUNT; i++) {
 		chg_vol = battery_meter_get_charger_voltage();
 		chg_vol_all[i] = chg_vol;
@@ -374,7 +399,10 @@ static int bq25601d_input_current_limit_write(int value)
 		goto aicl_end;
 
 	j = 7; /* 3000 */
-	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_3000MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(
+		chip, REG00_BQ25601D_ADDRESS,
+		REG00_BQ25601D_INPUT_CURRENT_LIMIT_3000MA,
+		REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
 	msleep(90);
 	chg_vol = battery_meter_get_charger_voltage();
 	if (chg_vol < aicl_point_temp) {
@@ -383,42 +411,73 @@ static int bq25601d_input_current_limit_write(int value)
 	} else if (value >= 3000)
 		goto aicl_end;
 
-aicl_pre_step:		
-	chg_debug("usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n", chg_vol, j, bq25601d_usbin_input_current_limit[j], aicl_point_temp);
+aicl_pre_step:
+	chg_debug(
+		"usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_pre_step\n",
+		chg_vol, j, bq25601d_usbin_input_current_limit[j],
+		aicl_point_temp);
 	goto aicl_rerun;
-aicl_end:		
-	chg_debug("usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n", chg_vol, j, bq25601d_usbin_input_current_limit[j], aicl_point_temp);
+aicl_end:
+	chg_debug(
+		"usb input max current limit aicl chg_vol=%d j[%d]=%d sw_aicl_point:%d aicl_end\n",
+		chg_vol, j, bq25601d_usbin_input_current_limit[j],
+		aicl_point_temp);
 	goto aicl_rerun;
 aicl_rerun:
-	if ((j >= 2) && (j <= ARRAY_SIZE(bq25601d_usbin_input_current_limit) - 1))
+	if ((j >= 2) &&
+	    (j <= ARRAY_SIZE(bq25601d_usbin_input_current_limit) - 1))
 		aicl_result = bq25601d_usbin_input_current_limit[j];
 	switch (j) {
-		case 0:
-			bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_100MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
-			break;
-		case 1:
-			bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_300MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
-			break;
-		case 2:
-			bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_500MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
-			break;
-		case 3:
-			bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_900MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
-			break;
-		case 4:
-			bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_1200MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
-			break;
-		case 5:
-			bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_1500MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
-			break;
-		case 6:
-			bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_2000MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
-			break;
-		case 7:
-			bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, REG00_BQ25601D_INPUT_CURRENT_LIMIT_3000MA, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
-			break;
-		default:
-			break;
+	case 0:
+		bq25601d_config_interface(
+			chip, REG00_BQ25601D_ADDRESS,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_100MA,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+		break;
+	case 1:
+		bq25601d_config_interface(
+			chip, REG00_BQ25601D_ADDRESS,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_300MA,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+		break;
+	case 2:
+		bq25601d_config_interface(
+			chip, REG00_BQ25601D_ADDRESS,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_500MA,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+		break;
+	case 3:
+		bq25601d_config_interface(
+			chip, REG00_BQ25601D_ADDRESS,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_900MA,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+		break;
+	case 4:
+		bq25601d_config_interface(
+			chip, REG00_BQ25601D_ADDRESS,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_1200MA,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+		break;
+	case 5:
+		bq25601d_config_interface(
+			chip, REG00_BQ25601D_ADDRESS,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_1500MA,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+		break;
+	case 6:
+		bq25601d_config_interface(
+			chip, REG00_BQ25601D_ADDRESS,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_2000MA,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+		break;
+	case 7:
+		bq25601d_config_interface(
+			chip, REG00_BQ25601D_ADDRESS,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_3000MA,
+			REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+		break;
+	default:
+		break;
 	}
 	return rc;
 }
@@ -432,10 +491,12 @@ int bq25601d_input_current_limit_write(int value)
 
 	chg_err("bq25601d_input_current_limit_write: %d\n", value);
 
-	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS, (value - 100)/100, REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS,
+				       (value - 100) / 100,
+				       REG00_BQ25601D_INPUT_CURRENT_LIMIT_MASK);
 	if (rc < 0) {
-                chg_err("Couldn't config current limit, rc = %d\n", rc);
-        }
+		chg_err("Couldn't config current limit, rc = %d\n", rc);
+	}
 
 	return rc;
 }
@@ -458,14 +519,16 @@ int bq25601d_charging_current_write_fast(int chg_cur)
 
 	chg_debug("chg_cur = %d\r\n", chg_cur);
 
-	if (chg_cur > REG02_BQ25601D_MAX_FAST_CHG_CURRENT_MA
-			|| chg_cur < REG02_BQ25601D_MIN_FAST_CHG_CURRENT_MA)
+	if (chg_cur > REG02_BQ25601D_MAX_FAST_CHG_CURRENT_MA ||
+	    chg_cur < REG02_BQ25601D_MIN_FAST_CHG_CURRENT_MA)
 		chg_cur = REG02_BQ25601D_MAX_FAST_CHG_CURRENT_MA;
-	value = (chg_cur - REG02_BQ25601D_MIN_FAST_CHG_CURRENT_MA) / REG02_BQ25601D_FAST_CHG_CURRENT_STEP_MA;
+	value = (chg_cur - REG02_BQ25601D_MIN_FAST_CHG_CURRENT_MA) /
+		REG02_BQ25601D_FAST_CHG_CURRENT_STEP_MA;
 	value <<= REG02_BQ25601D_FAST_CHG_CURRENT_LIMIT_SHIFT;
 
-	rc = bq25601d_config_interface(chip, REG02_BQ25601D_ADDRESS, value,
-			REG02_BQ25601D_FAST_CHG_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(
+		chip, REG02_BQ25601D_ADDRESS, value,
+		REG02_BQ25601D_FAST_CHG_CURRENT_LIMIT_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't write fast charge current rc = %d\n", rc);
 	}
@@ -486,11 +549,12 @@ static int bq25601d_set_vindpm_vol(int vol)
 
 	if (vol < REG06_BQ25601D_VINDPM_OFFSET)
 		vol = REG06_BQ25601D_VINDPM_OFFSET;
-	value = (vol - REG06_BQ25601D_VINDPM_OFFSET) / REG06_BQ25601D_VINDPM_STEP_MV;
+	value = (vol - REG06_BQ25601D_VINDPM_OFFSET) /
+		REG06_BQ25601D_VINDPM_STEP_MV;
 	value <<= REG06_BQ25601D_VINDPM_SHIFT;
 
-	rc = bq25601d_config_interface(chip, REG06_BQ25601D_ADDRESS,
-			value, REG06_BQ25601D_VINDPM_MASK);
+	rc = bq25601d_config_interface(chip, REG06_BQ25601D_ADDRESS, value,
+				       REG06_BQ25601D_VINDPM_MASK);
 	return rc;
 }
 #ifndef CONFIG_OPLUS_CHARGER_MTK6873
@@ -549,15 +613,20 @@ static int bq25601d_set_complete_charge_timeout(int val)
 	}
 
 	if (val == OVERTIME_AC) {
-		val = REG05_BQ25601D_CHG_SAFETY_TIMER_ENABLE | REG05_BQ25601D_FAST_CHG_TIMEOUT_10H;
+		val = REG05_BQ25601D_CHG_SAFETY_TIMER_ENABLE |
+		      REG05_BQ25601D_FAST_CHG_TIMEOUT_10H;
 	} else if (val == OVERTIME_USB) {
-		val = REG05_BQ25601D_CHG_SAFETY_TIMER_ENABLE | REG05_BQ25601D_FAST_CHG_TIMEOUT_10H;
+		val = REG05_BQ25601D_CHG_SAFETY_TIMER_ENABLE |
+		      REG05_BQ25601D_FAST_CHG_TIMEOUT_10H;
 	} else {
-		val = REG05_BQ25601D_CHG_SAFETY_TIMER_DISABLE | REG05_BQ25601D_FAST_CHG_TIMEOUT_10H;
+		val = REG05_BQ25601D_CHG_SAFETY_TIMER_DISABLE |
+		      REG05_BQ25601D_FAST_CHG_TIMEOUT_10H;
 	}
 
-	rc = bq25601d_config_interface(chip, REG05_BQ25601D_ADDRESS, val,
-			REG05_BQ25601D_CHG_SAFETY_TIMER_MASK | REG05_BQ25601D_FAST_CHG_TIMEOUT_MASK);
+	rc = bq25601d_config_interface(
+		chip, REG05_BQ25601D_ADDRESS, val,
+		REG05_BQ25601D_CHG_SAFETY_TIMER_MASK |
+			REG05_BQ25601D_FAST_CHG_TIMEOUT_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't complete charge timeout rc = %d\n", rc);
 	}
@@ -583,11 +652,14 @@ int bq25601d_float_voltage_write(int vfloat_mv)
 		chg_err("bad vfloat_mv:%d,return\n", vfloat_mv);
 		return 0;
 	}
-	value = (vfloat_mv - REG04_BQ25601D_MIN_FLOAT_MV) / REG04_BQ25601D_VFLOAT_STEP_MV;
+	value = (vfloat_mv - REG04_BQ25601D_MIN_FLOAT_MV) /
+		REG04_BQ25601D_VFLOAT_STEP_MV;
 	value <<= REG04_BQ25601D_CHG_VOL_LIMIT_SHIFT;
-	chg_debug("bq25601d_set_float_voltage vfloat_mv = %d value=%d\n", vfloat_mv, value);
+	chg_debug("bq25601d_set_float_voltage vfloat_mv = %d value=%d\n",
+		  vfloat_mv, value);
 
-	rc = bq25601d_config_interface(chip, REG04_BQ25601D_ADDRESS, value, REG04_BQ25601D_CHG_VOL_LIMIT_MASK);
+	rc = bq25601d_config_interface(chip, REG04_BQ25601D_ADDRESS, value,
+				       REG04_BQ25601D_CHG_VOL_LIMIT_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't set float voltage rc = %d\n", rc);
 	}
@@ -609,11 +681,13 @@ static int bq25601d_set_prechg_current(int ipre_ma)
 		ipre_ma = REG03_BQ25601D_MIN_PRE_CHG_CURRENT_MA;
 	if (ipre_ma > REG03_BQ25601D_MAX_PRE_CHG_CURRENT_MA)
 		ipre_ma = REG03_BQ25601D_MAX_PRE_CHG_CURRENT_MA;
-	value = (ipre_ma - REG03_BQ25601D_MIN_PRE_CHG_CURRENT_MA) / REG03_BQ25601D_PRE_CHG_CURRENT_STEP_MA;
+	value = (ipre_ma - REG03_BQ25601D_MIN_PRE_CHG_CURRENT_MA) /
+		REG03_BQ25601D_PRE_CHG_CURRENT_STEP_MA;
 	value <<= REG03_BQ25601D_PRE_CHG_CURRENT_LIMIT_SHIFT;
 
-	return bq25601d_config_interface(chip, REG03_BQ25601D_ADDRESS, value,
-			REG03_BQ25601D_PRE_CHG_CURRENT_LIMIT_MASK);
+	return bq25601d_config_interface(
+		chip, REG03_BQ25601D_ADDRESS, value,
+		REG03_BQ25601D_PRE_CHG_CURRENT_LIMIT_MASK);
 }
 
 static int bq25601d_set_termchg_current(int term_curr)
@@ -630,12 +704,14 @@ static int bq25601d_set_termchg_current(int term_curr)
 	if (term_curr < REG03_BQ25601D_MIN_TERM_CHG_CURRENT_MA) {
 		term_curr = REG03_BQ25601D_MIN_TERM_CHG_CURRENT_MA;
 	}
-	value = (term_curr - REG03_BQ25601D_MIN_TERM_CHG_CURRENT_MA) / REG03_BQ25601D_TERM_CHG_CURRENT_STEP_MA;
+	value = (term_curr - REG03_BQ25601D_MIN_TERM_CHG_CURRENT_MA) /
+		REG03_BQ25601D_TERM_CHG_CURRENT_STEP_MA;
 	value <<= REG03_BQ25601D_TERM_CHG_CURRENT_LIMIT_SHIFT;
 	chg_debug("value=%d\n", value);
 
-	rc = bq25601d_config_interface(chip, REG03_BQ25601D_ADDRESS, value,
-			REG03_BQ25601D_TERM_CHG_CURRENT_LIMIT_MASK);
+	rc = bq25601d_config_interface(
+		chip, REG03_BQ25601D_ADDRESS, value,
+		REG03_BQ25601D_TERM_CHG_CURRENT_LIMIT_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't set termination curren rc = %d\n", rc);
 	}
@@ -648,7 +724,7 @@ static int bq25601d_set_rechg_voltage(int recharge_mv)
 	int reg = 0;
 	int rc = 0;
 	struct chip_bq25601d *chip = charger_ic;
-	
+
 	if (atomic_read(&chip->charger_suspended) == 1) {
 		chg_err("charger in suspended.\n");
 		return 0;
@@ -660,7 +736,8 @@ static int bq25601d_set_rechg_voltage(int recharge_mv)
 	} else {
 		reg = REG04_BQ25601D_RECHG_THRESHOLD_VOL_100MV;
 	}
-	rc = bq25601d_config_interface(chip, REG04_BQ25601D_ADDRESS, reg, REG04_BQ25601D_RECHG_THRESHOLD_VOL_MASK);
+	rc = bq25601d_config_interface(chip, REG04_BQ25601D_ADDRESS, reg,
+				       REG04_BQ25601D_RECHG_THRESHOLD_VOL_MASK);
 	if (rc) {
 		chg_err("Couldn't set rechg threshold rc = %d\n", rc);
 	}
@@ -679,7 +756,7 @@ static int bq25601d_set_wdt_timer(int reg)
 	}
 
 	rc = bq25601d_config_interface(chip, REG05_BQ25601D_ADDRESS, reg,
-			REG05_BQ25601D_WATCHDOG_TIMER_MASK);
+				       REG05_BQ25601D_WATCHDOG_TIMER_MASK);
 
 	return rc;
 }
@@ -698,7 +775,8 @@ int bq25601d_set_chging_term_disable(void)
 	}
 
 	rc = bq25601d_config_interface(chip, REG05_BQ25601D_ADDRESS,
-			REG05_BQ25601D_TERMINATION_DISABLE, REG05_BQ25601D_TERMINATION_MASK);
+				       REG05_BQ25601D_TERMINATION_DISABLE,
+				       REG05_BQ25601D_TERMINATION_MASK);
 
 	return rc;
 }
@@ -717,7 +795,8 @@ int bq25601d_kick_wdt(void)
 	}
 
 	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS,
-			REG01_BQ25601D_WDT_TIMER_RESET, REG01_BQ25601D_WDT_TIMER_RESET_MASK);
+				       REG01_BQ25601D_WDT_TIMER_RESET,
+				       REG01_BQ25601D_WDT_TIMER_RESET_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't bq25601d_kick_wdt rc = %d\n", rc);
 	}
@@ -738,9 +817,9 @@ static int bq25601d_enable_charging(void)
 	}
 
 #ifdef CONFIG_OPLUS_CHARGER_MTK
-	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT
-		|| get_boot_mode() == ADVMETA_BOOT
-		|| get_boot_mode() == ATE_FACTORY_BOOT) {
+	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT ||
+	    get_boot_mode() == ADVMETA_BOOT ||
+	    get_boot_mode() == ATE_FACTORY_BOOT) {
 		return 0;
 	}
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
@@ -750,7 +829,8 @@ static int bq25601d_enable_charging(void)
 	}
 
 	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS,
-			REG01_BQ25601D_CHARGING_ENABLE, REG01_BQ25601D_CHARGING_MASK);
+				       REG01_BQ25601D_CHARGING_ENABLE,
+				       REG01_BQ25601D_CHARGING_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't bq25601d_enable_charging rc = %d\n", rc);
 	}
@@ -770,7 +850,8 @@ static int bq25601d_disable_charging(void)
 	}
 
 	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS,
-			REG01_BQ25601D_CHARGING_DISABLE, REG01_BQ25601D_CHARGING_MASK);
+				       REG01_BQ25601D_CHARGING_DISABLE,
+				       REG01_BQ25601D_CHARGING_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't bq25601d_disable_charging  rc = %d\n", rc);
 	} else {
@@ -794,7 +875,8 @@ int bq25601d_enable_charging(void)
 	}
 
 	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS,
-			REG01_BQ25601D_CHARGING_ENABLE, REG01_BQ25601D_CHARGING_MASK);
+				       REG01_BQ25601D_CHARGING_ENABLE,
+				       REG01_BQ25601D_CHARGING_MASK);
 	if (rc < 0) {
 		chg_err("Couldn'tbq25601d_enable_charging rc = %d\n", rc);
 	}
@@ -816,7 +898,8 @@ int bq25601d_disable_charging(void)
 	}
 
 	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS,
-			REG01_BQ25601D_CHARGING_DISABLE, REG01_BQ25601D_CHARGING_MASK);
+				       REG01_BQ25601D_CHARGING_DISABLE,
+				       REG01_BQ25601D_CHARGING_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't bq25601d_disable_charging  rc = %d\n", rc);
 	}
@@ -844,7 +927,11 @@ static bool bq25601d_check_charger_suspend_enable(void)
 		return 0;
 	}
 
-	charger_suspend_enable = ((reg_val & REG00_BQ25601D_SUSPEND_MODE_MASK) == REG00_BQ25601D_SUSPEND_MODE_ENABLE) ? true : false;
+	charger_suspend_enable =
+		((reg_val & REG00_BQ25601D_SUSPEND_MODE_MASK) ==
+		 REG00_BQ25601D_SUSPEND_MODE_ENABLE) ?
+			true :
+			      false;
 
 	return charger_suspend_enable;
 }
@@ -885,7 +972,10 @@ static int bq25601d_check_charging_enable(void)
 		return 0;
 	}
 
-	charging_enable = ((reg_val & REG01_BQ25601D_CHARGING_MASK) == REG01_BQ25601D_CHARGING_ENABLE) ? 1 : 0;
+	charging_enable = ((reg_val & REG01_BQ25601D_CHARGING_MASK) ==
+			   REG01_BQ25601D_CHARGING_ENABLE) ?
+				  1 :
+					0;
 
 	return charging_enable;
 }
@@ -909,14 +999,20 @@ static int bq25601d_registers_read_full(void)
 		chg_err("Couldn't read REG08_BQ25601D_ADDRESS rc = %d\n", rc);
 		return 0;
 	}
-	reg_full = ((reg_full & REG08_BQ25601D_CHG_STAT_MASK) == REG08_BQ25601D_CHG_STAT_CHG_TERMINATION) ? 1 : 0;
+	reg_full = ((reg_full & REG08_BQ25601D_CHG_STAT_MASK) ==
+		    REG08_BQ25601D_CHG_STAT_CHG_TERMINATION) ?
+			   1 :
+				 0;
 
 	rc = bq25601d_read_reg(chip, REG09_BQ25601D_ADDRESS, &reg_ovp);
 	if (rc) {
 		chg_err("Couldn't read REG09_BQ25601D_ADDRESS rc = %d\n", rc);
 		return 0;
 	}
-	reg_ovp = ((reg_ovp & REG09_BQ25601D_BAT_FAULT_MASK) == REG09_BQ25601D_BAT_FAULT_BATOVP) ? 1 : 0;
+	reg_ovp = ((reg_ovp & REG09_BQ25601D_BAT_FAULT_MASK) ==
+		   REG09_BQ25601D_BAT_FAULT_BATOVP) ?
+			  1 :
+				0;
 
 	//chg_err("bq25601d_registers_read_full, reg_full = %d, reg_ovp = %d\r\n", reg_full, reg_ovp);
 	return (reg_full || reg_ovp);
@@ -940,16 +1036,18 @@ int bq25601d_otg_enable(void)
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
 
 	bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS,
-			REG00_BQ25601D_SUSPEND_MODE_DISABLE, REG00_BQ25601D_SUSPEND_MODE_MASK);
+				  REG00_BQ25601D_SUSPEND_MODE_DISABLE,
+				  REG00_BQ25601D_SUSPEND_MODE_MASK);
 
 	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS,
-			REG01_BQ25601D_OTG_ENABLE, REG01_BQ25601D_OTG_MASK);
+				       REG01_BQ25601D_OTG_ENABLE,
+				       REG01_BQ25601D_OTG_MASK);
 	if (rc) {
 		chg_err("Couldn't enable OTG mode rc=%d\n", rc);
 	} else {
 		chg_debug("bq25601d_otg_enable rc=%d\n", rc);
 	}
-	
+
 	bq25601d_set_wdt_timer(REG05_BQ25601D_WATCHDOG_TIMER_DISABLE);
 	oplus_otg_online = 1;
 	oplus_chg_set_otg_online(true);
@@ -973,12 +1071,13 @@ int bq25601d_otg_disable(void)
 #endif /* CONFIG_OPLUS_CHARGER_MTK */
 
 	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS,
-			REG01_BQ25601D_OTG_DISABLE, REG01_BQ25601D_OTG_MASK);
+				       REG01_BQ25601D_OTG_DISABLE,
+				       REG01_BQ25601D_OTG_MASK);
 	if (rc)
 		chg_err("Couldn't disable OTG mode rc=%d\n", rc);
 	else
 		chg_debug("bq25601d_otg_disable rc=%d\n", rc);
-	
+
 	bq25601d_set_wdt_timer(REG05_BQ25601D_WATCHDOG_TIMER_40S);
 	oplus_otg_online = 0;
 	oplus_chg_set_otg_online(false);
@@ -1006,7 +1105,8 @@ int bq25601d_suspend_charger(void)
 		return 0;
 
 	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS,
-			REG00_BQ25601D_SUSPEND_MODE_ENABLE, REG00_BQ25601D_SUSPEND_MODE_MASK);
+				       REG00_BQ25601D_SUSPEND_MODE_ENABLE,
+				       REG00_BQ25601D_SUSPEND_MODE_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't bq25601d_suspend_charger rc = %d\n", rc);
 	} else {
@@ -1030,7 +1130,8 @@ int bq25601d_unsuspend_charger(void)
 	}
 
 	rc = bq25601d_config_interface(chip, REG00_BQ25601D_ADDRESS,
-			REG00_BQ25601D_SUSPEND_MODE_DISABLE, REG00_BQ25601D_SUSPEND_MODE_MASK);
+				       REG00_BQ25601D_SUSPEND_MODE_DISABLE,
+				       REG00_BQ25601D_SUSPEND_MODE_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't bq25601d_unsuspend_charger rc = %d\n", rc);
 	} else {
@@ -1040,7 +1141,10 @@ int bq25601d_unsuspend_charger(void)
 	return rc;
 }
 
-#if defined (CONFIG_MTK_PMIC_CHIP_MT6353) || defined(CONFIG_OPLUS_CHARGER_MTK6763) || defined(CONFIG_OPLUS_CHARGER_MTK6771) || defined(CONFIG_OPLUS_CHARGER_MTK6873)
+#if defined(CONFIG_MTK_PMIC_CHIP_MT6353) ||                                    \
+	defined(CONFIG_OPLUS_CHARGER_MTK6763) ||                               \
+	defined(CONFIG_OPLUS_CHARGER_MTK6771) ||                               \
+	defined(CONFIG_OPLUS_CHARGER_MTK6873)
 static int bq25601d_reset_charger(void)
 {
 	int rc = 0;
@@ -1055,31 +1159,38 @@ static int bq25601d_reset_charger(void)
 	if (rc < 0) {
 		chg_err("Couldn't reset REG00 rc = %d\n", rc);
 	}
-	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS, 0x1A, 0xFF);
+	rc = bq25601d_config_interface(chip, REG01_BQ25601D_ADDRESS, 0x1A,
+				       0xFF);
 	if (rc < 0) {
 		chg_err("Couldn't reset REG01 rc = %d\n", rc);
 	}
-	rc = bq25601d_config_interface(chip, REG02_BQ25601D_ADDRESS, 0xA2, 0xFF);
+	rc = bq25601d_config_interface(chip, REG02_BQ25601D_ADDRESS, 0xA2,
+				       0xFF);
 	if (rc < 0) {
 		chg_err("Couldn't reset REG02 rc = %d\n", rc);
 	}
-	rc = bq25601d_config_interface(chip, REG03_BQ25601D_ADDRESS, 0x22, 0xFF);
+	rc = bq25601d_config_interface(chip, REG03_BQ25601D_ADDRESS, 0x22,
+				       0xFF);
 	if (rc < 0) {
 		chg_err("Couldn't reset REG03 rc = %d\n", rc);
 	}
-	rc = bq25601d_config_interface(chip, REG04_BQ25601D_ADDRESS, 0x88, 0xFF);
+	rc = bq25601d_config_interface(chip, REG04_BQ25601D_ADDRESS, 0x88,
+				       0xFF);
 	if (rc < 0) {
 		chg_err("Couldn't reset REG04 rc = %d\n", rc);
 	}
-	rc = bq25601d_config_interface(chip, REG05_BQ25601D_ADDRESS, 0x1F, 0xFF);
+	rc = bq25601d_config_interface(chip, REG05_BQ25601D_ADDRESS, 0x1F,
+				       0xFF);
 	if (rc < 0) {
 		chg_err("Couldn't reset REG05 rc = %d\n", rc);
 	}
-	rc = bq25601d_config_interface(chip, REG06_BQ25601D_ADDRESS, 0x66, 0xFF);
+	rc = bq25601d_config_interface(chip, REG06_BQ25601D_ADDRESS, 0x66,
+				       0xFF);
 	if (rc < 0) {
 		chg_err("Couldn't reset REG06 rc = %d\n", rc);
 	}
-	rc = bq25601d_config_interface(chip, REG07_BQ25601D_ADDRESS, 0x4C, 0xFF);
+	rc = bq25601d_config_interface(chip, REG07_BQ25601D_ADDRESS, 0x4C,
+				       0xFF);
 	if (rc < 0) {
 		chg_err("Couldn't reset REG07 rc = %d\n", rc);
 	}
@@ -1103,7 +1214,8 @@ static int bq25601d_reset_charger(void)
 	}
 
 	rc = bq25601d_config_interface(chip, REG0B_BQ25601D_ADDRESS,
-			REG0B_BQ25601D_REG_RST_RESET, REG0B_BQ25601D_REG_RST_MASK);
+				       REG0B_BQ25601D_REG_RST_RESET,
+				       REG0B_BQ25601D_REG_RST_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't bq25601d_reset_charger rc = %d\n", rc);
 	} else {
@@ -1125,7 +1237,7 @@ static bool bq25601d_check_charger_resume(void)
 	}
 }
 #endif
-#define DUMP_REG_LOG_CNT_30S  1
+#define DUMP_REG_LOG_CNT_30S 1
 #ifndef CONFIG_OPLUS_CHARGER_MTK6873
 static void bq25601d_dump_registers(void)
 #else
@@ -1134,7 +1246,7 @@ void bq25601d_dump_registers(void)
 {
 	int rc = 0;
 	int addr = 0;
-	unsigned int val_buf[BQ25601D_REG_NUMBER] = {0x0};
+	unsigned int val_buf[BQ25601D_REG_NUMBER] = { 0x0 };
 	static int dump_count = 0;
 	struct chip_bq25601d *chip = charger_ic;
 
@@ -1146,16 +1258,18 @@ void bq25601d_dump_registers(void)
 	for (addr = BQ25601D_FIRST_REG; addr <= BQ25601D_LAST_REG; addr++) {
 		rc = bq25601d_read_reg(chip, addr, &val_buf[addr]);
 		if (rc) {
-			 chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
-			 return;
+			chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
+			return;
 		}
 	}
 
 	if (dump_count == DUMP_REG_LOG_CNT_30S) {
 		dump_count = 0;
-		chg_debug("bq25601d_reg: [0x%02x,0x%02x,0x%02x,0x%02x], [0x%02x,0x%02x,0x%02x,0x%02x], [0x%02x,0x%02x,0x%02x,0x%02x]\n",
-			val_buf[0], val_buf[1], val_buf[2], val_buf[3], val_buf[4], val_buf[5], 
-			val_buf[6], val_buf[7], val_buf[8], val_buf[9], val_buf[10], val_buf[11]);
+		chg_debug(
+			"bq25601d_reg: [0x%02x,0x%02x,0x%02x,0x%02x], [0x%02x,0x%02x,0x%02x,0x%02x], [0x%02x,0x%02x,0x%02x,0x%02x]\n",
+			val_buf[0], val_buf[1], val_buf[2], val_buf[3],
+			val_buf[4], val_buf[5], val_buf[6], val_buf[7],
+			val_buf[8], val_buf[9], val_buf[10], val_buf[11]);
 	}
 	dump_count++;
 
@@ -1166,7 +1280,7 @@ static int bq25601d_check_registers(void)
 {
 	int rc = 0;
 	int addr = 0;
-	unsigned int val_buf[BQ25601D_REG_NUMBER] = {0x0};
+	unsigned int val_buf[BQ25601D_REG_NUMBER] = { 0x0 };
 	struct chip_bq25601d *chip = charger_ic;
 
 	if (atomic_read(&chip->charger_suspended) == 1) {
@@ -1177,12 +1291,12 @@ static int bq25601d_check_registers(void)
 	for (addr = BQ25601D_FIRST_REG; addr <= BQ25601D_LAST_REG; addr++) {
 		rc = bq25601d_read_reg(chip, addr, &val_buf[addr]);
 		if (rc) {
-			 chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
-			 return -1;
+			chg_err("Couldn't read 0x%02x rc = %d\n", addr, rc);
+			return -1;
 		}
 	}
 
-  	return 0;
+	return 0;
 }
 #ifndef CONFIG_OPLUS_CHARGER_MTK6873
 static int bq25601d_get_chg_current_step(void)
@@ -1231,15 +1345,16 @@ int bq25601d_hardware_init(void)
 
 	bq25601d_set_vindpm_vol(chip->hw_aicl_point);
 #ifdef CONFIG_OPLUS_CHARGER_MTK6873
-	rc = bq25601d_config_interface(chip, REG06_BQ25601D_ADDRESS,
-		0x80, REG06_BQ25601D_OVP_MASK);
+	rc = bq25601d_config_interface(chip, REG06_BQ25601D_ADDRESS, 0x80,
+				       REG06_BQ25601D_OVP_MASK);
 	if (rc < 0) {
 		chg_err("Couldn't config ovp rc = %d\n", rc);
 	}
 #endif
 #ifdef CONFIG_OPLUS_CHARGER_MTK
-	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT
-			|| get_boot_mode() == ADVMETA_BOOT || get_boot_mode() == ATE_FACTORY_BOOT) {
+	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT ||
+	    get_boot_mode() == ADVMETA_BOOT ||
+	    get_boot_mode() == ATE_FACTORY_BOOT) {
 		bq25601d_suspend_charger();
 		bq25601d_disable_charging();
 	} else {
@@ -1268,36 +1383,38 @@ static int rtc_reset_check(void)
 
 	rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
 	if (rtc == NULL) {
-		pr_err("%s: unable to open rtc device (%s)\n",
-			__FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
+		pr_err("%s: unable to open rtc device (%s)\n", __FILE__,
+		       CONFIG_RTC_HCTOSYS_DEVICE);
 		return 0;
 	}
 
 	rc = rtc_read_time(rtc, &tm);
 	if (rc) {
 		pr_err("Error reading rtc device (%s) : %d\n",
-			CONFIG_RTC_HCTOSYS_DEVICE, rc);
+		       CONFIG_RTC_HCTOSYS_DEVICE, rc);
 		goto close_time;
 	}
 
 	rc = rtc_valid_tm(&tm);
 	if (rc) {
-		pr_err("Invalid RTC time (%s): %d\n",
-			CONFIG_RTC_HCTOSYS_DEVICE, rc);
+		pr_err("Invalid RTC time (%s): %d\n", CONFIG_RTC_HCTOSYS_DEVICE,
+		       rc);
 		goto close_time;
 	}
 
 	if ((tm.tm_year == 70) && (tm.tm_mon == 0) && (tm.tm_mday <= 1)) {
-		chg_debug(": Sec: %d, Min: %d, Hour: %d, Day: %d, Mon: %d, Year: %d  @@@ wday: %d, yday: %d, isdst: %d\n",
-			tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon, tm.tm_year,
-			tm.tm_wday, tm.tm_yday, tm.tm_isdst);
+		chg_debug(
+			": Sec: %d, Min: %d, Hour: %d, Day: %d, Mon: %d, Year: %d  @@@ wday: %d, yday: %d, isdst: %d\n",
+			tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon,
+			tm.tm_year, tm.tm_wday, tm.tm_yday, tm.tm_isdst);
 		rtc_class_close(rtc);
 		return 1;
 	}
 
-	chg_debug(": Sec: %d, Min: %d, Hour: %d, Day: %d, Mon: %d, Year: %d  ###  wday: %d, yday: %d, isdst: %d\n",
-		tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon, tm.tm_year,
-		tm.tm_wday, tm.tm_yday, tm.tm_isdst);
+	chg_debug(
+		": Sec: %d, Min: %d, Hour: %d, Day: %d, Mon: %d, Year: %d  ###  wday: %d, yday: %d, isdst: %d\n",
+		tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon,
+		tm.tm_year, tm.tm_wday, tm.tm_yday, tm.tm_isdst);
 
 close_time:
 	rtc_class_close(rtc);
@@ -1307,7 +1424,7 @@ close_time:
 #ifndef CONFIG_OPLUS_CHARGER_MTK6873
 extern bool oplus_chg_get_shortc_hw_gpio_status(void);
 
-struct oplus_chg_operations  bq25601d_chg_ops = {
+struct oplus_chg_operations bq25601d_chg_ops = {
 	.dump_registers = bq25601d_dump_registers,
 	.kick_wdt = bq25601d_kick_wdt,
 	.hardware_init = bq25601d_hardware_init,
@@ -1332,13 +1449,13 @@ struct oplus_chg_operations  bq25601d_chg_ops = {
 #ifdef CONFIG_OPLUS_CHARGER_MTK
 	.get_charger_type = mt_power_supply_type_check,
 	.get_charger_volt = battery_meter_get_charger_voltage,
-	.check_chrdet_status = (bool (*) (void)) pmic_chrdet_status,
+	.check_chrdet_status = (bool (*)(void))pmic_chrdet_status,
 	.get_instant_vbatt = oplus_battery_meter_get_battery_voltage,
 	.get_boot_mode = (int (*)(void))get_boot_mode,
 	.get_boot_reason = (int (*)(void))get_boot_reason,
 	.get_chargerid_volt = mt_get_chargerid_volt,
-	.set_chargerid_switch_val = mt_set_chargerid_switch_val ,
-	.get_chargerid_switch_val  = mt_get_chargerid_switch_val,
+	.set_chargerid_switch_val = mt_set_chargerid_switch_val,
+	.get_chargerid_switch_val = mt_get_chargerid_switch_val,
 #ifdef CONFIG_MTK_HAFG_20
 	.get_rtc_soc = get_rtc_spare_oplus_fg_value,
 	.set_rtc_soc = set_rtc_spare_oplus_fg_value,
@@ -1380,7 +1497,7 @@ static void register_charger_devinfo(void)
 	int ret = 0;
 	char *version = "bq25601d";
 	char *manufacture = "TI";
-//	ret = register_device_proc("charger", version, manufacture);
+	//	ret = register_device_proc("charger", version, manufacture);
 	if (ret)
 		chg_err("register_charger_devinfo fail\n");
 }
@@ -1434,9 +1551,9 @@ enum charger_type mt_charger_type_detection_bq25601d(void)
 		return CHARGER_UNKNOWN;
 	}
 
-	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT
-			|| get_boot_mode() == ADVMETA_BOOT
-			|| get_boot_mode() == ATE_FACTORY_BOOT) {
+	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT ||
+	    get_boot_mode() == ADVMETA_BOOT ||
+	    get_boot_mode() == ATE_FACTORY_BOOT) {
 		return STANDARD_HOST;
 	}
 
@@ -1456,14 +1573,16 @@ enum charger_type mt_charger_type_detection_bq25601d(void)
 
 	printk("mt_charger_type_detection1\n");
 	bq25601d_config_interface(charger_ic, REG07_BQ25601D_ADDRESS,
-			REG07_BQ25601D_IINDET_EN_FORCE_DET, REG07_BQ25601D_IINDET_EN_MASE);
+				  REG07_BQ25601D_IINDET_EN_FORCE_DET,
+				  REG07_BQ25601D_IINDET_EN_MASE);
 	bq25601d_dump_registers();
 
 	rc = bq25601d_read_reg(charger_ic, REG07_BQ25601D_ADDRESS, &val_buf);
 	val_buf &= REG07_BQ25601D_IINDET_EN_MASE;
 	while (val_buf == REG07_BQ25601D_IINDET_EN_FORCE_DET && count < 20) {
 		count++;
-		rc = bq25601d_read_reg(charger_ic, REG07_BQ25601D_ADDRESS, &val_buf);
+		rc = bq25601d_read_reg(charger_ic, REG07_BQ25601D_ADDRESS,
+				       &val_buf);
 		val_buf &= REG07_BQ25601D_IINDET_EN_MASE;
 		usleep_range(50000, 50200);
 		if (!upmu_get_rgs_chrdet()) {
@@ -1489,9 +1608,9 @@ enum charger_type mt_charger_type_detection_bq25601d(void)
 		MTK_CHR_Type_num = STANDARD_HOST;
 	} else if (val_buf == REG08_BQ25601D_VBUS_STAT_CDP) {
 		MTK_CHR_Type_num = CHARGING_HOST;
-	} else if (val_buf == REG08_BQ25601D_VBUS_STAT_DCP
-			|| val_buf == REG08_BQ25601D_VBUS_STAT_OCP
-			|| val_buf == REG08_BQ25601D_VBUS_STAT_FLOAT) {
+	} else if (val_buf == REG08_BQ25601D_VBUS_STAT_DCP ||
+		   val_buf == REG08_BQ25601D_VBUS_STAT_OCP ||
+		   val_buf == REG08_BQ25601D_VBUS_STAT_FLOAT) {
 		MTK_CHR_Type_num = APPLE_2_1A_CHARGER;
 	} else {
 		MTK_CHR_Type_num = CHARGER_UNKNOWN;
@@ -1501,15 +1620,19 @@ enum charger_type mt_charger_type_detection_bq25601d(void)
 	if (MTK_CHR_Type_num == CHARGER_UNKNOWN && upmu_get_rgs_chrdet()) {
 		printk("mt_charger_type_detection: 2nd...\n");
 		bq25601d_config_interface(charger_ic, REG07_BQ25601D_ADDRESS,
-				REG07_BQ25601D_IINDET_EN_FORCE_DET, REG07_BQ25601D_IINDET_EN_MASE);
+					  REG07_BQ25601D_IINDET_EN_FORCE_DET,
+					  REG07_BQ25601D_IINDET_EN_MASE);
 		bq25601d_dump_registers();
 
-		rc = bq25601d_read_reg(charger_ic, REG07_BQ25601D_ADDRESS, &val_buf);
+		rc = bq25601d_read_reg(charger_ic, REG07_BQ25601D_ADDRESS,
+				       &val_buf);
 		val_buf &= REG07_BQ25601D_IINDET_EN_MASE;
 		count = 0;
-		while (val_buf == REG07_BQ25601D_IINDET_EN_FORCE_DET && count < 20) {
+		while (val_buf == REG07_BQ25601D_IINDET_EN_FORCE_DET &&
+		       count < 20) {
 			count++;
-			rc = bq25601d_read_reg(charger_ic, REG07_BQ25601D_ADDRESS, &val_buf);
+			rc = bq25601d_read_reg(
+				charger_ic, REG07_BQ25601D_ADDRESS, &val_buf);
 			val_buf &= REG07_BQ25601D_IINDET_EN_MASE;
 			usleep_range(50000, 50200);
 			if (!upmu_get_rgs_chrdet()) {
@@ -1527,16 +1650,17 @@ enum charger_type mt_charger_type_detection_bq25601d(void)
 		rc = bq25601d_read_reg(charger_ic, chgr_type_addr, &val_buf);
 		bq25601d_dump_registers();
 		val_buf = val_buf & REG08_BQ25601D_VBUS_STAT_MASK;
-		printk("mt_charger_type_detection: 2nd, val_buf=[0x%x]\n", val_buf);
+		printk("mt_charger_type_detection: 2nd, val_buf=[0x%x]\n",
+		       val_buf);
 		if (val_buf == REG08_BQ25601D_VBUS_STAT_UNKNOWN) {
 			MTK_CHR_Type_num = APPLE_2_1A_CHARGER;
 		} else if (val_buf == REG08_BQ25601D_VBUS_STAT_SDP) {
 			MTK_CHR_Type_num = STANDARD_HOST;
 		} else if (val_buf == REG08_BQ25601D_VBUS_STAT_CDP) {
 			MTK_CHR_Type_num = CHARGING_HOST;
-		} else if (val_buf == REG08_BQ25601D_VBUS_STAT_DCP
-				|| val_buf == REG08_BQ25601D_VBUS_STAT_OCP
-				|| val_buf == REG08_BQ25601D_VBUS_STAT_FLOAT) {
+		} else if (val_buf == REG08_BQ25601D_VBUS_STAT_DCP ||
+			   val_buf == REG08_BQ25601D_VBUS_STAT_OCP ||
+			   val_buf == REG08_BQ25601D_VBUS_STAT_FLOAT) {
 			MTK_CHR_Type_num = APPLE_2_1A_CHARGER;
 		} else {
 			MTK_CHR_Type_num = APPLE_2_1A_CHARGER;
@@ -1667,7 +1791,7 @@ static void do_charger_modefy_work(struct work_struct *data)
 	}
 	*/
 }
-	
+
 static struct delayed_work bq25601d_irq_delay_work;
 bool fg_bq25601d_irq_delay_work_running = false;
 static void do_bq25601d_irq_delay_work(struct work_struct *data)
@@ -1677,7 +1801,7 @@ static void do_bq25601d_irq_delay_work(struct work_struct *data)
 	int i = 0;
 	int otg_overcurrent_flag = 0;
 	struct chip_bq25601d *chip = charger_ic;
-	
+
 	if (!chip) {
 		pr_err("%s chip null,return\n", __func__);
 		return;
@@ -1689,15 +1813,16 @@ static void do_bq25601d_irq_delay_work(struct work_struct *data)
 		if (val_buf == 0x40) {
 			otg_overcurrent_flag++;
 		}
-		
+
 		usleep_range(10000, 10200);
 	}
-	printk("[OPLUS_CHG] do_bq25601d_irq_delay_work disable vbus out flag=%d, val_reg[0x%x]\n", otg_overcurrent_flag, val_reg);
+	printk("[OPLUS_CHG] do_bq25601d_irq_delay_work disable vbus out flag=%d, val_reg[0x%x]\n",
+	       otg_overcurrent_flag, val_reg);
 	if (otg_overcurrent_flag >= 8) {
 		bq25601d_otg_disable();
 	}
 	fg_bq25601d_irq_delay_work_running = false;
-	return; 
+	return;
 }
 
 static irqreturn_t bq25601d_irq_handler_fn(int irq, void *dev_id)
@@ -1715,7 +1840,9 @@ static irqreturn_t bq25601d_irq_handler_fn(int irq, void *dev_id)
 	}
 	if (fg_bq25601d_irq_delay_work_running == false) {
 		fg_bq25601d_irq_delay_work_running = true;
-		schedule_delayed_work(&bq25601d_irq_delay_work, round_jiffies_relative(msecs_to_jiffies(50)));
+		schedule_delayed_work(
+			&bq25601d_irq_delay_work,
+			round_jiffies_relative(msecs_to_jiffies(50)));
 	}
 
 	return IRQ_HANDLED;
@@ -1736,23 +1863,26 @@ static int bq25601d_slave_chg_en_gpio_init(struct chip_bq25601d *chip)
 		return -EINVAL;
 	}
 
-	chip->slave_charger_enable = pinctrl_lookup_state(chip->pinctrl, "slave_charger_enable");
+	chip->slave_charger_enable =
+		pinctrl_lookup_state(chip->pinctrl, "slave_charger_enable");
 	if (IS_ERR_OR_NULL(chip->slave_charger_enable)) {
 		chg_err("get slave_charger_enable fail\n");
 		return -EINVAL;
 	}
 
-	chip->slave_charger_disable = pinctrl_lookup_state(chip->pinctrl, "slave_charger_disable");
+	chip->slave_charger_disable =
+		pinctrl_lookup_state(chip->pinctrl, "slave_charger_disable");
 	if (IS_ERR_OR_NULL(chip->slave_charger_disable)) {
 		chg_err("get slave_charger_disable fail\n");
 		return -EINVAL;
 	}
 
-	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT
-			|| get_boot_mode() == ADVMETA_BOOT
-			|| get_boot_mode() == ATE_FACTORY_BOOT) {
+	if (get_boot_mode() == META_BOOT || get_boot_mode() == FACTORY_BOOT ||
+	    get_boot_mode() == ADVMETA_BOOT ||
+	    get_boot_mode() == ATE_FACTORY_BOOT) {
 		chg_err("META mode, disable slave charger.\n");
-		pinctrl_select_state(chip->pinctrl, chip->slave_charger_disable);
+		pinctrl_select_state(chip->pinctrl,
+				     chip->slave_charger_disable);
 	} else {
 		pinctrl_select_state(chip->pinctrl, chip->slave_charger_enable);
 	}
@@ -1770,7 +1900,8 @@ static int bq25601d_parse_dts(void)
 		return -1;
 	}
 
-	chip->irq_gpio = of_get_named_gpio(chip->client->dev.of_node, "chg-irq-gpio", 0);
+	chip->irq_gpio =
+		of_get_named_gpio(chip->client->dev.of_node, "chg-irq-gpio", 0);
 	if (chip->irq_gpio <= 0) {
 		chg_err("Couldn't read chg-irq-gpio:%d\n", chip->irq_gpio);
 		return -1;
@@ -1778,13 +1909,15 @@ static int bq25601d_parse_dts(void)
 		if (gpio_is_valid(chip->irq_gpio)) {
 			ret = gpio_request(chip->irq_gpio, "chg-irq-gpio");
 			if (ret) {
-				chg_err("unable to request chg-irq-gpio[%d]\n", chip->irq_gpio);
+				chg_err("unable to request chg-irq-gpio[%d]\n",
+					chip->irq_gpio);
 				chip->irq_gpio = -EINVAL;
 			} else {
 				gpio_direction_input(chip->irq_gpio);
 			}
 		} else {
-			chg_err("gpio_is_valid fail chg-irq-gpio[%d]\n", chip->irq_gpio);
+			chg_err("gpio_is_valid fail chg-irq-gpio[%d]\n",
+				chip->irq_gpio);
 			chip->irq_gpio = -EINVAL;
 			return -1;
 		}
@@ -1792,22 +1925,26 @@ static int bq25601d_parse_dts(void)
 	chg_err("chg-irq-gpio[%d]\n", chip->irq_gpio);
 
 #ifdef CONFIG_OPLUS_CHARGER_MTK6873
-	chip->slave_chg_en_gpio = of_get_named_gpio(chip->client->dev.of_node, "qcom,slave-chg-en-gpio", 0);
-        if (chip->slave_chg_en_gpio <= 0) {
-                chg_err("Couldn't read slave_chg_en_gpio:%d\n", chip->slave_chg_en_gpio);
-                return -1;
-        } else {
-                if (gpio_is_valid(chip->slave_chg_en_gpio)) {
-                        ret = gpio_request(chip->slave_chg_en_gpio, "slave-chg-en-gpio");
-                        if (ret) {
-                                chg_err("unable to request slave-chg-en-gpio[%d]\n", chip->slave_chg_en_gpio);
-                                chip->slave_chg_en_gpio = -EINVAL;
-                        } else {
+	chip->slave_chg_en_gpio = of_get_named_gpio(
+		chip->client->dev.of_node, "qcom,slave-chg-en-gpio", 0);
+	if (chip->slave_chg_en_gpio <= 0) {
+		chg_err("Couldn't read slave_chg_en_gpio:%d\n",
+			chip->slave_chg_en_gpio);
+		return -1;
+	} else {
+		if (gpio_is_valid(chip->slave_chg_en_gpio)) {
+			ret = gpio_request(chip->slave_chg_en_gpio,
+					   "slave-chg-en-gpio");
+			if (ret) {
+				chg_err("unable to request slave-chg-en-gpio[%d]\n",
+					chip->slave_chg_en_gpio);
+				chip->slave_chg_en_gpio = -EINVAL;
+			} else {
 				bq25601d_slave_chg_en_gpio_init(chip);
-                                //gpio_direction_input(chip->irq_gpio);
-                        }
-                }
-        }
+				//gpio_direction_input(chip->irq_gpio);
+			}
+		}
+	}
 #endif
 	return ret;
 }
@@ -1823,9 +1960,9 @@ static int bq25601d_irq_registration(void)
 	}
 
 	ret = request_threaded_irq(gpio_to_irq(chip->irq_gpio), NULL,
-			bq25601d_irq_handler_fn,
-			IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-			"BQ25601D-eint", chip);
+				   bq25601d_irq_handler_fn,
+				   IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+				   "BQ25601D-eint", chip);
 	if (ret < 0) {
 		printk("BQ25601D request_irq IRQ LINE NOT AVAILABLE!");
 		return -EFAULT;
@@ -1835,7 +1972,8 @@ static int bq25601d_irq_registration(void)
 #ifndef CONFIG_OPLUS_CHARGER_MTK6873
 extern int charger_ic_flag;
 #endif
-static int bq25601d_driver_probe(struct i2c_client *client, const struct i2c_device_id *id)
+static int bq25601d_driver_probe(struct i2c_client *client,
+				 const struct i2c_device_id *id)
 {
 	int reg = 0;
 	struct chip_bq25601d *chip = NULL;
@@ -1847,10 +1985,11 @@ static int bq25601d_driver_probe(struct i2c_client *client, const struct i2c_dev
 		chg_err("USB psy not found; deferring probe\n");
 		return -EPROBE_DEFER;
 	}
-#endif  /* CONFIG_OPLUS_CHARGER_MTK */
+#endif /* CONFIG_OPLUS_CHARGER_MTK */
 	chg_debug("call \n");
 
-	chip = devm_kzalloc(&client->dev, sizeof(struct chip_bq25601d), GFP_KERNEL);
+	chip = devm_kzalloc(&client->dev, sizeof(struct chip_bq25601d),
+			    GFP_KERNEL);
 	if (!chip) {
 		chg_err("kzalloc() failed\n");
 		return -ENOMEM;
@@ -1858,7 +1997,7 @@ static int bq25601d_driver_probe(struct i2c_client *client, const struct i2c_dev
 	charger_ic = chip;
 	chip->client = client;
 	chip->dev = &client->dev;
-	
+
 	reg = bq25601d_check_registers();
 	if (reg < 0) {
 		return -ENODEV;
@@ -1896,8 +2035,8 @@ static int get_current_time(unsigned long *now_tm_sec)
 
 	rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
 	if (rtc == NULL) {
-		chg_err("%s: unable to open rtc device (%s)\n",
-			__FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
+		chg_err("%s: unable to open rtc device (%s)\n", __FILE__,
+			CONFIG_RTC_HCTOSYS_DEVICE);
 		return -EINVAL;
 	}
 
@@ -1943,7 +2082,7 @@ static int bq25601d_resume(struct device *dev)
 	if (sleep_time < 0) {
 		sleep_time = 0;
 	}
-	chg_err("resume_sec:%ld,sleep_time:%ld\n\n",resume_tm_sec,sleep_time);
+	chg_err("resume_sec:%ld,sleep_time:%ld\n\n", resume_tm_sec, sleep_time);
 	oplus_chg_soc_update_when_resume(sleep_time);
 	return 0;
 }
@@ -1958,13 +2097,13 @@ static int bq25601d_suspend(struct device *dev)
 		chg_err("RTC read failed\n");
 		suspend_tm_sec = -1;
 	}
-	chg_err("suspend_sec:%ld\n",suspend_tm_sec);
+	chg_err("suspend_sec:%ld\n", suspend_tm_sec);
 	return 0;
 }
 
 static const struct dev_pm_ops bq25601d_pm_ops = {
-	.resume		= bq25601d_resume,
-	.suspend		= bq25601d_suspend,
+	.resume = bq25601d_resume,
+	.suspend = bq25601d_suspend,
 };
 
 #else //(LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
@@ -2020,12 +2159,12 @@ static void bq25601d_reset(struct i2c_client *client)
  * *********************************************************/
 
 static const struct of_device_id bq25601d_match[] = {
-	{ .compatible = "oplus,bq25601d-charger"},
-	{ },
+	{ .compatible = "oplus,bq25601d-charger" },
+	{},
 };
 
 static const struct i2c_device_id bq25601d_id[] = {
-	{"bq25601d-charger", 0},
+	{ "bq25601d-charger", 0 },
 	{},
 };
 MODULE_DEVICE_TABLE(i2c, bq25601d_id);

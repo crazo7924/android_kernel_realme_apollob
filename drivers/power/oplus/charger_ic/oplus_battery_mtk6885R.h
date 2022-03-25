@@ -36,7 +36,7 @@ struct charger_manager;
 /* Jianchao.Shi@BSP.CHG.Basic, 2018/11/09, sjc Add for charging */
 
 struct mtk_pmic {
-	struct charger_manager* oplus_info;
+	struct charger_manager *oplus_info;
 };
 
 //extern int mt_power_supply_type_check(void);

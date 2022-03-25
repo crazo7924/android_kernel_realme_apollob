@@ -833,9 +833,7 @@ ssize_t mtk_rgu_pause_wdt_show(struct kobject *kobj, char *buffer)
 {
 	int remain = PAGE_SIZE;
 	int len = 0;
-	char *ptr = buffer;
 
-	ptr += len;
 	remain -= len;
 
 	return (PAGE_SIZE - remain);

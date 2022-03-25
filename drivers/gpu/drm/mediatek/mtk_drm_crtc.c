@@ -666,12 +666,11 @@ static void mtk_drm_crtc_mode_set_nofb(struct drm_crtc *crtc)
 
 static int mtk_crtc_enable_vblank_thread(void *data)
 {
-	int ret = 0;
 	struct drm_crtc *crtc = (struct drm_crtc *)data;
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 
 	while (1) {
-		ret = wait_event_interruptible(
+		wait_event_interruptible(
 			mtk_crtc->vblank_enable_wq,
 			atomic_read(&mtk_crtc->vblank_enable_task_active));
 
@@ -1008,7 +1007,6 @@ int mtk_drm_aod_setbacklight(struct drm_crtc *crtc, unsigned int level)
 	struct mtk_ddp_comp *output_comp, *comp;
 	struct cmdq_pkt *cmdq_handle;
 	//bool is_frame_mode;
-	struct cmdq_client *client;
 	int i, j;
 	struct mtk_crtc_state *crtc_state;
 
@@ -1035,7 +1033,7 @@ int mtk_drm_aod_setbacklight(struct drm_crtc *crtc, unsigned int level)
 		return -ENODEV;
 	}
 
-	client = mtk_crtc->gce_obj.client[CLIENT_CFG];
+	mtk_crtc->gce_obj.client[CLIENT_CFG];
 	if (!mtk_crtc->enabled) {
 		/* 1. power on mtcmos */
 		mtk_drm_top_clk_prepare_enable(crtc->dev);
@@ -2453,9 +2451,7 @@ bool mtk_crtc_with_trigger_loop(struct drm_crtc *crtc)
 bool mtk_crtc_with_sodi_loop(struct drm_crtc *crtc)
 {
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-	struct mtk_drm_private *priv = NULL;
 
-	priv = mtk_crtc->base.dev->dev_private;
 	if (mtk_crtc->gce_obj.client[CLIENT_SODI_LOOP])
 		return true;
 	return false;
@@ -3395,7 +3391,6 @@ void mtk_crtc_start_sodi_loop(struct drm_crtc *crtc)
 {
 	struct cmdq_pkt *cmdq_handle;
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-	struct mtk_drm_private *priv = NULL;
 	unsigned long crtc_id = (unsigned long)drm_crtc_index(crtc);
 
 	if (crtc_id) {
@@ -3404,7 +3399,6 @@ void mtk_crtc_start_sodi_loop(struct drm_crtc *crtc)
 		return;
 	}
 
-	priv = mtk_crtc->base.dev->dev_private;
 	mtk_crtc->sodi_loop_cmdq_handle = cmdq_pkt_create(
 			mtk_crtc->gce_obj.client[CLIENT_SODI_LOOP]);
 	cmdq_handle = mtk_crtc->sodi_loop_cmdq_handle;
@@ -3425,7 +3419,6 @@ void mtk_crtc_start_sodi_loop(struct drm_crtc *crtc)
 
 void mtk_crtc_start_trig_loop(struct drm_crtc *crtc)
 {
-	int ret = 0;
 	struct cmdq_pkt *cmdq_handle;
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	unsigned long crtc_id = (unsigned long)drm_crtc_index(crtc);
@@ -3648,7 +3641,7 @@ void mtk_crtc_start_trig_loop(struct drm_crtc *crtc)
 		}
 	}
 	cmdq_pkt_finalize_loop(cmdq_handle);
-	ret = cmdq_pkt_flush_async(cmdq_handle, trig_done_cb, (void *)crtc_id);
+	cmdq_pkt_flush_async(cmdq_handle, trig_done_cb, (void *)crtc_id);
 
 	mtk_crtc_clear_wait_event(crtc);
 }
@@ -3681,14 +3674,12 @@ void mtk_crtc_stop_trig_loop(struct drm_crtc *crtc)
 void mtk_crtc_stop_sodi_loop(struct drm_crtc *crtc)
 {
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-	struct mtk_drm_private *priv = NULL;
 
 	if (!mtk_crtc->sodi_loop_cmdq_handle) {
 		DDPDBG("%s: sodi_loop already stopped\n", __func__);
 		return;
 	}
 
-	priv = mtk_crtc->base.dev->dev_private;
 	cmdq_mbox_stop(mtk_crtc->gce_obj.client[CLIENT_SODI_LOOP]);
 	cmdq_pkt_destroy(mtk_crtc->sodi_loop_cmdq_handle);
 	mtk_crtc->sodi_loop_cmdq_handle = NULL;
@@ -5952,7 +5943,7 @@ void mtk_wait_TE(int te_num) {
 	}
 }
 
-void hbm_notify_fingerprint_if_neccessary() {
+void hbm_notify_fingerprint_if_neccessary(void) {
 	if (te_remain == 0) return;
 
 	te_remain --;
@@ -6005,7 +5996,7 @@ void mtk_wait_framedone(int fd_num) {
 	}
 }
 
-void hbm_notify_fingerprint_if_neccessary_vdo() {
+void hbm_notify_fingerprint_if_neccessary_vdo(void) {
 	if (framedone_remain == 0) return;
 
 	framedone_remain --;
@@ -6432,67 +6423,65 @@ static void mtk_crtc_get_output_comp_name(struct mtk_drm_crtc *mtk_crtc,
 static void mtk_crtc_get_event_name(struct mtk_drm_crtc *mtk_crtc, char *buf,
 				    int buf_len, int event_id)
 {
-	int crtc_id, len;
 	char output_comp[20];
 
 	/* TODO: remove hardcode comp event */
-	crtc_id = drm_crtc_index(&mtk_crtc->base);
 	switch (event_id) {
 	case EVENT_STREAM_DIRTY:
-		len = snprintf(buf, buf_len, "disp_token_stream_dirty%d",
+		snprintf(buf, buf_len, "disp_token_stream_dirty%d",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 #if defined(CONFIG_MACH_MT6873) || defined(CONFIG_MACH_MT6853) || \
 	defined(CONFIG_MACH_MT6833)
 	case EVENT_SYNC_TOKEN_SODI:
-		len = snprintf(buf, buf_len, "disp_token_sodi%d",
+		snprintf(buf, buf_len, "disp_token_sodi%d",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 #endif
 	case EVENT_STREAM_EOF:
-		len = snprintf(buf, buf_len, "disp_token_stream_eof%d",
+		snprintf(buf, buf_len, "disp_token_stream_eof%d",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 	case EVENT_VDO_EOF:
-		len = snprintf(buf, buf_len, "disp_mutex%d_eof",
+		snprintf(buf, buf_len, "disp_mutex%d_eof",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 	case EVENT_CMD_EOF:
 		mtk_crtc_get_output_comp_name(mtk_crtc, output_comp,
 					      sizeof(output_comp));
-		len = snprintf(buf, buf_len, "disp_%s_eof", output_comp);
+		snprintf(buf, buf_len, "disp_%s_eof", output_comp);
 		break;
 	case EVENT_TE:
 		mtk_crtc_get_output_comp_name(mtk_crtc, output_comp,
 					      sizeof(output_comp));
-		len = snprintf(buf, buf_len, "disp_wait_%s_te", output_comp);
+		snprintf(buf, buf_len, "disp_wait_%s_te", output_comp);
 		break;
 	case EVENT_ESD_EOF:
-		len = snprintf(buf, buf_len, "disp_token_esd_eof%d",
+		snprintf(buf, buf_len, "disp_token_esd_eof%d",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 	case EVENT_RDMA0_EOF:
-		len = snprintf(buf, buf_len, "disp_rdma0_eof%d",
+		snprintf(buf, buf_len, "disp_rdma0_eof%d",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 	case EVENT_WDMA0_EOF:
-		len = snprintf(buf, buf_len, "disp_wdma0_eof%d",
+		snprintf(buf, buf_len, "disp_wdma0_eof%d",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 	case EVENT_WDMA1_EOF:
-		len = snprintf(buf, buf_len, "disp_wdma1_eof%d",
+		snprintf(buf, buf_len, "disp_wdma1_eof%d",
 				   drm_crtc_index(&mtk_crtc->base));
 		break;
 	case EVENT_STREAM_BLOCK:
-		len = snprintf(buf, buf_len, "disp_token_stream_block%d",
+		snprintf(buf, buf_len, "disp_token_stream_block%d",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 	case EVENT_CABC_EOF:
-		len = snprintf(buf, buf_len, "disp_token_cabc_eof%d",
+		snprintf(buf, buf_len, "disp_token_cabc_eof%d",
 					drm_crtc_index(&mtk_crtc->base));
 		break;
 	case EVENT_DSI0_SOF:
-		len = snprintf(buf, buf_len, "disp_dsi0_sof%d",
+		snprintf(buf, buf_len, "disp_dsi0_sof%d",
 			       drm_crtc_index(&mtk_crtc->base));
 		break;
 	default:
@@ -6631,12 +6620,11 @@ static int mtk_drm_fake_vsync_kthread(void *data)
 	struct drm_crtc *crtc = (struct drm_crtc *)data;
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	struct mtk_drm_fake_vsync *fake_vsync = mtk_crtc->fake_vsync;
-	int ret = 0;
 
 	sched_setscheduler(current, SCHED_RR, &param);
 
 	while (1) {
-		ret = wait_event_interruptible(fake_vsync->fvsync_wq,
+		wait_event_interruptible(fake_vsync->fvsync_wq,
 				atomic_read(&fake_vsync->fvsync_active));
 
 		mtk_crtc_vblank_irq(crtc);

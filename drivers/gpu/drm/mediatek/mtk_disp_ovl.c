@@ -1621,21 +1621,18 @@ static bool compr_l_config_PVRIC_V3_1(struct mtk_ddp_comp *comp,
 	unsigned int src_x = pending->src_x, src_y = pending->src_y;
 	unsigned int src_w = pending->width, src_h = pending->height;
 	unsigned int fmt = pending->format;
-	unsigned int Bpp = drm_format_plane_cpp(fmt, 0);
 	unsigned int lye_idx = 0, ext_lye_idx = 0;
 	unsigned int compress = pending->prop_val[PLANE_PROP_COMPRESS];
 	int rotate = 0;
 
 	/* variable to do calculation */
 	unsigned int tile_w = 16, tile_h = 4;
-	unsigned int tile_body_size = tile_w * tile_h * Bpp;
 	unsigned int src_x_align, src_y_align;
 	unsigned int src_w_align, src_h_align;
 	unsigned int header_offset, tile_offset;
 	unsigned int buf_addr;
 	unsigned int src_buf_tile_num = 0;
 	unsigned int buf_size = 0;
-	unsigned int buf_total_size = 0;
 
 	/* variable to config into register */
 	unsigned int lx_fbdc_en;
@@ -1675,7 +1672,6 @@ static bool compr_l_config_PVRIC_V3_1(struct mtk_ddp_comp *comp,
 	/* 2. pre-calculation */
 	if (fmt == DRM_FORMAT_RGB888 || fmt == DRM_FORMAT_BGR888) {
 		pitch = (4 * pitch / 3);
-		Bpp = 4;
 	}
 
 	src_buf_tile_num = ALIGN_TO(pitch / 4, tile_w) *
@@ -1748,7 +1744,6 @@ static bool compr_l_config_PVRIC_V3_1(struct mtk_ddp_comp *comp,
 	/* 7. config register */
 	buf_size = (dst_h - 1) * pending->pitch +
 		dst_w * drm_format_plane_cpp(fmt, 0);
-	buf_total_size = header_offset + src_buf_tile_num * tile_body_size;
 	if (ext_lye_idx != LYE_NORMAL) {
 		unsigned int id = ext_lye_idx - 1;
 
@@ -1897,8 +1892,6 @@ static bool compr_l_config_AFBC_V1_2(struct mtk_ddp_comp *comp,
 	unsigned int buf_addr;
 	unsigned int src_buf_tile_num = 0;
 	unsigned int buf_size = 0;
-	unsigned int buf_total_size = 0;
-
 
 	/* variable to config into register */
 	unsigned int lx_fbdc_en;
@@ -2037,7 +2030,6 @@ static bool compr_l_config_AFBC_V1_2(struct mtk_ddp_comp *comp,
 
 	/* 7. config register */
 	buf_size = (dst_h - 1) * pitch + dst_w * Bpp;
-	buf_total_size = header_offset + src_buf_tile_num * tile_body_size;
 	if (ext_lye_idx != LYE_NORMAL) {
 		unsigned int id = ext_lye_idx - 1;
 
@@ -2643,13 +2635,11 @@ static int mtk_ovl_io_cmd(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle,
 		break;
 	}
 	case PMQOS_UPDATE_BW: {
-		struct drm_crtc *crtc;
 		struct mtk_drm_crtc *mtk_crtc;
 		struct cmdq_pkt_buffer *cmdq_buf;
 		u32 slot_num;
 
 		mtk_crtc = comp->mtk_crtc;
-		crtc = &mtk_crtc->base;
 		cmdq_buf = &(mtk_crtc->gce_obj.buf);
 
 		/* process FBDC */

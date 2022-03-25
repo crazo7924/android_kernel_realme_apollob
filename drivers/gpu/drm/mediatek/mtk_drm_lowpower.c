@@ -307,7 +307,6 @@ static bool mtk_planes_is_yuv_fmt(struct drm_crtc *crtc)
 
 static int mtk_drm_idlemgr_monitor_thread(void *data)
 {
-	int ret = 0;
 	long long t_to_check = 0;
 	unsigned long long t_idle;
 	struct drm_crtc *crtc = (struct drm_crtc *)data;
@@ -322,7 +321,7 @@ static int mtk_drm_idlemgr_monitor_thread(void *data)
 
 	msleep(16000);
 	while (1) {
-		ret = wait_event_interruptible(
+		wait_event_interruptible(
 			idlemgr->idlemgr_wq,
 			atomic_read(&idlemgr->idlemgr_task_active));
 

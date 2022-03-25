@@ -107,12 +107,11 @@ static ssize_t oplus_display_set_esd_status(struct device *dev,
 static ssize_t oplus_display_set_brightness(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t num)
 {
-	int ret;
 	struct drm_crtc *crtc;
 	struct drm_device *ddev = get_drm_device();
 	unsigned int oppo_set_brightness = 0;
 
-	ret = kstrtouint(buf, 10, &oppo_set_brightness);
+	kstrtouint(buf, 10, &oppo_set_brightness);
 
 	printk("%s %d\n", __func__, oppo_set_brightness);
 
@@ -155,12 +154,11 @@ static ssize_t oplus_display_get_hbm(struct device *dev,
 static ssize_t oplus_display_set_hbm(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t num)
 {
-	int ret;
 	struct drm_crtc *crtc;
 	struct drm_device *ddev = get_drm_device();
 	unsigned int tmp = 0;
 
-	ret = kstrtouint(buf, 10, &tmp);
+	kstrtouint(buf, 10, &tmp);
 
 	printk("%s, %d to be %d\n", __func__, hbm_mode, tmp);
 
@@ -588,9 +586,8 @@ static ssize_t silence_show(struct device *dev,
 static ssize_t silence_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t num)
 {
-	int ret;
 	msleep(1000);
-	ret = kstrtoul(buf, 10, &silence_mode);
+	kstrtoul(buf, 10, &silence_mode);
 	printk("%s silence_mode=%ld\n", __func__, silence_mode);
 	return num;
 }
@@ -645,9 +642,7 @@ static ssize_t oplus_display_get_ESD(struct device *dev,
 static ssize_t oplus_display_set_ESD(struct device *dev,
         struct device_attribute *attr, const char *buf, size_t num)
 {
-	int ret = 0;
-
-	ret = kstrtoul(buf, 10, &esd_mode);
+	kstrtoul(buf, 10, &esd_mode);
 	printk("%s,esd mode is %d\n", __func__, esd_mode);
 	return num;
 }
@@ -676,11 +671,10 @@ static ssize_t oplus_display_get_CABC(struct device *dev,
 static ssize_t oplus_display_set_CABC(struct device *dev,
         struct device_attribute *attr, const char *buf, size_t num)
 {
-	int ret = 0;
 	struct drm_crtc *crtc;
 	struct drm_device *ddev = get_drm_device();
 
-	ret = kstrtoul(buf, 10, &cabc_mode);
+	kstrtoul(buf, 10, &cabc_mode);
 	cabc_true_mode = cabc_mode;
 	printk("%s,cabc mode is %d, cabc_back_flag is %d\n", __func__, cabc_mode, cabc_back_flag);
 	if(cabc_mode < 4)
@@ -839,9 +833,8 @@ static ssize_t oplus_set_aod_light_mode(struct device *dev,
                 struct device_attribute *attr,
                 const char *buf, size_t count) {
         unsigned int temp_save = 0;
-        int ret = 0;
 
-        ret = kstrtouint(buf, 10, &temp_save);
+        kstrtouint(buf, 10, &temp_save);
         if (oplus_mtk_drm_get_hbm_state()) {
                 printk(KERN_INFO "oplus_set_aod_light_mode = %d return on hbm\n", temp_save);
                 return count;
@@ -868,9 +861,7 @@ static ssize_t oplus_display_get_seed(struct device *dev,
 static ssize_t oplus_display_set_seed(struct device *dev,
         struct device_attribute *attr, const char *buf, size_t count)
 {
-	int ret = 0;
-
-	ret = kstrtoul(buf, 10, &seed_mode);
+	kstrtoul(buf, 10, &seed_mode);
 	printk("%s,esd mode is %d\n", __func__, seed_mode);
 	return count;
 }

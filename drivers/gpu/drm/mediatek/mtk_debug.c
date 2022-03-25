@@ -1599,7 +1599,6 @@ bool enableCapture(int en)
 {
 	struct drm_crtc *crtc;
 	struct mtk_drm_crtc *mtk_crtc;
-	struct mtk_drm_private *private;
 
 	/* this debug cmd only for crtc0 */
 	crtc = list_first_entry(&(drm_dev)->mode_config.crtc_list,
@@ -1627,7 +1626,6 @@ bool enableCapture(int en)
 		mtk_crtc->user_buffer = user_buffer_l;
 #endif
 	}
-	private = crtc->dev->dev_private;
 
 	DDP_MUTEX_LOCK(&mtk_crtc->lock, __func__, __LINE__);
 	if (!mtk_crtc->enabled) {
@@ -1753,7 +1751,7 @@ static void process_dbg_opt(const char *opt)
 		DAL_Clean();
 	} else if (strncmp(opt, "path_switch:", 11) == 0) {
 		struct drm_crtc *crtc;
-		int path_sel, ret;
+		int path_sel;
 
 		crtc = list_first_entry(&(drm_dev)->mode_config.crtc_list,
 					typeof(*crtc), head);
@@ -1762,7 +1760,7 @@ static void process_dbg_opt(const char *opt)
 			DDPPR_ERR("find crtc fail\n");
 			return;
 		}
-		ret = sscanf(opt, "path_switch:%d\n", &path_sel);
+		sscanf(opt, "path_switch:%d\n", &path_sel);
 		mtk_crtc_path_switch(crtc, path_sel, 1);
 	} else if (strncmp(opt, "enable_idlemgr:", 15) == 0) {
 		char *p = (char *)opt + 15;
@@ -2505,7 +2503,7 @@ void get_disp_dbg_buffer(unsigned long *addr, unsigned long *size,
 
 //#ifdef VENDOR_EDIT
 /* liwei.a@PSW.MM.Display.LCD.Stability, 2019/10/21, add for oppo private api*/
-struct drm_device *get_drm_device(){
+struct drm_device *get_drm_device(void){
     return drm_dev;
 }
 EXPORT_SYMBOL(get_drm_device);

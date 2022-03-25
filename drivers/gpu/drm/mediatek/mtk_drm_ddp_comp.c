@@ -518,7 +518,6 @@ int mtk_ddp_comp_init(struct device *dev, struct device_node *node,
 		      struct mtk_ddp_comp *comp, enum mtk_ddp_comp_id comp_id,
 		      const struct mtk_ddp_comp_funcs *funcs)
 {
-	enum mtk_ddp_comp_type type;
 	struct platform_device *comp_pdev = NULL;
 	struct resource res;
 
@@ -526,8 +525,6 @@ int mtk_ddp_comp_init(struct device *dev, struct device_node *node,
 
 	if (comp_id < 0 || comp_id >= DDP_COMPONENT_ID_MAX)
 		return -EINVAL;
-
-	type = mtk_ddp_matches[comp_id].type;
 
 	comp->id = comp_id;
 	comp->funcs = funcs ?: mtk_ddp_matches[comp_id].funcs;

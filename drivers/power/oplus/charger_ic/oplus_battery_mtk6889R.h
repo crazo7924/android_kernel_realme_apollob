@@ -33,7 +33,7 @@ struct charger_manager;
 #include "../../../../kernel-4.14/drivers/power/supply/mediatek/charger/mtk_charger_intf.h"
 
 typedef enum {
-	STEP_CHG_STATUS_STEP1 = 0,	/*16C~44C*/
+	STEP_CHG_STATUS_STEP1 = 0, /*16C~44C*/
 	STEP_CHG_STATUS_STEP2,
 	STEP_CHG_STATUS_STEP3,
 	STEP_CHG_STATUS_STEP4,
@@ -41,7 +41,7 @@ typedef enum {
 } OPLUS_STEP_CHG_STATUS;
 
 struct mtk_pmic {
-	struct charger_manager* oplus_info;
+	struct charger_manager *oplus_info;
 };
 
 extern enum charger_type mt_get_charger_type(void);

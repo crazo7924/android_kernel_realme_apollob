@@ -842,7 +842,7 @@ static void ext_id_adjustment_and_retry(struct drm_device *dev,
 static int ext_id_tuning(struct drm_device *dev,
 			  struct drm_mtk_layering_info *info, int disp)
 {
-	uint16_t ovl_tb, l_tb;
+	uint16_t l_tb;
 	int phy_ovl_cnt, i;
 	int ext_cnt = 0, cur_phy_cnt = 0;
 	struct drm_mtk_layer_config *layer_info;
@@ -860,7 +860,6 @@ static int ext_id_tuning(struct drm_device *dev,
 		phy_ovl_cnt = MAX_PHY_OVL_CNT;
 	}
 
-	ovl_tb = l_rule_ops->get_mapping_table(dev, disp, DISP_HW_OVL_TB, 0);
 	l_tb = l_rule_ops->get_mapping_table(dev, disp, DISP_HW_LAYER_TB,
 					     phy_ovl_cnt);
 
@@ -1252,7 +1251,7 @@ static int _calc_hrt_num(struct drm_device *dev,
 {
 	int i, sum_overlap_w, overlap_l_bound;
 	uint16_t layer_map;
-	int overlap_w, layer_idx, phy_layer_idx, ovl_cnt;
+	int overlap_w, layer_idx, ovl_cnt;
 	bool has_gles = false;
 	struct drm_mtk_layer_config *layer_info;
 
@@ -1295,8 +1294,6 @@ static int _calc_hrt_num(struct drm_device *dev,
 				else if (!is_extended_layer(layer_info))
 					layer_idx++;
 
-				phy_layer_idx =
-					get_phy_ovl_index(dev, disp, layer_idx);
 				ovl_idx = get_ovl_by_phy(dev, disp, layer_map,
 							 layer_idx);
 				if (get_larb_by_ovl(dev, ovl_idx, disp) !=
@@ -1314,8 +1311,6 @@ static int _calc_hrt_num(struct drm_device *dev,
 				else if (!is_extended_layer(layer_info))
 					layer_idx++;
 
-				phy_layer_idx =
-					get_phy_ovl_index(dev, disp, layer_idx);
 				ovl_idx = get_ovl_by_phy(dev, disp, layer_map,
 							 layer_idx);
 
@@ -1459,8 +1454,8 @@ static int ext_layer_grouping(struct drm_device *dev,
 {
 	int cont_ext_layer_cnt = 0, ext_idx = 0;
 	int is_ext_layer, disp_idx, i;
-	struct drm_mtk_layer_config *src_info, *dst_info;
-	int available_layers = 0, phy_layer_cnt = 0;
+	struct drm_mtk_layer_config *dst_info;
+	int available_layers = 0;
 
 	for (disp_idx = 0; disp_idx < HRT_TYPE_NUM; disp_idx++) {
 		/* initialize ext layer info */
@@ -1479,10 +1474,7 @@ static int ext_layer_grouping(struct drm_device *dev,
 		 * If the physical layer > input layer,
 		 * then skip using extended layer.
 		 */
-		phy_layer_cnt =
-			mtk_get_phy_layer_limit(l_rule_ops->get_mapping_table(
-				dev, disp_idx, DISP_HW_LAYER_TB,
-				MAX_PHY_OVL_CNT));
+
 		/* Remove the rule here so that we can have more oppotunity to
 		 * test extended layer
 		 * if (phy_layer_cnt > disp_info->layer_num[disp_idx])
@@ -1491,7 +1483,6 @@ static int ext_layer_grouping(struct drm_device *dev,
 
 		for (i = 1; i < disp_info->layer_num[disp_idx]; i++) {
 			dst_info = &disp_info->input_config[disp_idx][i];
-			src_info = &disp_info->input_config[disp_idx][i - 1];
 			/* skip other GPU layers */
 			if (mtk_is_gles_layer(disp_info, disp_idx, i) ||
 			    mtk_is_gles_layer(disp_info, disp_idx, i - 1)) {

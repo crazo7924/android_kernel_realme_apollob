@@ -2432,7 +2432,7 @@ void accdet_irq_handle(void)
 #ifdef CONFIG_ACCDET_EINT_IRQ
 	u32 ret = 0;
 #endif
-	u32 irq_status, acc_sts, eint_sts;
+	u32 irq_status;
 #if PMIC_ACCDET_CTP || PMIC_ACCDET_DEBUG
 	dump_register();
 #endif
@@ -2440,8 +2440,8 @@ void accdet_irq_handle(void)
 	eintID = get_triggered_eint();
 #endif
 	irq_status = pmic_read(PMIC_ACCDET_IRQ_ADDR);
-	acc_sts = pmic_read(PMIC_ACCDET_MEM_IN_ADDR);
-	eint_sts = pmic_read(PMIC_ACCDET_EINT0_MEM_IN_ADDR);
+	pmic_read(PMIC_ACCDET_MEM_IN_ADDR);
+	pmic_read(PMIC_ACCDET_EINT0_MEM_IN_ADDR);
 
 	if ((irq_status & ACCDET_IRQ_B0) && (eintID == 0)) {
 		clear_accdet_int();

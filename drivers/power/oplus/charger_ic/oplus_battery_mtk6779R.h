@@ -34,78 +34,72 @@
 #include "../../../../../kernel-4.19/drivers/misc/mediatek/typec/tcpc/inc/tcpm.h"
 //#include "../../../drivers/misc/mediatek/typec/tcpc/inc/mtk_direct_charge_vdm.h"
 
-
-
 #define CHARGING_INTERVAL 10
 #define CHARGING_FULL_INTERVAL 20
 
-#define CHRLOG_ERROR_LEVEL	1
-#define CHRLOG_INFO_LEVEL	2
-#define CHRLOG_DEBUG_LEVEL	3
+#define CHRLOG_ERROR_LEVEL 1
+#define CHRLOG_INFO_LEVEL 2
+#define CHRLOG_DEBUG_LEVEL 3
 
 extern int chr_get_debug_level(void);
 
-#define chr_err(fmt, args...)					\
-do {								\
-	if (chr_get_debug_level() >= CHRLOG_ERROR_LEVEL) {	\
-		pr_notice(fmt, ##args);				\
-	}							\
-} while (0)
+#define chr_err(fmt, args...)                                                  \
+	do {                                                                   \
+		if (chr_get_debug_level() >= CHRLOG_ERROR_LEVEL) {             \
+			pr_notice(fmt, ##args);                                \
+		}                                                              \
+	} while (0)
 
-#define chr_info(fmt, args...)					\
-do {								\
-	if (chr_get_debug_level() >= CHRLOG_INFO_LEVEL) {	\
-		pr_notice_ratelimited(fmt, ##args);		\
-	}							\
-} while (0)
+#define chr_info(fmt, args...)                                                 \
+	do {                                                                   \
+		if (chr_get_debug_level() >= CHRLOG_INFO_LEVEL) {              \
+			pr_notice_ratelimited(fmt, ##args);                    \
+		}                                                              \
+	} while (0)
 
-#define chr_debug(fmt, args...)					\
-do {								\
-	if (chr_get_debug_level() >= CHRLOG_DEBUG_LEVEL) {	\
-		pr_notice(fmt, ##args);				\
-	}							\
-} while (0)
+#define chr_debug(fmt, args...)                                                \
+	do {                                                                   \
+		if (chr_get_debug_level() >= CHRLOG_DEBUG_LEVEL) {             \
+			pr_notice(fmt, ##args);                                \
+		}                                                              \
+	} while (0)
 
 struct mtk_charger;
 #define BATTERY_CV 4350000
 #define V_CHARGER_MAX 6500000 /* 6.5 V */
 #define V_CHARGER_MIN 4600000 /* 4.6 V */
 
-#define USB_CHARGER_CURRENT_SUSPEND		0 /* def CONFIG_USB_IF */
-#define USB_CHARGER_CURRENT_UNCONFIGURED	70000 /* 70mA */
-#define USB_CHARGER_CURRENT_CONFIGURED		500000 /* 500mA */
-#define USB_CHARGER_CURRENT			500000 /* 500mA */
-#define AC_CHARGER_CURRENT			2050000
-#define AC_CHARGER_INPUT_CURRENT		3200000
-#define NON_STD_AC_CHARGER_CURRENT		500000
-#define CHARGING_HOST_CHARGER_CURRENT		650000
+#define USB_CHARGER_CURRENT_SUSPEND 0 /* def CONFIG_USB_IF */
+#define USB_CHARGER_CURRENT_UNCONFIGURED 70000 /* 70mA */
+#define USB_CHARGER_CURRENT_CONFIGURED 500000 /* 500mA */
+#define USB_CHARGER_CURRENT 500000 /* 500mA */
+#define AC_CHARGER_CURRENT 2050000
+#define AC_CHARGER_INPUT_CURRENT 3200000
+#define NON_STD_AC_CHARGER_CURRENT 500000
+#define CHARGING_HOST_CHARGER_CURRENT 650000
 
 /* battery warning */
 #define BATTERY_NOTIFY_CASE_0001_VCHARGER
 #define BATTERY_NOTIFY_CASE_0002_VBATTEMP
 
 /* charging abnormal status */
-#define CHG_VBUS_OV_STATUS	(1 << 0)
-#define CHG_BAT_OT_STATUS	(1 << 1)
-#define CHG_OC_STATUS		(1 << 2)
-#define CHG_BAT_OV_STATUS	(1 << 3)
-#define CHG_ST_TMO_STATUS	(1 << 4)
-#define CHG_BAT_LT_STATUS	(1 << 5)
-#define CHG_TYPEC_WD_STATUS	(1 << 6)
+#define CHG_VBUS_OV_STATUS (1 << 0)
+#define CHG_BAT_OT_STATUS (1 << 1)
+#define CHG_OC_STATUS (1 << 2)
+#define CHG_BAT_OV_STATUS (1 << 3)
+#define CHG_ST_TMO_STATUS (1 << 4)
+#define CHG_BAT_LT_STATUS (1 << 5)
+#define CHG_TYPEC_WD_STATUS (1 << 6)
 
 /* Battery Temperature Protection */
-#define MIN_CHARGE_TEMP  0
-#define MIN_CHARGE_TEMP_PLUS_X_DEGREE	6
-#define MAX_CHARGE_TEMP  50
-#define MAX_CHARGE_TEMP_MINUS_X_DEGREE	47
+#define MIN_CHARGE_TEMP 0
+#define MIN_CHARGE_TEMP_PLUS_X_DEGREE 6
+#define MAX_CHARGE_TEMP 50
+#define MAX_CHARGE_TEMP_MINUS_X_DEGREE 47
 
 #define MAX_ALG_NO 10
 
-enum bat_temp_state_enum {
-	BAT_TEMP_LOW = 0,
-	BAT_TEMP_NORMAL,
-	BAT_TEMP_HIGH
-};
+enum bat_temp_state_enum { BAT_TEMP_LOW = 0, BAT_TEMP_NORMAL, BAT_TEMP_HIGH };
 
 enum chg_dev_notifier_events {
 	EVENT_FULL,
@@ -122,22 +116,22 @@ struct battery_thermal_protection_data {
 };
 
 /* sw jeita */
-#define JEITA_TEMP_ABOVE_T4_CV	4240000
-#define JEITA_TEMP_T3_TO_T4_CV	4240000
-#define JEITA_TEMP_T2_TO_T3_CV	4340000
-#define JEITA_TEMP_T1_TO_T2_CV	4240000
-#define JEITA_TEMP_T0_TO_T1_CV	4040000
-#define JEITA_TEMP_BELOW_T0_CV	4040000
-#define TEMP_T4_THRES  50
+#define JEITA_TEMP_ABOVE_T4_CV 4240000
+#define JEITA_TEMP_T3_TO_T4_CV 4240000
+#define JEITA_TEMP_T2_TO_T3_CV 4340000
+#define JEITA_TEMP_T1_TO_T2_CV 4240000
+#define JEITA_TEMP_T0_TO_T1_CV 4040000
+#define JEITA_TEMP_BELOW_T0_CV 4040000
+#define TEMP_T4_THRES 50
 #define TEMP_T4_THRES_MINUS_X_DEGREE 47
-#define TEMP_T3_THRES  45
+#define TEMP_T3_THRES 45
 #define TEMP_T3_THRES_MINUS_X_DEGREE 39
-#define TEMP_T2_THRES  10
+#define TEMP_T2_THRES 10
 #define TEMP_T2_THRES_PLUS_X_DEGREE 16
-#define TEMP_T1_THRES  0
+#define TEMP_T1_THRES 0
 #define TEMP_T1_THRES_PLUS_X_DEGREE 6
-#define TEMP_T0_THRES  0
-#define TEMP_T0_THRES_PLUS_X_DEGREE  0
+#define TEMP_T0_THRES 0
+#define TEMP_T0_THRES_PLUS_X_DEGREE 0
 #define TEMP_NEG_10_THRES 0
 
 /*
@@ -166,7 +160,6 @@ struct sw_jeita_data {
 };
 
 struct mtk_charger_algorithm {
-
 	int (*do_algorithm)(struct mtk_charger *info);
 	int (*enable_charging)(struct mtk_charger *info, bool en);
 	int (*do_event)(struct notifier_block *nb, unsigned long ev, void *v);
@@ -175,7 +168,7 @@ struct mtk_charger_algorithm {
 };
 
 struct charger_custom_data {
-	int battery_cv;	/* uv */
+	int battery_cv; /* uv */
 	int max_charger_voltage;
 	int max_charger_voltage_setting;
 	int min_charger_voltage;
@@ -220,7 +213,7 @@ struct charger_custom_data {
 	int min_charger_voltage_2;
 	int max_dmivr_charger_current;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* lizhijie@BSP.CHG.Basic, 2020/05/08, Add for step charging */
+	/* lizhijie@BSP.CHG.Basic, 2020/05/08, Add for step charging */
 	int step1_time;
 	int step1_current_ma;
 	int step2_time;
@@ -254,11 +247,11 @@ struct mtk_charger {
 	struct notifier_block chg1_nb;
 	struct charger_device *chg2_dev;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* lizhijie@BSP.CHG.Basic, 2020/05/08, Add for charging */
+	/* lizhijie@BSP.CHG.Basic, 2020/05/08, Add for charging */
 	struct charger_device *dvchg1_dev;
 	struct notifier_block dvchg1_nb;
 	struct charger_data dvchg1_data;
-	
+
 	struct charger_device *dvchg2_dev;
 	struct notifier_block dvchg2_nb;
 	struct charger_data dvchg2_data;
@@ -279,11 +272,11 @@ struct mtk_charger {
 	struct notifier_block pd_nb;
 	struct mutex pd_lock;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* lizhijie@BSP.CHG.Basic, 2020/05/08, lzj Add for charging */
-	struct iio_channel      *charger_id_chan;
-	struct iio_channel      *usb_temp_v_l_chan;
-	struct iio_channel      *usb_temp_v_r_chan;
-	struct delayed_work	step_charging_work;
+	/* lizhijie@BSP.CHG.Basic, 2020/05/08, lzj Add for charging */
+	struct iio_channel *charger_id_chan;
+	struct iio_channel *usb_temp_v_l_chan;
+	struct iio_channel *usb_temp_v_r_chan;
+	struct delayed_work step_charging_work;
 	int step_status;
 	int step_status_pre;
 	int step_cnt;
@@ -291,7 +284,7 @@ struct mtk_charger {
 #endif
 
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* YanGang@BSP.CHG.Basic, 2019/12/30, Add for ccdetect */
+	/* YanGang@BSP.CHG.Basic, 2019/12/30, Add for ccdetect */
 	int ccdetect_gpio;
 	int ccdetect_irq;
 	struct pinctrl_state *ccdetect_active;
@@ -302,7 +295,7 @@ struct mtk_charger {
 	int pd_type;
 	bool pd_reset;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/*lizhijie@BSP.CHG.Basic. 2020/05/08 add for charger*/
+	/*lizhijie@BSP.CHG.Basic. 2020/05/08 add for charger*/
 	struct tcpc_device *tcpc;
 #endif
 
@@ -321,7 +314,7 @@ struct mtk_charger {
 	struct mutex charger_lock;
 
 	/* thread related */
-	wait_queue_head_t  wait_que;
+	wait_queue_head_t wait_que;
 	bool charger_thread_timeout;
 	unsigned int polling_interval;
 	bool charger_thread_polling;
@@ -374,12 +367,12 @@ struct mtk_charger {
 	struct notifier_block chg_alg_nb;
 	bool enable_hv_charging;
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/*Boyu.Wen@BSP.CHG.Basic, 2020/09/03, Add for the difference of chargerid between 537&538  */
-		bool chargerid_disable;
-		bool chargerid_vol_disable;
+	/*Boyu.Wen@BSP.CHG.Basic, 2020/09/03, Add for the difference of chargerid between 537&538  */
+	bool chargerid_disable;
+	bool chargerid_vol_disable;
 #endif
 #ifdef OPLUS_FEATURE_CHG_BASIC
-/* wangdengwen@BSP.CHG.Basic, 2020/09/05, Add for the tchg get  */
+	/* wangdengwen@BSP.CHG.Basic, 2020/09/05, Add for the tchg get  */
 	struct iio_channel *chg_temp_chan;
 	int chargeric_temp_volt;
 	int chargeric_temp;
@@ -402,11 +395,11 @@ extern int get_charger_type(struct mtk_charger *info);
 extern int disable_hw_ovp(struct mtk_charger *info, int en);
 extern bool is_charger_exist(struct mtk_charger *info);
 extern int get_charger_temperature(struct mtk_charger *info,
-	struct charger_device *chg);
+				   struct charger_device *chg);
 extern int get_charger_charging_current(struct mtk_charger *info,
-	struct charger_device *chg);
+					struct charger_device *chg);
 extern int get_charger_input_current(struct mtk_charger *info,
-	struct charger_device *chg);
+				     struct charger_device *chg);
 extern void _wake_up_charger(struct mtk_charger *info);
 
 /* functions for other */
@@ -415,7 +408,7 @@ extern int mtk_chg_enable_vbus_ovp(bool enable);
 //====================================================================//
 
 typedef enum {
-	STEP_CHG_STATUS_STEP1 = 0,	/*16C~44C*/
+	STEP_CHG_STATUS_STEP1 = 0, /*16C~44C*/
 	STEP_CHG_STATUS_STEP2,
 	STEP_CHG_STATUS_STEP3,
 	STEP_CHG_STATUS_STEP4,
@@ -425,7 +418,7 @@ typedef enum {
 #ifdef OPLUS_FEATURE_CHG_BASIC
 /* Jianchao.Shi@BSP.CHG.Basic, 2018/11/09, sjc Add for charging */
 struct mtk_pmic {
-	struct mtk_charger* oplus_info;
+	struct mtk_charger *oplus_info;
 };
 
 //extern int mt_power_supply_type_check(void);
@@ -452,6 +445,7 @@ extern int oplus_get_water_detect(void);
 extern enum power_supply_type mt6360_get_hvdcp_type(void);
 void mt6360_enable_hvdcp_detect(void);
 void oplus_gauge_set_event(int event);
-int notify_adapter_event(struct notifier_block *notifier, unsigned long evt, void *unused);
+int notify_adapter_event(struct notifier_block *notifier, unsigned long evt,
+			 void *unused);
 #endif /* OPLUS_FEATURE_CHG_BASIC */
 #endif /* __OPLUS_BATTERY_MTK6885_H__ */

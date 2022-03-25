@@ -1,6 +1,5 @@
 ifeq ($(CONFIG_OPLUS_CHARGER_MTK),y)
-subdir-ccflags-y += -Werror
-subdir-ccflags-y += -Wno-unused-variable
+subdir-ccflags-y += -Wno-unused-but-set-variable
 ifeq ($(CONFIG_OPLUS_CHARGER_MTK6779Q),y)
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
 endif

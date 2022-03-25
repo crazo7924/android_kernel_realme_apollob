@@ -2779,12 +2779,10 @@ int mtk_dsi_dcs_read_reg_v1(struct mtk_ddp_comp *comp, void *handle, char *param
 	struct DSI_T0_INS t0;
 	struct DSI_T0_INS t1;
 	struct mtk_dsi *dsi = container_of(comp, struct mtk_dsi, ddp_comp);
-	struct mtk_panel_params *params;
 	struct cmdq_pkt *cmdq_handle,*cmdq_handle2;
 	struct drm_crtc *crtc = &comp->mtk_crtc->base;
 
-	if (dsi->ext && dsi->ext->params)
-		params = dsi->ext->params;
+	if (dsi->ext && dsi->ext->params);
 	else /* can't find panel ext information, stop esd read */
 		return 0;
 	mutex_lock(&comp->mtk_crtc->lock);
@@ -4577,7 +4575,6 @@ int mtk_mipi_dsi_read_gce(struct mtk_dsi *dsi,
 	struct mipi_dsi_msg msg;
 	struct mtk_ddp_comp *comp = &dsi->ddp_comp;
 	struct cmdq_pkt *cmdq_handle, *cmdq_handle2;
-	int ret = 0;
 	struct DSI_RX_DATA_REG read_data0 = {0, 0, 0, 0};
 	struct DSI_RX_DATA_REG read_data1 = {0, 0, 0, 0};
 	struct DSI_RX_DATA_REG read_data2 = {0, 0, 0, 0};
@@ -4707,7 +4704,6 @@ int mtk_mipi_dsi_read_gce(struct mtk_dsi *dsi,
 	mtk_dsi_clear_rxrd_irq(dsi);
 
 	if (read_ddic_chk_sta == 0xff) {
-		ret = -EINVAL;
 		/* CMD mode error handle */
 		if (dsi_mode == 0) {
 			/* TODO: set ESD_EOF event through CPU is better */

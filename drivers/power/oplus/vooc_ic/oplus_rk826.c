@@ -612,7 +612,6 @@ int Download_00_code(struct oplus_vooc_chip *chip)
 	u8 transfer_buf[TRANSFER_LIMIT];
 	u32 onetime_size = TRANSFER_LIMIT - 8;
 	u32 index = 0;
-	u32 offset = 0;
 	int ret = 0;
 	int size=16384;// erase 16kb
 
@@ -624,10 +623,8 @@ int Download_00_code(struct oplus_vooc_chip *chip)
 		if (size >= onetime_size) {
 			//memcpy(transfer_buf, buf + offset, onetime_size);
 			size-= onetime_size;
-			offset += onetime_size;
 		} else {
 			//memcpy(transfer_buf, buf + offset, size);
-			offset += size;
 			size = 0;
 		}
 		*((u32 *)(transfer_buf + onetime_size)) = index;
@@ -648,7 +645,6 @@ int Download_ff_code(struct oplus_vooc_chip *chip)
 	u8 transfer_buf[TRANSFER_LIMIT];
 	u32 onetime_size = TRANSFER_LIMIT - 8;
 	u32 index = 0;
-	u32 offset = 0;
 	int ret = 0;
 	int size=16384;// erase 16kb
 	chg_debug("size: %d\n", size);
@@ -659,10 +655,8 @@ int Download_ff_code(struct oplus_vooc_chip *chip)
 		if (size >= onetime_size) {
 			//memcpy(transfer_buf, buf + offset, onetime_size);
 			size-= onetime_size;
-			offset += onetime_size;
 		} else {
 			//memcpy(transfer_buf, buf + offset, size);
-			offset += size;
 			size = 0;
 		}
 		*((u32 *)(transfer_buf + onetime_size)) = index;
