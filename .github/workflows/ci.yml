@@ -2,7 +2,7 @@ name: RM6833 kernel CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ android-11 ]
 
 jobs:
   build:
