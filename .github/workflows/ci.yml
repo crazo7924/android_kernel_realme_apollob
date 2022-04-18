@@ -3,7 +3,6 @@ name: RM6833 kernel CI
 on:
   push:
     branches: [ android-11 ]
-  workflow_run:
   
 jobs:
   build:
