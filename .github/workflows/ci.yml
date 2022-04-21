@@ -24,7 +24,7 @@ jobs:
         NAME: RM6833-Porting-Test
       with:
         arch: arm64
-        compiler: aosp-clang/android11-release/clang-r383902b
+        compiler: clang/11/binutils
         defconfig: oppo6833_defconfig
         image: Image.gz-dtb
 
