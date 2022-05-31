@@ -173,7 +173,7 @@ sia81xx_dev_t *g_sia81xx = NULL;
 
 static ssize_t sia81xx_cmd_show(struct device* cd,
 	struct device_attribute *attr, char* buf);
-static ssize_t sia81xx_cmd_store(struct device* cd, 
+static ssize_t sia81xx_cmd_store(struct device* cd,
 	struct device_attribute *attr,const char* buf, size_t len);
 
 static DEVICE_ATTR_RW(sia81xx_cmd);
@@ -211,7 +211,7 @@ static unsigned int distinguish_chip_type(
 {
 	struct file *fp = NULL;
 	char chip_name[32];
-	
+
 	fp = filp_open(CHIP_DISTINGUISH_FILE_PATH, O_RDONLY, 0444);
 	if (!IS_ERR(fp)) {
 		pr_debug("[debug][%s] %s: filp_open\r\n", LOG_FLAG, __func__);
@@ -222,12 +222,12 @@ static unsigned int distinguish_chip_type(
 #else
 		if (0 >= kernel_read(fp, 0, chip_name, sizeof(chip_name)))
 #endif
-			pr_err("[  err][%s] %s: read chip type file error\r\n", 
+			pr_err("[  err][%s] %s: read chip type file error\r\n",
 				LOG_FLAG, __func__);
 		else
-			pr_debug("[debug][%s] %s: read chip type finished, chip_name = %s\r\n", 
+			pr_debug("[debug][%s] %s: read chip type finished, chip_name = %s\r\n",
 				LOG_FLAG, __func__, chip_name);
-		
+
 		filp_close(fp, NULL);
 
 		return get_chip_type(chip_name);
@@ -237,7 +237,7 @@ static unsigned int distinguish_chip_type(
 }
 
 static int sia81xx_set_mode(
-	struct sia81xx_dev_s *sia81xx, 
+	struct sia81xx_dev_s *sia81xx,
 	unsigned int mode);
 static void set_owi_mod_by_chip_type(
 	sia81xx_dev_t *sia81xx,
@@ -245,7 +245,7 @@ static void set_owi_mod_by_chip_type(
 {
 	int ret = 0;
 	//unsigned int mod = DEFAULT_OWI_MODE;
-	
+
 	if(chip_type == CHIP_TYPE_UNKNOWN) {
 		sia81xx->owi_cur_mode = DEFAULT_OTHER_OWI_MODE;
 		sia81xx->chip_type = CHIP_TYPE_UNKNOWN;
@@ -254,7 +254,7 @@ static void set_owi_mod_by_chip_type(
 	//	mod = sia81xx->owi_cur_mode;
 
 	// ret = sia81xx_set_mode(sia81xx, mod); // set mode when system resume
-	pr_info("[ info][%s] %s: set mod : %u, return : %d \r\n", 
+	pr_info("[ info][%s] %s: set mod : %u, return : %d \r\n",
 		LOG_FLAG, __func__, sia81xx->owi_cur_mode, ret);
 }
 
@@ -273,13 +273,13 @@ static bool is_chip_type_supported(unsigned int chip_type)
  * sia81xx GPIO option
  ********************************************************************/
 static __inline void gpio_flipping(
-	int pin, 
+	int pin,
 	s64 *intervel_ns)
 {
 	static struct timespec64 cur_time, last_time, temp_time;
-	
+
 	gpio_set_value(pin, !gpio_get_value(pin));
-	
+
 	getnstimeofday64(&cur_time);
 	temp_time = timespec64_sub(cur_time, last_time);
 	if(NULL != intervel_ns)
@@ -288,33 +288,33 @@ static __inline void gpio_flipping(
 }
 
 static __inline int gpio_produce_one_pulse(
-	int pin, 
-	int polarity, 
-	unsigned int width_us, 
-	s64 *real_duty_ns, 
+	int pin,
+	int polarity,
+	unsigned int width_us,
+	s64 *real_duty_ns,
 	s64 *real_idle_ns)
 {
 	if(polarity != gpio_get_value(pin)) {
 		pr_err("[  err][%s] %s: EPOLAR \r\n", LOG_FLAG, __func__);
 		return -EPOLAR;
 	}
-	
+
 	gpio_flipping(pin, real_idle_ns);
-	udelay(width_us);	
+	udelay(width_us);
 	gpio_flipping(pin, real_duty_ns);
 
 	return 0;
 }
 
 static __inline int __gpio_produce_one_pulse_cycle(
-	int pin, 
-	int polarity, 
-	unsigned int duty_time_us, 
-	unsigned int idle_time_us, 
-	s64 *real_duty_ns, 
+	int pin,
+	int polarity,
+	unsigned int duty_time_us,
+	unsigned int idle_time_us,
+	s64 *real_duty_ns,
 	s64 *real_idle_ns)
 {
-	int ret = gpio_produce_one_pulse(pin, polarity, 
+	int ret = gpio_produce_one_pulse(pin, polarity,
 		duty_time_us, real_duty_ns, real_idle_ns);
 	if(0 == ret) /* if pulse produce suceess */
 		udelay(idle_time_us);
@@ -323,21 +323,21 @@ static __inline int __gpio_produce_one_pulse_cycle(
 }
 
 static __inline int gpio_produce_one_pulse_cycle(
-	int pin, 
-	int polarity, 
-	unsigned int delay_us, 
-	s64 *real_duty_ns, 
+	int pin,
+	int polarity,
+	unsigned int delay_us,
+	s64 *real_duty_ns,
 	s64 *real_idle_ns)
 {
-	return __gpio_produce_one_pulse_cycle(pin, polarity, 
+	return __gpio_produce_one_pulse_cycle(pin, polarity,
 		delay_us, delay_us, real_duty_ns, real_idle_ns);
 }
 
 static __inline int gpio_produce_pulse_cycles(
-	int pin, 
-	int polarity, 
-	unsigned int delay_us, 
-	unsigned int cycles, 
+	int pin,
+	int polarity,
+	unsigned int delay_us,
+	unsigned int cycles,
 	s64 *max_real_delay_ns) {
 
 	s64 real_duty_ns = 0, real_idle_ns = 0, max_pulse_time = 0;
@@ -352,20 +352,20 @@ static __inline int gpio_produce_pulse_cycles(
 	while(cycles) {
 		cycles --;
 
-		ret = gpio_produce_one_pulse_cycle(pin, polarity, 
+		ret = gpio_produce_one_pulse_cycle(pin, polarity,
 			delay_us, &real_duty_ns, &real_idle_ns);
 		if(0 != ret)
 			break;
 
 		/* monitor pulse with overtime */
 		if(false == is_fst_pulse) {
-			max_pulse_time = 
+			max_pulse_time =
 				max_pulse_time > real_idle_ns ? max_pulse_time : real_idle_ns;
 		}
-		max_pulse_time = 
+		max_pulse_time =
 			max_pulse_time > real_duty_ns ? max_pulse_time : real_duty_ns;
 		is_fst_pulse = false;
-		
+
 	}
 
 	if(NULL != max_real_delay_ns)
@@ -383,10 +383,10 @@ static __inline int gpio_produce_pulse_cycles(
  ********************************************************************/
 #ifdef OWI_SUPPORT_WRITE_DATA
 static void sia81xx_owi_calc_bit_duty_ns(
-	s64 duty_ns, 
-	s64 idle_ns, 
-	s64 *duty_time_ns, 
-	s64 *idle_time_ns, 
+	s64 duty_ns,
+	s64 idle_ns,
+	s64 *duty_time_ns,
+	s64 *idle_time_ns,
 	const char bit)
 {
 	if(0 == !!(bit & (char)0x01)) {
@@ -399,15 +399,15 @@ static void sia81xx_owi_calc_bit_duty_ns(
 }
 
 static void sia81xx_owi_calc_bit_duty_us(
-	u32 duty_us, 
-	u32 idle_us, 
-	u32 *duty_time_us, 
-	u32 *idle_time_us, 
+	u32 duty_us,
+	u32 idle_us,
+	u32 *duty_time_us,
+	u32 *idle_time_us,
 	const char bit)
 {
 	s64 duty_time_ns, idle_time_ns;
-	
-	sia81xx_owi_calc_bit_duty_ns((s64)duty_us * NSEC_PER_USEC, 
+
+	sia81xx_owi_calc_bit_duty_ns((s64)duty_us * NSEC_PER_USEC,
 		(s64)idle_us * NSEC_PER_USEC, &duty_time_ns, &idle_time_ns, bit);
 
 	*duty_time_us = duty_time_ns / NSEC_PER_USEC;
@@ -415,21 +415,21 @@ static void sia81xx_owi_calc_bit_duty_us(
 }
 
 static int sia81xx_owi_write_one_bit(
-	struct sia81xx_dev_s *sia81xx, 
-	const char bit, 
-	s64 *real_duty_ns, 
+	struct sia81xx_dev_s *sia81xx,
+	const char bit,
+	s64 *real_duty_ns,
 	s64 *real_idle_ns)
 {
 	int ret = 0;
 	unsigned int duty_time_us, idle_time_us;
 
-	sia81xx_owi_calc_bit_duty_us(sia81xx->owi_delay_us, 
+	sia81xx_owi_calc_bit_duty_us(sia81xx->owi_delay_us,
 		MIN_OWI_PULSE_GAP_TIME_US, &duty_time_us, &idle_time_us, bit);
 
-	ret = __gpio_produce_one_pulse_cycle(sia81xx->owi_pin, 
-		sia81xx->owi_polarity, duty_time_us, idle_time_us, 
+	ret = __gpio_produce_one_pulse_cycle(sia81xx->owi_pin,
+		sia81xx->owi_polarity, duty_time_us, idle_time_us,
 		real_duty_ns, real_idle_ns);
-	
+
 	return ret;
 }
 
@@ -443,8 +443,8 @@ static int sia81xx_owi_start_write_byte(
 	}
 
 	/* *******************************************************************
-	 * for reset flipping timer, 
-	 * otherwise only need gpio_set_value(dev->owi_pin, OWI_POLARITY); 
+	 * for reset flipping timer,
+	 * otherwise only need gpio_set_value(dev->owi_pin, OWI_POLARITY);
 	 * *******************************************************************/
 	gpio_flipping(sia81xx->owi_pin, NULL);
 
@@ -452,29 +452,29 @@ static int sia81xx_owi_start_write_byte(
 }
 
 static void sia81xx_owi_end_write_byte(
-	struct sia81xx_dev_s *sia81xx, 
+	struct sia81xx_dev_s *sia81xx,
 	s64 *real_idle_ns)
 {
 	gpio_flipping(sia81xx->owi_pin, real_idle_ns);
 }
 
 static s64 sia81xx_owi_calc_deviation_ns(
-	struct sia81xx_dev_s *dev, 
-	s64 duty_time_ns, 
-	s64 idle_time_ns, 
+	struct sia81xx_dev_s *dev,
+	s64 duty_time_ns,
+	s64 idle_time_ns,
 	const char bit)
 {
 	s64 deviation = 0;
 
-	dev->err_info.owi_max_gap = 
+	dev->err_info.owi_max_gap =
 		dev->err_info.owi_max_gap > duty_time_ns ?
 		dev->err_info.owi_max_gap : duty_time_ns;
 
-	dev->err_info.owi_max_gap = 
+	dev->err_info.owi_max_gap =
 		dev->err_info.owi_max_gap > idle_time_ns ?
 		dev->err_info.owi_max_gap : idle_time_ns;
-	
-	sia81xx_owi_calc_bit_duty_ns(duty_time_ns, idle_time_ns, 
+
+	sia81xx_owi_calc_bit_duty_ns(duty_time_ns, idle_time_ns,
 		&duty_time_ns, &idle_time_ns, bit);
 
 	if(duty_time_ns < idle_time_ns)
@@ -484,7 +484,7 @@ static s64 sia81xx_owi_calc_deviation_ns(
 }
 
 static int sia81xx_owi_write_one_byte(
-	struct sia81xx_dev_s *sia81xx, 
+	struct sia81xx_dev_s *sia81xx,
 	const char data)
 {
 	int ret = 0, i = 0;
@@ -501,17 +501,17 @@ static int sia81xx_owi_write_one_byte(
 
 #ifdef OWI_DATA_BIG_END
 	for(i = 7; i >= 0; i--) {
-		ret = sia81xx_owi_write_one_bit(sia81xx, (data >> i), 
+		ret = sia81xx_owi_write_one_bit(sia81xx, (data >> i),
 			&real_duty_ns, &real_idle_ns);
 		if(0 != ret)
 			goto owi_end_write_one_byte;
 
-		/* when second bit has been sent, 
+		/* when second bit has been sent,
 		 * can be get first bit's real idle time */
 		if(7 > i) {
-			cur_deviation_ns = sia81xx_owi_calc_deviation_ns(sia81xx, 
+			cur_deviation_ns = sia81xx_owi_calc_deviation_ns(sia81xx,
 				last_real_duty_ns, real_idle_ns, last_bit);
-			max_deviation_ns = max_deviation_ns > cur_deviation_ns ? 
+			max_deviation_ns = max_deviation_ns > cur_deviation_ns ?
 				max_deviation_ns : cur_deviation_ns;
 
 			/* occur write error */
@@ -523,17 +523,17 @@ static int sia81xx_owi_write_one_byte(
 	}
 #else
 	for(i = 0; i < 8; i++) {
-		ret = sia81xx_owi_write_one_bit(sia81xx, (data >> i), 
+		ret = sia81xx_owi_write_one_bit(sia81xx, (data >> i),
 			&real_duty_ns, &real_idle_ns);
 		if(0 != ret)
 			goto owi_end_write_one_byte;
 
-		/* when second bit has been sent, 
+		/* when second bit has been sent,
 		 * can be get first bit's real idle time */
 		if(0 < i) {
-			cur_deviation_ns = sia81xx_owi_calc_deviation_ns(sia81xx, 
+			cur_deviation_ns = sia81xx_owi_calc_deviation_ns(sia81xx,
 				last_real_duty_ns, real_idle_ns, last_bit);
-			max_deviation_ns = max_deviation_ns > cur_deviation_ns ? 
+			max_deviation_ns = max_deviation_ns > cur_deviation_ns ?
 				max_deviation_ns : cur_deviation_ns;
 
 			/* occur write error */
@@ -551,13 +551,13 @@ static int sia81xx_owi_write_one_byte(
 	/* no write error */
 	if(0 == cur_deviation_ns) {
 		/* then can be get the last bit's real idle time */
-		cur_deviation_ns = sia81xx_owi_calc_deviation_ns(sia81xx, 
+		cur_deviation_ns = sia81xx_owi_calc_deviation_ns(sia81xx,
 			last_real_duty_ns, real_idle_ns, last_bit);
-		max_deviation_ns = max_deviation_ns > cur_deviation_ns ? 
+		max_deviation_ns = max_deviation_ns > cur_deviation_ns ?
 			max_deviation_ns : cur_deviation_ns;
 	}
 
-owi_end_write_one_byte:	
+owi_end_write_one_byte:
 
 	spin_unlock_irqrestore(&sia81xx->owi_lock, flags);
 
@@ -574,16 +574,16 @@ owi_end_write_one_byte:
 	}
 
 	/* record history max deviation time */
-	sia81xx->err_info.owi_max_deviation = 
-		sia81xx->err_info.owi_max_deviation > max_deviation_ns ? 
+	sia81xx->err_info.owi_max_deviation =
+		sia81xx->err_info.owi_max_deviation > max_deviation_ns ?
 		sia81xx->err_info.owi_max_deviation : max_deviation_ns;
-	
+
 	return ret;
 }
 
 static int sia81xx_owi_write_data(
-	struct sia81xx_dev_s *sia81xx, 
-	unsigned int len, 
+	struct sia81xx_dev_s *sia81xx,
+	unsigned int len,
 	const char *buf)
 {
 	int ret = 0, i = 0, retry = 0;
@@ -591,11 +591,11 @@ static int sia81xx_owi_write_data(
 	sia81xx->err_info.owi_write_data_cnt ++;
 
 	for(i = 0; i < len; i++) {
-		
+
 		retry = 0;
-		
+
 		while (retry < MAX_OWI_RETRY_TIMES) {
-			
+
 			if(0 == (ret = sia81xx_owi_write_one_byte(sia81xx, buf[i])))
 				break;
 
@@ -606,8 +606,8 @@ static int sia81xx_owi_write_data(
 		}
 
 		/* record max retry time */
-		sia81xx->err_info.owi_max_retry_cnt = 
-			sia81xx->err_info.owi_max_retry_cnt > retry ? 
+		sia81xx->err_info.owi_max_retry_cnt =
+			sia81xx->err_info.owi_max_retry_cnt > retry ?
 			sia81xx->err_info.owi_max_retry_cnt : retry;
 
 		if(retry >= MAX_OWI_RETRY_TIMES) {
@@ -615,7 +615,7 @@ static int sia81xx_owi_write_data(
 			return -EPTOUT;
 		}
 	}
-	
+
 	return ret;
 }
 #endif
@@ -627,20 +627,20 @@ static void sia81xx_set_owi_polarity(
 }
 
 static int __sia81xx_owi_write_mode(
-	struct sia81xx_dev_s *sia81xx, 
+	struct sia81xx_dev_s *sia81xx,
 	unsigned int cycles)
-{	
+{
 	int ret = 0;
 	s64 max_flipping_ns = 0, last_flipping_ns = 0;
 	unsigned long flags;
 
 	spin_lock_irqsave(&sia81xx->owi_lock, flags);
-	
+
 	sia81xx_set_owi_polarity(sia81xx);
 	mdelay(1);/* wait for owi reset */
-	
+
 	/* last pulse only flipping once, so pulses = cycles - 1 */
-	ret = gpio_produce_pulse_cycles(sia81xx->owi_pin, sia81xx->owi_polarity, 
+	ret = gpio_produce_pulse_cycles(sia81xx->owi_pin, sia81xx->owi_polarity,
 			sia81xx->owi_delay_us, cycles - 1, &max_flipping_ns);
 	/* last pulse */
 	gpio_flipping(sia81xx->owi_pin, &last_flipping_ns);
@@ -656,18 +656,18 @@ static int __sia81xx_owi_write_mode(
 			sia81xx->err_info.owi_write_err_cnt ++;
 		return ret;
 	}
-	
+
 	/* if cycles == 1, then only flipping gpio, and do not care flipping time */
 	if(0 == (cycles - 1))
 		return 0;
 
 	/* get max flipping time */
-	max_flipping_ns = max_flipping_ns > last_flipping_ns ? 
+	max_flipping_ns = max_flipping_ns > last_flipping_ns ?
 		max_flipping_ns : last_flipping_ns;
 
 	/* record history max flipping time */
-	sia81xx->err_info.owi_max_gap = 
-		sia81xx->err_info.owi_max_gap > max_flipping_ns ? 
+	sia81xx->err_info.owi_max_gap =
+		sia81xx->err_info.owi_max_gap > max_flipping_ns ?
 		sia81xx->err_info.owi_max_gap : max_flipping_ns;
 
 	if((MAX_OWI_PULSE_GAP_TIME_US * NSEC_PER_USEC) <= max_flipping_ns ) {
@@ -680,16 +680,16 @@ static int __sia81xx_owi_write_mode(
 }
 
 static int sia81xx_owi_write_mode(
-	struct sia81xx_dev_s *sia81xx, 
+	struct sia81xx_dev_s *sia81xx,
 	unsigned int mode)
 {
 	unsigned int retry = 0;
-	
+
 	if((MAX_OWI_MODE < mode) || (MIN_OWI_MODE > mode))
 		return -EINVAL;
 
 	sia81xx->err_info.owi_set_mode_cnt ++;
-	
+
 	while(retry < MAX_OWI_RETRY_TIMES) {
 
 		if(0 == __sia81xx_owi_write_mode(sia81xx, mode))
@@ -702,20 +702,20 @@ static int sia81xx_owi_write_mode(
 	}
 
 	/* record max retry time */
-	sia81xx->err_info.owi_max_retry_cnt = 
-		sia81xx->err_info.owi_max_retry_cnt > retry ? 
+	sia81xx->err_info.owi_max_retry_cnt =
+		sia81xx->err_info.owi_max_retry_cnt > retry ?
 		sia81xx->err_info.owi_max_retry_cnt : retry;
 
 	if(retry >= MAX_OWI_RETRY_TIMES) {
 		sia81xx->err_info.owi_set_mode_err_cnt ++;
 		return -EPTOUT;
 	}
-	
+
 	return 0;
 }
 
 static int sia81xx_owi_init(
-	sia81xx_dev_t *sia81xx, 
+	sia81xx_dev_t *sia81xx,
 	unsigned int owi_mode)
 {
 	sia81xx->owi_delay_us = MIN_OWI_PULSE_GAP_TIME_US;
@@ -725,36 +725,36 @@ static int sia81xx_owi_init(
 	else
 		sia81xx->owi_cur_mode = DEFAULT_OWI_MODE;
 
-	pr_debug("[debug][%s] %s: running mode = %u \r\n", 
+	pr_debug("[debug][%s] %s: running mode = %u \r\n",
 		LOG_FLAG, __func__, sia81xx->owi_cur_mode);
-	
-	return 0;	
+
+	return 0;
 }
 /********************************************************************
 * end - sia81xx owis option
 ********************************************************************/
- 
+
 
 /********************************************************************
  * sia81xx chip option
  ********************************************************************/
 static int sia81xx_reg_init(
-	struct sia81xx_dev_s *sia81xx) 
+	struct sia81xx_dev_s *sia81xx)
 {
 	if(NULL == sia81xx->client)
 		return 0;
 
 	if(0 != sia81xx_regmap_check_chip_id(sia81xx->regmap, sia81xx->chip_type)) {
-		pr_err("[  err][%s] %s: sia81xx_regmap_check_chip_id error !!! \r\n", 
+		pr_err("[  err][%s] %s: sia81xx_regmap_check_chip_id error !!! \r\n",
 			LOG_FLAG, __func__);
 	}
-	
+
 	udelay(10);/* wait for xfilter ready */
-	sia81xx_regmap_defaults(sia81xx->regmap, 
+	sia81xx_regmap_defaults(sia81xx->regmap,
 		sia81xx->chip_type, sia81xx->scene, sia81xx->channel_num);
-	
+
 	udelay(10);
-	sia81xx_regmap_set_xfilter(sia81xx->regmap, 
+	sia81xx_regmap_set_xfilter(sia81xx->regmap,
 		sia81xx->chip_type, sia81xx->en_xfilter);
 
 	return 0;
@@ -789,7 +789,7 @@ static int sia81xx_resume(
 	if (CHIP_TYPE_SIA8101 == sia81xx->chip_type ||
 		CHIP_TYPE_UNKNOWN == sia81xx->chip_type)
 		sia81xx_timer_task_start(sia81xx->timer_task_hdl);
-	
+
 	return 0;
 
 err_sia81xx_resume:
@@ -801,7 +801,7 @@ static int sia81xx_suspend(
 	struct sia81xx_dev_s *sia81xx)
 {
 	unsigned long flags;
-	
+
 	pr_debug("[debug][%s] %s: running \r\n", LOG_FLAG, __func__);
 
 	if(NULL == sia81xx)
@@ -818,7 +818,7 @@ static int sia81xx_suspend(
 
 		spin_unlock_irqrestore(&sia81xx->rst_lock, flags);
 	}
-	
+
 	return 0;
 }
 
@@ -826,22 +826,22 @@ static int sia81xx_reboot(
 	struct sia81xx_dev_s *sia81xx)
 {
 	int ret = 0;
-	
+
 	ret = sia81xx_suspend(sia81xx);
 	if(0 != ret)
 		return ret;
-	
+
 	return sia81xx_resume(sia81xx);
 }
 
 static int sia81xx_set_mode(
-	struct sia81xx_dev_s *sia81xx, 
+	struct sia81xx_dev_s *sia81xx,
 	unsigned int mode)
 {
 	int ret = 0;
 
 	if((MAX_OWI_MODE < mode) || (MIN_OWI_MODE > mode)) {
-		pr_err("[  err][%s] %s: error mode = %u !!! \r\n", 
+		pr_err("[  err][%s] %s: error mode = %u !!! \r\n",
 			LOG_FLAG, __func__, mode);
 		return -EINVAL;
 	}
@@ -854,8 +854,8 @@ static int sia81xx_set_mode(
 }
 
 static int sia81xx_dev_init(
-	sia81xx_dev_t *sia81xx, 
-	struct device_node	*sia81xx_of_node) 
+	sia81xx_dev_t *sia81xx,
+	struct device_node	*sia81xx_of_node)
 {
 	int ret = 0;
 	int owi_mode = DEFAULT_OWI_MODE;
@@ -864,10 +864,10 @@ static int sia81xx_dev_init(
 	int dyn_ud_vdd_port = 0;
 	int timer_task_hdl = 0;
 	int channel_num = 0;
-	
+
 	pr_debug("[debug][%s] %s: running \r\n", LOG_FLAG, __func__);
 
-	ret = of_property_read_u32(sia81xx_of_node, 
+	ret = of_property_read_u32(sia81xx_of_node,
 			"channel_num", &channel_num);
 	if(0 != ret) {
 		channel_num = 0;
@@ -878,23 +878,23 @@ static int sia81xx_dev_init(
 		en_xfilter = 0;
 	}
 
-	ret = of_property_read_u32(sia81xx_of_node, 
+	ret = of_property_read_u32(sia81xx_of_node,
 			"timer_task_hdl", &timer_task_hdl);
 	if(0 != ret) {
 		timer_task_hdl = SIA81XX_TIMER_TASK_INVALID_HDL;
 	}
 
-	ret = of_property_read_u32(sia81xx_of_node, 
+	ret = of_property_read_u32(sia81xx_of_node,
 			"en_dynamic_updata_vdd", &en_dyn_ud_vdd);
 	if((0 != ret) || (1 != en_dyn_ud_vdd)) {
 		en_dyn_ud_vdd = 0;
 	}
 
-	ret = of_property_read_u32(sia81xx_of_node, 
+	ret = of_property_read_u32(sia81xx_of_node,
 			"dynamic_updata_vdd_port", &dyn_ud_vdd_port);
 	if(0 != ret) {
 		pr_err("[  err][%s] %s: get dynamic_updata_vdd_port "
-			"form dts fail, ret = %d !!! \r\n", 
+			"form dts fail, ret = %d !!! \r\n",
 			LOG_FLAG, __func__, dyn_ud_vdd_port);
 		en_dyn_ud_vdd = 0;
 	}
@@ -913,7 +913,7 @@ static int sia81xx_dev_init(
 	sia81xx_owi_init(sia81xx, (unsigned int)owi_mode);
 
 	sia81xx_suspend(sia81xx);
-	
+
 	return 0;
 }
 
@@ -923,19 +923,19 @@ static int sia81xx_dev_remove(
 	pr_debug("[debug][%s] %s: running \r\n", LOG_FLAG, __func__);
 
 	sia81xx->timer_task_hdl = SIA81XX_TIMER_TASK_INVALID_HDL;
-	
+
 	sia81xx_suspend(sia81xx);
-	
+
 	return 0;
 }
 
 static int sia81xx_algo_en_write(
-	struct sia81xx_dev_s *sia81xx, 
+	struct sia81xx_dev_s *sia81xx,
 	int32_t enable)
 {
 	unsigned long cal_handle = 0;
 
-	pr_debug("[debug][%s] %s: tuning port = %d \r\n", 
+	pr_debug("[debug][%s] %s: tuning port = %d \r\n",
 		LOG_FLAG, __func__, sia81xx->dyn_ud_vdd_port);
 
 	if (NULL == tuning_if_opt.open || NULL == tuning_if_opt.write) {
@@ -946,24 +946,24 @@ static int sia81xx_algo_en_write(
 
 	cal_handle = tuning_if_opt.open(sia81xx->dyn_ud_vdd_port);
 	if (0 == cal_handle) {
-		pr_err("[  err][%s] %s: NULL == cal_handle \r\n", 
+		pr_err("[  err][%s] %s: NULL == cal_handle \r\n",
 			LOG_FLAG, __func__);
 		return -EINVAL;
 	}
 
-	return tuning_if_opt.write(cal_handle, 
+	return tuning_if_opt.write(cal_handle,
 		0x1000E900, // SIXTH_SIA81XX_RX_MODULE
 		0x1000EA01, // SIXTH_SIA81XX_RX_ENABLE
 		sizeof(enable), (uint8_t *)&enable);
 }
 
 static int sia81xx_algo_en_read(
-	struct sia81xx_dev_s *sia81xx, 
+	struct sia81xx_dev_s *sia81xx,
 	int32_t* enable)
 {
 	unsigned long cal_handle = 0;
 
-	pr_debug("[debug][%s] %s: tuning port = %d \r\n", 
+	pr_debug("[debug][%s] %s: tuning port = %d \r\n",
 		LOG_FLAG, __func__, sia81xx->dyn_ud_vdd_port);
 
 	if (NULL == tuning_if_opt.open || NULL == tuning_if_opt.write) {
@@ -974,12 +974,12 @@ static int sia81xx_algo_en_read(
 
 	cal_handle = tuning_if_opt.open(sia81xx->dyn_ud_vdd_port);
 	if (0 == cal_handle) {
-		pr_err("[  err][%s] %s: NULL == cal_handle \r\n", 
+		pr_err("[  err][%s] %s: NULL == cal_handle \r\n",
 			LOG_FLAG, __func__);
 		return -EINVAL;
 	}
 
-	return tuning_if_opt.read(cal_handle, 
+	return tuning_if_opt.read(cal_handle,
 		0x1000E900, // SIXTH_SIA81XX_RX_MODULE
 		0x1000EA01, // SIXTH_SIA81XX_RX_ENABLE
 		sizeof(*enable), (uint8_t *)enable);
@@ -993,7 +993,7 @@ static int sia81xx_algo_en_read(
  ********************************************************************/
 static ssize_t sia81xx_cmd_show(
 	struct device* cd,
-	struct device_attribute *attr, 
+	struct device_attribute *attr,
 	char* buf)
 {
 	sia81xx_dev_t *sia81xx = (sia81xx_dev_t *)dev_get_drvdata(cd);
@@ -1018,20 +1018,20 @@ static ssize_t sia81xx_cmd_show(
 		"set_mode = %lu, set_mode_err = %lu, polarity_err = %lu \r\n "
 		"max_retry = %lu, write_err = %lu, delay = %u, m_gap = %lu \r\n "
 		"owi_max_deviation = %lu, owi_write_data_err_cnt = %lu, \r\n"
-		"owi_write_data_cnt = %lu \r\n", 
+		"owi_write_data_cnt = %lu \r\n",
 		owi_pin_val, chip_id,
-		vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], 
-		vals[7], vals[8], vals[9], vals[10], vals[11], vals[12], vals[13], 
+		vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6],
+		vals[7], vals[8], vals[9], vals[10], vals[11], vals[12], vals[13],
 		sia81xx->rst_pin, sia81xx->owi_pin,
-		sia81xx->err_info.owi_set_mode_cnt, 
-		sia81xx->err_info.owi_set_mode_err_cnt, 
-		sia81xx->err_info.owi_polarity_err_cnt, 
-		sia81xx->err_info.owi_max_retry_cnt, 
-		sia81xx->err_info.owi_write_err_cnt, 
+		sia81xx->err_info.owi_set_mode_cnt,
+		sia81xx->err_info.owi_set_mode_err_cnt,
+		sia81xx->err_info.owi_polarity_err_cnt,
+		sia81xx->err_info.owi_max_retry_cnt,
+		sia81xx->err_info.owi_write_err_cnt,
 		sia81xx->owi_delay_us,
-		sia81xx->err_info.owi_max_gap, 
-		sia81xx->err_info.owi_max_deviation, 
-		sia81xx->err_info.owi_write_data_err_cnt, 
+		sia81xx->err_info.owi_max_gap,
+		sia81xx->err_info.owi_max_deviation,
+		sia81xx->err_info.owi_write_data_err_cnt,
 		sia81xx->err_info.owi_write_data_cnt);
 	strcpy(buf, tb);
 
@@ -1039,13 +1039,13 @@ static ssize_t sia81xx_cmd_show(
 }
 
 static ssize_t sia81xx_cmd_store(
-	struct device* cd, 
-	struct device_attribute *attr, 
-	const char* buf, 
+	struct device* cd,
+	struct device_attribute *attr,
+	const char* buf,
 	size_t len)
 {
 	const char *split_symb = ",";
-	/* in strsep will be modify "cur" value, nor cur[i] value, 
+	/* in strsep will be modify "cur" value, nor cur[i] value,
 	so this point shoud not be defined with "char * const" */
 	char *cur = (char *)buf;
 	char *after;
@@ -1054,12 +1054,12 @@ static ssize_t sia81xx_cmd_store(
 #if 0
 	int i;
 	for (i = 0; i < len; ++i)
-		pr_debug("[debug][%s] %s: sia81xx_cmd = %c \r\n", 
+		pr_debug("[debug][%s] %s: sia81xx_cmd = %c \r\n",
 			LOG_FLAG, __func__, cur[i]);
 #endif
 
 	switch(simple_strtoul(strsep(&cur, split_symb), &after, 10)) {
-		case SIA81XX_CMD_POWER_ON : 
+		case SIA81XX_CMD_POWER_ON :
 			sia81xx_resume(sia81xx);
 			break;
 		case SIA81XX_CMD_POWER_OFF :
@@ -1067,13 +1067,13 @@ static ssize_t sia81xx_cmd_store(
 			break;
 		case SIA81XX_CMD_GET_MODE :
 		{
-			pr_debug("[debug][%s] %s: mode = %u \r\n", 
+			pr_debug("[debug][%s] %s: mode = %u \r\n",
 					LOG_FLAG, __func__, sia81xx->owi_cur_mode);
 			break;
 		}
 		case SIA81XX_CMD_SET_MODE :
 		{
-			sia81xx_set_mode(sia81xx, 
+			sia81xx_set_mode(sia81xx,
 				simple_strtoul(strsep(&cur, split_symb), &after, 10));
 			break;
 		}
@@ -1084,10 +1084,10 @@ static ssize_t sia81xx_cmd_store(
 			char val;
 
 			if(0 != sia81xx_regmap_read(sia81xx->regmap, addr, 1, &val)) {
-				pr_debug("[debug][%s] %s: err regmap_read \r\n", 
+				pr_debug("[debug][%s] %s: err regmap_read \r\n",
 					LOG_FLAG, __func__);
 			} else {
-				pr_debug("[debug][%s] %s: addr = 0x%02x, val = 0x%02x \r\n", 
+				pr_debug("[debug][%s] %s: addr = 0x%02x, val = 0x%02x \r\n",
 					LOG_FLAG, __func__, addr, val);
 			}
 			break;
@@ -1100,7 +1100,7 @@ static ssize_t sia81xx_cmd_store(
 				strsep(&cur, split_symb), &after, 16);
 
 			if(0 != sia81xx_regmap_write(sia81xx->regmap, addr, 1, &val)) {
-				pr_err("[  err][%s] %s: regmap_write \r\n", 
+				pr_err("[  err][%s] %s: regmap_write \r\n",
 					LOG_FLAG, __func__);
 			}
 			break;
@@ -1113,7 +1113,7 @@ static ssize_t sia81xx_cmd_store(
 				sia81xx->owi_delay_us = temp_us;
 			else
 				sia81xx->owi_delay_us = 1000;
-			
+
 			break;
  		}
 		case SIA81XX_CMD_CLR_ERROR :
@@ -1132,14 +1132,14 @@ static ssize_t sia81xx_cmd_store(
 #endif
 			break;
 		}
-		case SIA81XX_CMD_SOCKET_OPEN : 
+		case SIA81XX_CMD_SOCKET_OPEN :
 		{
 #ifdef SIA81XX_TUNING
 			sia81xx_open_sock_server();
 #endif
 			break;
 		}
-		case SIA81XX_CMD_SOCKET_CLOSE: 
+		case SIA81XX_CMD_SOCKET_CLOSE:
 		{
 #ifdef SIA81XX_TUNING
 			sia81xx_close_sock_server();
@@ -1157,13 +1157,13 @@ static ssize_t sia81xx_cmd_store(
 		{
 			sia81xx->en_dyn_ud_vdd = 1;
 			sia81xx_auto_set_vdd_probe(
-				sia81xx->timer_task_hdl, 
-				sia81xx->channel_num, 
-				sia81xx->dyn_ud_vdd_port, 
+				sia81xx->timer_task_hdl,
+				sia81xx->channel_num,
+				sia81xx->dyn_ud_vdd_port,
 				sia81xx->en_dyn_ud_vdd);
-			pr_debug("[debug][%s] %s: set auto vdd state %u, port 0x%04x \r\n", 
-					LOG_FLAG, __func__, 
-					sia81xx->en_dyn_ud_vdd, 
+			pr_debug("[debug][%s] %s: set auto vdd state %u, port 0x%04x \r\n",
+					LOG_FLAG, __func__,
+					sia81xx->en_dyn_ud_vdd,
 					sia81xx->dyn_ud_vdd_port);
 			break;
 		}
@@ -1171,19 +1171,19 @@ static ssize_t sia81xx_cmd_store(
 		{
 			//sia81xx_disable_auto_set_vdd(sia81xx->dyn_ud_vdd_port);
 			sia81xx->en_dyn_ud_vdd = 0;
-			
+
 			sia81xx_set_auto_set_vdd_work_state(
-				sia81xx->timer_task_hdl, 
-				sia81xx->channel_num, 
+				sia81xx->timer_task_hdl,
+				sia81xx->channel_num,
 				sia81xx->en_dyn_ud_vdd);
-			
+
 			sia81xx_auto_set_vdd_remove(
-				sia81xx->timer_task_hdl, 
+				sia81xx->timer_task_hdl,
 				sia81xx->channel_num);
 			//sia81xx_close_set_vdd_server(0x400c/* SLIMBUS_6_RX */);
-			pr_debug("[debug][%s] %s: set auto vdd state %u, port 0x%04x \r\n", 
-					LOG_FLAG, __func__, 
-					sia81xx->en_dyn_ud_vdd, 
+			pr_debug("[debug][%s] %s: set auto vdd state %u, port 0x%04x \r\n",
+					LOG_FLAG, __func__,
+					sia81xx->en_dyn_ud_vdd,
 					sia81xx->dyn_ud_vdd_port);
 			break;
 		}
@@ -1192,7 +1192,7 @@ static ssize_t sia81xx_cmd_store(
 			sia81xx->timer_task_hdl = sia81xx->timer_task_hdl_backup;
 			break;
 		}
-		case SIA81XX_CMD_TIMER_TASK_CLOSE : 
+		case SIA81XX_CMD_TIMER_TASK_CLOSE :
 		{
 			sia81xx_timer_task_stop(sia81xx->timer_task_hdl);
 			sia81xx->timer_task_hdl_backup = sia81xx->timer_task_hdl;
@@ -1204,18 +1204,18 @@ static ssize_t sia81xx_cmd_store(
 			sia81xx_algo_en_write(sia81xx, 1);
 			break;
 		}
-		case SIA81XX_CMD_ALGORITHM_CLOSE : 
+		case SIA81XX_CMD_ALGORITHM_CLOSE :
 		{
 			sia81xx_algo_en_write(sia81xx, 0);
 			break;
 		}
-		case SIA81XX_CMD_ALGORITHM_STATUS : 
+		case SIA81XX_CMD_ALGORITHM_STATUS :
 		{
 			if (0 != sia81xx_algo_en_read(sia81xx, &sia81xx->algo_en)) {
-				pr_debug("[debug][%s] %s: err sia81xx_algo_en_read \r\n", 
+				pr_debug("[debug][%s] %s: err sia81xx_algo_en_read \r\n",
 					LOG_FLAG, __func__);
 			} else {
-				pr_debug("[debug][%s] %s: algo_en = %d \r\n", 
+				pr_debug("[debug][%s] %s: algo_en = %d \r\n",
 					LOG_FLAG, __func__, sia81xx->algo_en);
 			}
 			break;
@@ -1231,12 +1231,12 @@ static ssize_t sia81xx_cmd_store(
 			sia81xx_resume(sia81xx);
 
 			for (i = 0; i < CHIP_TYPE_UNKNOWN; i ++) {
-				
+
 				if(i >= ARRAY_SIZE(support_chip_type_name_table)) {
 					i = CHIP_TYPE_UNKNOWN;
 					break;
 				}
-				
+
 				if(0 == sia81xx_regmap_check_chip_id(sia81xx->regmap, i)) {
 					sprintf(chip_name, "%s", support_chip_type_name_table[i]);
 					break;
@@ -1249,41 +1249,41 @@ static ssize_t sia81xx_cmd_store(
 				sprintf(chip_name, "unknown chip");
 			}
 
-			fp = filp_open(CHIP_DISTINGUISH_FILE_PATH, 
+			fp = filp_open(CHIP_DISTINGUISH_FILE_PATH,
 				O_RDWR | O_CREAT | O_TRUNC, 0444);
 			if (IS_ERR(fp)) {
-				pr_err("[  err][%s] %s: create file error : %ld \r\n", 
+				pr_err("[  err][%s] %s: create file error : %ld \r\n",
 					LOG_FLAG, __func__, PTR_ERR(fp));
 				return -ERESTARTSYS;
     		}
 
 			if (0 >= kernel_write(fp, chip_name, strlen(chip_name), 0)) {
-				pr_err("[  err][%s] %s: write chip type file error\r\n", 
+				pr_err("[  err][%s] %s: write chip type file error\r\n",
 					LOG_FLAG, __func__);
 				return -ERESTARTSYS;
 			}
 
 			filp_close(fp, NULL);
-			
+
 			// set owi mode
 			set_owi_mod_by_chip_type(sia81xx, get_chip_type(chip_name));
 
 			break;
 		}
-		case 901 : 
+		case 901 :
 		{
 			struct file *fp = NULL;
 
-			fp = filp_open("/sys/bus/platform/devices/sia81xx@L/sia81xx_cmd", 
+			fp = filp_open("/sys/bus/platform/devices/sia81xx@L/sia81xx_cmd",
 				O_RDWR , 0666);
 			if (IS_ERR(fp)) {
-				pr_err("[  err][%s] %s: create file error : %ld \r\n", 
+				pr_err("[  err][%s] %s: create file error : %ld \r\n",
 					LOG_FLAG, __func__, PTR_ERR(fp));
 				return -ERESTARTSYS;
     		}
 
 			if (0 >= kernel_write(fp, "3", strlen("3"), 0)) {
-				pr_err("[  err][%s] %s: write chip type file error\r\n", 
+				pr_err("[  err][%s] %s: write chip type file error\r\n",
 					LOG_FLAG, __func__);
 				return -ERESTARTSYS;
 			}
@@ -1293,7 +1293,7 @@ static ssize_t sia81xx_cmd_store(
 		default :
 			return -ENOIOCTLCMD;
 	}
-	
+
 	return len;
 }
 /********************************************************************
@@ -1305,33 +1305,33 @@ static ssize_t sia81xx_cmd_store(
  * sia81xx codec driver
  ********************************************************************/
 static int sia81xx_power_get(
-	struct snd_kcontrol *kcontrol, 
+	struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	sia81xx_dev_t *sia81xx = snd_soc_codec_get_drvdata(codec);
 
 	if(0 == sia81xx->disable_pin) {
-		ucontrol->value.integer.value[0] = 
+		ucontrol->value.integer.value[0] =
 			(unsigned long)gpio_get_value(sia81xx->rst_pin);
 	} else {
 		ucontrol->value.integer.value[0] = 0;
 	}
 
-	pr_debug("[debug][%s] %s: ucontrol = %ld \r\n", 
+	pr_debug("[debug][%s] %s: ucontrol = %ld \r\n",
 		LOG_FLAG, __func__, ucontrol->value.integer.value[0]);
-	
+
 	return 0;
 }
 
 static int sia81xx_power_set(
-	struct snd_kcontrol *kcontrol, 
+	struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	sia81xx_dev_t *sia81xx = snd_soc_codec_get_drvdata(codec);
 
-	pr_debug("[debug][%s] %s: ucontrol = %ld, rst = %d \r\n", 
+	pr_debug("[debug][%s] %s: ucontrol = %ld, rst = %d \r\n",
 		LOG_FLAG, __func__, ucontrol->value.integer.value[0], sia81xx->rst_pin);
 
 	if(1 == ucontrol->value.integer.value[0]) {
@@ -1339,12 +1339,12 @@ static int sia81xx_power_set(
 	} else {
 		sia81xx_suspend(sia81xx);
 	}
-	
+
 	return 0;
 }
 
 static int sia81xx_audio_scene_get(
-	struct snd_kcontrol *kcontrol, 
+	struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
@@ -1352,20 +1352,20 @@ static int sia81xx_audio_scene_get(
 
 	ucontrol->value.integer.value[0] = sia81xx->scene;
 
-	pr_debug("[debug][%s] %s: ucontrol = %ld \r\n", 
+	pr_debug("[debug][%s] %s: ucontrol = %ld \r\n",
 		LOG_FLAG, __func__, ucontrol->value.integer.value[0]);
-	
+
 	return 0;
 }
 
 static int sia81xx_audio_scene_set(
-	struct snd_kcontrol *kcontrol, 
+	struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	sia81xx_dev_t *sia81xx = snd_soc_codec_get_drvdata(codec);
 
-	pr_debug("[debug][%s] %s: ucontrol = %ld, rst = %d \r\n", 
+	pr_debug("[debug][%s] %s: ucontrol = %ld, rst = %d \r\n",
 		LOG_FLAG, __func__, ucontrol->value.integer.value[0], sia81xx->rst_pin);
 
 	if(AUDIO_SCENE_NUM <= ucontrol->value.integer.value[0]) {
@@ -1381,40 +1381,40 @@ static int sia81xx_audio_scene_set(
 			sia81xx_resume(sia81xx);
 		}
 	}
-	
+
 	return 0;
 }
 
 static int sia81xx_algo_en_get(
-	struct snd_kcontrol *kcontrol, 
+	struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	sia81xx_dev_t *sia81xx = snd_soc_codec_get_drvdata(codec);
 
-	pr_debug("[debug][%s] %s: ucontrol = %ld \r\n", 
+	pr_debug("[debug][%s] %s: ucontrol = %ld \r\n",
 		LOG_FLAG, __func__, ucontrol->value.integer.value[0]);
 
 	sia81xx_algo_en_read(sia81xx, 	&sia81xx->algo_en);
-			
+
 	ucontrol->value.integer.value[0] = sia81xx->algo_en;
 	return 0;
 }
 
 static int sia81xx_algo_en_set(
-	struct snd_kcontrol *kcontrol, 
+	struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
 	sia81xx_dev_t *sia81xx = snd_soc_codec_get_drvdata(codec);
 
-	pr_debug("[debug][%s] %s: ucontrol = %ld\r\n", 
+	pr_debug("[debug][%s] %s: ucontrol = %ld\r\n",
 		LOG_FLAG, __func__, ucontrol->value.integer.value[0]);
 
-	if (0 >= sia81xx_algo_en_write(sia81xx, 
+	if (0 >= sia81xx_algo_en_write(sia81xx,
 		ucontrol->value.integer.value[0]))
 		return -EINVAL;
-	
+
 	sia81xx->algo_en = ucontrol->value.integer.value[0];
 	return 0;
 }
@@ -1492,11 +1492,11 @@ static int sia81xx_volme_boost_set(
 #endif
 
 #ifdef VENDOR_EDIT
-void sia81xx_start(){
+void sia81xx_start(void) {
         sia81xx_resume(g_sia81xx);
 }
 
-void sia81xx_stop(){
+void sia81xx_stop(void) {
         sia81xx_suspend(g_sia81xx);
 }
 #endif
@@ -1509,11 +1509,11 @@ static const char *const audio_scene[] = { "Playback", "Voice" };
 static const char *const volume_boost[] = { "Voltage8_5","Voltage7", "Voltage6_5","Voltage5" };
 #endif /* OPLUS_BUG_COMPATIBILITY */
 #endif
-static const struct soc_enum power_enum = 
+static const struct soc_enum power_enum =
 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(power_function), power_function);
-static const struct soc_enum algo_enum = 
+static const struct soc_enum algo_enum =
 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(algo_enable), algo_enable);
-static const struct soc_enum audio_scene_enum = 
+static const struct soc_enum audio_scene_enum =
 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(audio_scene), audio_scene);
 #ifdef VENDOR_EDIT
 #ifdef OPLUS_BUG_COMPATIBILITY
@@ -1522,11 +1522,11 @@ static const struct soc_enum volume_boost_enum =
 #endif /* OPLUS_BUG_COMPATIBILITY */
 #endif
 static const struct snd_kcontrol_new sia81xx_controls[] = {
-	SOC_ENUM_EXT("Sia81xx Power", power_enum, 
-			sia81xx_power_get, sia81xx_power_set), 
-	SOC_ENUM_EXT("Sia81xx Alog", algo_enum, 
-			sia81xx_algo_en_get, sia81xx_algo_en_set), 
-	SOC_ENUM_EXT("Sia81xx Audio Scene", audio_scene_enum, 
+	SOC_ENUM_EXT("Sia81xx Power", power_enum,
+			sia81xx_power_get, sia81xx_power_set),
+	SOC_ENUM_EXT("Sia81xx Alog", algo_enum,
+			sia81xx_algo_en_get, sia81xx_algo_en_set),
+	SOC_ENUM_EXT("Sia81xx Audio Scene", audio_scene_enum,
 			sia81xx_audio_scene_get, sia81xx_audio_scene_set),
 #ifdef VENDOR_EDIT
 #ifdef OPLUS_BUG_COMPATIBILITY
@@ -1538,7 +1538,7 @@ static const struct snd_kcontrol_new sia81xx_controls[] = {
 
 static int sia81xx_spkr_pa_event(
  	struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *kcontrol, 
+	struct snd_kcontrol *kcontrol,
 	int event)
 {
 	struct snd_soc_codec *codec = snd_soc_dapm_to_codec(w->dapm);
@@ -1547,7 +1547,7 @@ static int sia81xx_spkr_pa_event(
 	pr_debug("[debug][%s] %s: msg = %d \r\n", LOG_FLAG, __func__, event);
 
 	switch (event) {
-		case SND_SOC_DAPM_POST_PMU : 
+		case SND_SOC_DAPM_POST_PMU :
 			sia81xx_resume(sia81xx);
 			break;
 		case SND_SOC_DAPM_PRE_PMD :
@@ -1557,17 +1557,16 @@ static int sia81xx_spkr_pa_event(
 			pr_err("[  err][%s] %s: msg = %d \r\n", LOG_FLAG, __func__, event);
 			break;
 	}
-	
+
 	return 0;
 }
 
 static const struct snd_soc_dapm_widget sia81xx_dapm_widgets[] = {
 	SND_SOC_DAPM_INPUT("IN"),
-		
+
 	SND_SOC_DAPM_OUT_DRV_E("SPKR DRV", 0, 0, 0, NULL, 0,
-			sia81xx_spkr_pa_event, SND_SOC_DAPM_POST_PMU | 
+			sia81xx_spkr_pa_event, SND_SOC_DAPM_POST_PMU |
 			SND_SOC_DAPM_PRE_PMD),
-			
 	SND_SOC_DAPM_OUTPUT("SPKR")
 };
 
@@ -1582,7 +1581,7 @@ static int sia81xx_codec_probe(
  	pr_debug("[debug][%s] %s: running \r\n", LOG_FLAG, __func__);
 	return 0;
 }
- 
+
 static int sia81xx_codec_remove(
 	struct snd_soc_codec *codec)
 {
@@ -1609,7 +1608,7 @@ static struct snd_soc_codec_driver soc_codec_dev_sia81xx = {
 		.num_dapm_routes = ARRAY_SIZE(sia81xx_audio_map),
 	},
 };
-#else 
+#else
 static struct snd_soc_codec_driver soc_codec_dev_sia81xx = {
 	.probe = sia81xx_codec_probe,
 	.remove = sia81xx_codec_remove,
@@ -1636,7 +1635,7 @@ static unsigned int sia81xx_list_count(void)
 {
 	unsigned count = 0;
 	sia81xx_dev_t *sia81xx = NULL;
-	
+
 	mutex_lock(&sia81xx_list_mutex);
 
 	list_for_each_entry(sia81xx, &sia81xx_list, list) {
@@ -1649,13 +1648,13 @@ static unsigned int sia81xx_list_count(void)
 }
 
 static sia81xx_dev_t *find_sia81xx_dev(
-	const char *name, 
+	const char *name,
 	struct device_node *of_node)
 {
 	sia81xx_dev_t *sia81xx = NULL, *find = NULL;
 
 	if((NULL == name) && (NULL == of_node)) {
-		pr_err("[  err][%s] %s: NULL == input parameter \r\n", 
+		pr_err("[  err][%s] %s: NULL == input parameter \r\n",
 			LOG_FLAG, __func__);
 		return NULL;
 	}
@@ -1668,7 +1667,7 @@ static sia81xx_dev_t *find_sia81xx_dev(
 				find = sia81xx;
 				break;
 			}
-		} 
+		}
 
 		/* make sure that the sia81xx platform dev had been created */
 		if((NULL != of_node) && (NULL != sia81xx->pdev)) {
@@ -1704,7 +1703,7 @@ static void add_sia81xx_dev(
 	list_add(&sia81xx->list, &sia81xx_list);
 	mutex_unlock(&sia81xx_list_mutex);
 
-	pr_debug("[debug][%s] %s: add sia81xx dev : %s, count = %u \r\n", 
+	pr_debug("[debug][%s] %s: add sia81xx dev : %s, count = %u \r\n",
 		LOG_FLAG, __func__, sia81xx->name, sia81xx_list_count());
 }
 
@@ -1716,7 +1715,7 @@ static void del_sia81xx_dev(
 		return ;
 	}
 
-	pr_debug("[debug][%s] %s: del sia81xx dev : %s, count = %u \r\n", 
+	pr_debug("[debug][%s] %s: del sia81xx dev : %s, count = %u \r\n",
 		LOG_FLAG, __func__, sia81xx->name, sia81xx_list_count());
 
 	mutex_lock(&sia81xx_list_mutex);
@@ -1725,13 +1724,13 @@ static void del_sia81xx_dev(
 }
 
 static sia81xx_dev_t *get_sia81xx_dev(
-	struct device *dev, 
-	struct device_node	*sia81xx_of_node)
+	struct device *dev,
+	struct device_node *sia81xx_of_node)
 {
 	int ret = 0;
 	sia81xx_dev_t *sia81xx = NULL;
 	const char *sia81xx_dev_name = NULL;
-	
+
 	if(NULL == dev) {
 		pr_err("[  err][%s] %s: NULL == dev \r\n", LOG_FLAG, __func__);
 		return NULL;
@@ -1746,7 +1745,7 @@ static sia81xx_dev_t *get_sia81xx_dev(
 		/* should been had one of "name" or "of_node" at least */
 		if(NULL == sia81xx_of_node)
 			return NULL;
-		
+
 		sia81xx = find_sia81xx_dev(NULL, sia81xx_of_node);
 		if(NULL == sia81xx) {
 			/* don't use devm_kzalloc() */
@@ -1759,7 +1758,7 @@ static sia81xx_dev_t *get_sia81xx_dev(
 			}
 
 			/* default name */
-			snprintf(sia81xx->name, strlen("sia81xx-dummy.%u"), 
+			snprintf(sia81xx->name, strlen("sia81xx-dummy.%u"),
 				"sia81xx-dummy.%u", sia81xx_list_count());
 		}
 	} else {
@@ -1780,7 +1779,7 @@ static sia81xx_dev_t *get_sia81xx_dev(
 
 	add_sia81xx_dev(sia81xx);
 
-	pr_debug("[debug][%s] %s: get dev name : %s \r\n", 
+	pr_debug("[debug][%s] %s: get dev name : %s \r\n",
 		LOG_FLAG, __func__, sia81xx->name);
 
 	return sia81xx;
@@ -1793,8 +1792,8 @@ static void put_sia81xx_dev(sia81xx_dev_t *sia81xx)
 		return ;
 	}
 
-	pr_debug("[debug][%s] %s: put dev name : %s, pdev = %p, client = %p \r\n", 
-				LOG_FLAG, __func__, 
+	pr_debug("[debug][%s] %s: put dev name : %s, pdev = %p, client = %p \r\n",
+				LOG_FLAG, __func__,
 				sia81xx->name, sia81xx->pdev, sia81xx->client);
 
 	if((NULL != sia81xx->pdev) || (NULL != sia81xx->client))
@@ -1807,15 +1806,15 @@ static void put_sia81xx_dev(sia81xx_dev_t *sia81xx)
 static unsigned int get_chip_type(const char *name)
 {
 	int i = 0;
-	
+
 	if(NULL == name)
 		return CHIP_TYPE_UNKNOWN;
 
-	pr_info("[ info][%s] %s: chip : %s \r\n", 
+	pr_info("[ info][%s] %s: chip : %s \r\n",
 		LOG_FLAG, __func__, name);
 
 	for(i = 0; i < ARRAY_SIZE(support_chip_type_name_table); i ++) {
-		if(0 == memcmp(support_chip_type_name_table[i], name, 
+		if(0 == memcmp(support_chip_type_name_table[i], name,
 			strlen(support_chip_type_name_table[i]))) {
 			return i;
 		}
@@ -1835,7 +1834,7 @@ static unsigned int get_chip_type(const char *name)
  * i2c bus driver
  ********************************************************************/
 static int sia81xx_i2c_probe(
-	struct i2c_client *client, 
+	struct i2c_client *client,
 	const struct i2c_device_id *id)
 {
 	sia81xx_dev_t *sia81xx = NULL;
@@ -1845,11 +1844,11 @@ static int sia81xx_i2c_probe(
 	unsigned int chip_type = CHIP_TYPE_UNKNOWN;
 	int ret = 0;
 
-	pr_info("[ info][%s] %s: i2c addr = 0x%02x \r\n", 
+	pr_info("[ info][%s] %s: i2c addr = 0x%02x \r\n",
 		LOG_FLAG, __func__, client->addr);
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-		pr_err("[  err][%s] %s: i2c_check_functionality return -ENODEV \r\n", 
+		pr_err("[  err][%s] %s: i2c_check_functionality return -ENODEV \r\n",
 			LOG_FLAG, __func__);
 		return -ENODEV;
 	}
@@ -1863,30 +1862,30 @@ static int sia81xx_i2c_probe(
 				0,
 				&chip_type_name);
 	if(0 != ret) {
-		pr_err("[  err][%s] %s: get si,sia81xx_type return %d !!! \r\n", 
+		pr_err("[  err][%s] %s: get si,sia81xx_type return %d !!! \r\n",
 			LOG_FLAG, __func__, ret);
 		return -ENODEV;
 	}
 
-	/* get chip type value, 
+	/* get chip type value,
 	 * and check the chip type Whether or not to be supported */
 	chip_type = get_chip_type(chip_type_name);
 	if(CHIP_TYPE_UNKNOWN == chip_type) {
-		pr_err("[  err][%s] %s: CHIP_TYPE_UNKNOWN == chip_type !!! \r\n", 
+		pr_err("[  err][%s] %s: CHIP_TYPE_UNKNOWN == chip_type !!! \r\n",
 			LOG_FLAG, __func__);
 		return -ENODEV;
 	}
 
 	regmap = sia81xx_regmap_init(client, chip_type);
 	if(IS_ERR(regmap)) {
-		pr_err("[  err][%s] %s: regmap_init_i2c error !!! \r\n", 
+		pr_err("[  err][%s] %s: regmap_init_i2c error !!! \r\n",
 			LOG_FLAG, __func__);
 		return -ENODEV;
 	}
 
 	sia81xx = get_sia81xx_dev(&client->dev, sia81xx_of_node);
 	if(NULL == sia81xx) {
-		pr_err("[  err][%s] %s: get_sia81xx_dev error !!! \r\n", 
+		pr_err("[  err][%s] %s: get_sia81xx_dev error !!! \r\n",
 			LOG_FLAG, __func__);
 		return -ENODEV;
 	}
@@ -1933,7 +1932,7 @@ static int sia81xx_i2c_remove(
 #ifdef VENDOR_EDIT
         g_sia81xx = NULL;
 #endif
-	
+
 	return ret;
 }
 
@@ -2032,24 +2031,24 @@ static int sia81xx_probe(struct platform_device *pdev)
 				0,
 				&chip_type_name);
 	if(0 != ret) {
-		pr_err("[  err][%s] %s: get si,sia81xx_type return %d !!! \r\n", 
+		pr_err("[  err][%s] %s: get si,sia81xx_type return %d !!! \r\n",
 			LOG_FLAG, __func__, ret);
 		return -ENODEV;
 	}
 
-	/* get chip type value, 
+	/* get chip type value,
 	 * and check the chip type Whether or not to be supported */
 	chip_type = get_chip_type(chip_type_name);
 	if(CHIP_TYPE_UNKNOWN == chip_type) {
-		pr_err("[  err][%s] %s: CHIP_TYPE_UNKNOWN == chip_type !!! \r\n", 
+		pr_err("[  err][%s] %s: CHIP_TYPE_UNKNOWN == chip_type !!! \r\n",
 			LOG_FLAG, __func__);
 		return -ENODEV;
 	}
 
-	ret = of_property_read_u32(pdev->dev.of_node, 
+	ret = of_property_read_u32(pdev->dev.of_node,
 			"si,sia81xx_disable_pin", &disable_pin);
 	if(0 != ret) {
-		pr_err("[  err][%s] %s: get si,sia81xx_disable_pin return %d !!! \r\n", 
+		pr_err("[  err][%s] %s: get si,sia81xx_disable_pin return %d !!! \r\n",
 			LOG_FLAG, __func__, ret);
 		return -ENODEV;
 	}
@@ -2058,7 +2057,7 @@ static int sia81xx_probe(struct platform_device *pdev)
 		/* get reset gpio pin's pinctrl info */
 		sia81xx_pinctrl = devm_pinctrl_get(&pdev->dev);
 		if(NULL == sia81xx_pinctrl) {
-			pr_err("[  err][%s] %s: NULL == pinctrl !!! \r\n", 
+			pr_err("[  err][%s] %s: NULL == pinctrl !!! \r\n",
 				LOG_FLAG, __func__);
 			return -ENODEV;
 		}
@@ -2066,7 +2065,7 @@ static int sia81xx_probe(struct platform_device *pdev)
 		/* get owi gpio pin's specify pinctrl state */
 		pinctrl_state = pinctrl_lookup_state(sia81xx_pinctrl, "sia81xx_gpio");
 		if(NULL == pinctrl_state) {
-			pr_err("[  err][%s] %s: NULL == pinctrl_state !!! \r\n", 
+			pr_err("[  err][%s] %s: NULL == pinctrl_state !!! \r\n",
 				LOG_FLAG, __func__);
 			ret = -ENODEV;
 			goto out;
@@ -2074,7 +2073,7 @@ static int sia81xx_probe(struct platform_device *pdev)
 
 		/* set this pinctrl state, make this pin works in the gpio mode */
 		if(0 != (ret = pinctrl_select_state(sia81xx_pinctrl, pinctrl_state))) {
-			pr_err("[  err][%s] %s: error pinctrl_select_state return %d \r\n", 
+			pr_err("[  err][%s] %s: error pinctrl_select_state return %d \r\n",
 				LOG_FLAG, __func__, ret);
 			ret = -ENODEV;
 			goto out;
@@ -2101,7 +2100,7 @@ static int sia81xx_probe(struct platform_device *pdev)
 
 	sia81xx = get_sia81xx_dev(&pdev->dev, pdev->dev.of_node);
 	if(NULL == sia81xx) {
-		pr_err("[  err][%s] %s: get_sia81xx_dev error !!! \r\n", 
+		pr_err("[  err][%s] %s: get_sia81xx_dev error !!! \r\n",
 			LOG_FLAG, __func__);
 		ret = -ENODEV;
 		goto out;
@@ -2109,9 +2108,9 @@ static int sia81xx_probe(struct platform_device *pdev)
 
 	sia81xx->chip_type = chip_type;
 	sia81xx->rst_pin = rst_pin;
-	sia81xx->owi_pin = owi_pin;	
+	sia81xx->owi_pin = owi_pin;
 	sia81xx->disable_pin = disable_pin;
-	
+
 	spin_lock_init(&sia81xx->owi_lock);
 	spin_lock_init(&sia81xx->rst_lock);
 
@@ -2124,14 +2123,14 @@ static int sia81xx_probe(struct platform_device *pdev)
 
 	ret = snd_soc_register_codec(&pdev->dev, &soc_codec_dev_sia81xx, NULL, 0);
 	if(0 != ret) {
-		pr_err("[  err][%s] %s: snd_soc_register_codec fail \r\n", 
+		pr_err("[  err][%s] %s: snd_soc_register_codec fail \r\n",
 			LOG_FLAG, __func__);
 		goto put_dev_out;
 	}
 
 	ret = sia81xx_dev_init(sia81xx, pdev->dev.of_node);
 	if(0 != ret) {
-		pr_err("[  err][%s] %s: sia81xx_dev_init fail \r\n", 
+		pr_err("[  err][%s] %s: sia81xx_dev_init fail \r\n",
 			LOG_FLAG, __func__);
 		goto put_dev_out;
 	}
@@ -2140,16 +2139,16 @@ static int sia81xx_probe(struct platform_device *pdev)
 
 	/* save platform dev */
 	sia81xx->pdev = pdev;
-	
+
 	/* sava driver private data to the dev's driver data */
 	dev_set_drvdata(&pdev->dev, sia81xx);
 
 	/* probe other sub module */
 	if(1 == sia81xx->en_dyn_ud_vdd) {
 		sia81xx_auto_set_vdd_probe(
-			sia81xx->timer_task_hdl, 
-			sia81xx->channel_num, 
-			sia81xx->dyn_ud_vdd_port, 
+			sia81xx->timer_task_hdl,
+			sia81xx->channel_num,
+			sia81xx->dyn_ud_vdd_port,
 			sia81xx->en_dyn_ud_vdd);
 	}
 	/* end - probe other sub module */
@@ -2158,7 +2157,7 @@ out:
 	if(0 == disable_pin) {
 		devm_pinctrl_put(sia81xx_pinctrl);
 	}
-	
+
 	return ret;
 
 put_dev_out:
@@ -2166,7 +2165,7 @@ put_dev_out:
 		devm_pinctrl_put(sia81xx_pinctrl);
 	}
 	put_sia81xx_dev(sia81xx);
-	
+
 	return ret;
 }
 
@@ -2183,13 +2182,13 @@ static int sia81xx_remove(struct platform_device *pdev)
 
 	/* remove other sub module */
 	sia81xx_auto_set_vdd_remove(
-		sia81xx->timer_task_hdl, 
+		sia81xx->timer_task_hdl,
 		sia81xx->channel_num);
 	/* end - remove other sub module */
 
 	ret = sia81xx_dev_remove(sia81xx);
 	if(0 != ret) {
-		pr_err("[  err][%s] %s: sia81xx_dev_remove return : %d \r\n", 
+		pr_err("[  err][%s] %s: sia81xx_dev_remove return : %d \r\n",
 			LOG_FLAG, __func__, ret);
 	}
 
@@ -2228,11 +2227,10 @@ static struct platform_driver si_sia81xx_dev_driver = {
  * end - sia81xx dev driver
  ********************************************************************/
 
-static int __init sia81xx_pa_init(void) 
-{	
+static int __init sia81xx_pa_init(void) {
 	int ret = 0;
-	
-	pr_info("[ info][%s] %s: sia81xx driver version : %s \r\n", 
+
+	pr_info("[ info][%s] %s: sia81xx driver version : %s \r\n",
 		LOG_FLAG, __func__, SIA81XX_DRIVER_VERSION);
 
 	sia81xx_timer_task_init();
@@ -2263,11 +2261,11 @@ static int __init sia81xx_pa_init(void)
 			LOG_FLAG, __func__, ret);
 		return ret;
 	}
-	
+
 	return 0;
 }
 
-static void __exit sia81xx_pa_exit(void) 
+static void __exit sia81xx_pa_exit(void)
 {
 	pr_info("[ info][%s] %s: running \r\n", LOG_FLAG, __func__);
 
@@ -2285,7 +2283,7 @@ static void __exit sia81xx_pa_exit(void)
 	}
 
 	sia81xx_timer_task_exit();
-	
+
 	i2c_del_driver(&si_sia81xx_i2c_driver);
 
 	platform_driver_unregister(&si_sia81xx_dev_driver);
