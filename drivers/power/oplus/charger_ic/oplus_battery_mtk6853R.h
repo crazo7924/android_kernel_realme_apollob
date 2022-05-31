@@ -32,14 +32,14 @@
 #include <linux/uaccess.h>
 
 #include <mt-plat/charger_class.h>
-#include "../../../../kernel-4.14/drivers/misc/mediatek/typec/tcpc/inc/tcpm.h"
-#include "../../../../kernel-4.14/drivers/misc/mediatek/typec/tcpc/inc/mtk_direct_charge_vdm.h"
+#include "tcpm.h"
+#include <mtk_direct_charge_vdm.h>
 struct charger_manager;
-#include "../../../../kernel-4.14/drivers/power/supply/mediatek/charger/mtk_pe_intf.h"
-#include "../../../../kernel-4.14/drivers/power/supply/mediatek/charger/mtk_pe20_intf.h"
-#include "../../../../kernel-4.14/drivers/power/supply/mediatek/charger/mtk_pdc_intf.h"
-#include "../../../../kernel-4.14/drivers/power/supply/mediatek/charger/mtk_charger_init.h"
-#include "../../../../kernel-4.14/drivers/power/supply/mediatek/charger/mtk_charger_intf.h"
+#include "mtk_pe_intf.h"
+#include "mtk_pe20_intf.h"
+#include "mtk_pdc_intf.h"
+#include "mtk_charger_init.h"
+#include "mtk_charger_intf.h"
 
 typedef enum {
 	STEP_CHG_STATUS_STEP1 = 0,	/*16C~44C*/
@@ -82,6 +82,7 @@ extern void oplus_notify_hvdcp_detect_stat(void);
 void oplus_gauge_set_event(int event);
 extern bool is_mtksvooc_project;
 bool oplus_chg_get_shortc_hw_gpio_status(void);
+void oplus_set_typec_sinkonly(void);
 
 #endif
 #endif /* __OPLUS_BATTERY_MTK6885_H__ */
