@@ -82,6 +82,7 @@ extern void oplus_notify_hvdcp_detect_stat(void);
 void oplus_gauge_set_event(int event);
 extern bool is_mtksvooc_project;
 bool oplus_chg_get_shortc_hw_gpio_status(void);
+void oplus_set_typec_sinkonly(void);
 
 #endif
 #endif /* __OPLUS_BATTERY_MTK6885_H__ */
