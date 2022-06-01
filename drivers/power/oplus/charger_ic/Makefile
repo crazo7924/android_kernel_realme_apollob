@@ -80,7 +80,6 @@ ifeq ($(CONFIG_OPLUS_CHARGER_MTK),y)
 		subdir-ccflags-y	+= -I$(srctree)/drivers/misc/mediatek/pmic/include
 		subdir-ccflags-y	+= -I$(srctree)/drivers/misc/mediatek/typec/tcpc/inc
 		subdir-ccflags-y	+= -I$(srctree)/drivers/power/supply/mediatek/misc
-		subdir-ccflags-y	+= -I$(srctree)/drivers/power/supply/mediatek/charger
 		obj-y	+= oplus_usbtemp.o
 		obj-y	+= oplus_battery_mtk6853R.o
 		obj-y	+= oplus_bq25910.o
