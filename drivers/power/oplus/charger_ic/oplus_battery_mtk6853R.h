@@ -32,7 +32,7 @@
 #include <linux/uaccess.h>
 
 #include <mt-plat/charger_class.h>
-#include "../../misc/mediatek/charger/type/tcpc/inc/tcpm.h"
+#include "tcpm.h"
 #include <mtk_direct_charge_vdm.h>
 struct charger_manager;
 #include "mtk_pe_intf.h"
