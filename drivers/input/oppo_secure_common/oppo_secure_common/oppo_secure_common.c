@@ -5,7 +5,7 @@
 
 #include <linux/module.h>
 #include <linux/proc_fs.h>
-
+#include <linux/uaccess.h>
 
 #if CONFIG_OPPO_BSP_SECCOM_PLATFORM == 6763 || CONFIG_OPPO_BSP_SECCOM_PLATFORM == 6771 || CONFIG_OPPO_BSP_SECCOM_PLATFORM == 6885 \
 || CONFIG_OPPO_BSP_SECCOM_PLATFORM == 6785 || CONFIG_OPPO_BSP_SECCOM_PLATFORM == 6768
