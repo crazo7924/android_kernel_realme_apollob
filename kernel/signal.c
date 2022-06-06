@@ -52,6 +52,9 @@
 #include <asm/siginfo.h>
 #include <asm/cacheflush.h>
 #include "audit.h"	/* audit_signal_info() */
+#ifdef OPLUS_FEATURE_HANS_FREEZE
+#include <linux/hans.h>
+#endif /*OPLUS_FEATURE_HANS_FREEZE*/
 
 /*
  * SLAB caches for signal bits.
@@ -868,8 +871,11 @@ static bool prepare_signal(int sig, struct task_struct *p, bool force)
 	sigset_t flush;
 
 	if (signal->flags & (SIGNAL_GROUP_EXIT | SIGNAL_GROUP_COREDUMP)) {
-		if (!(signal->flags & SIGNAL_GROUP_EXIT))
-			return sig == SIGKILL;
+		if (signal->flags & SIGNAL_GROUP_COREDUMP) {
+			pr_debug("[%d:%s] skip sig %d due to coredump is doing\n",
+					p->pid, p->comm, sig);
+			return 0;
+		}
 		/*
 		 * The process is in the middle of dying, nothing to do.
 		 */
@@ -1215,6 +1221,24 @@ int do_send_sig_info(int sig, struct siginfo *info, struct task_struct *p,
 {
 	unsigned long flags;
 	int ret = -ESRCH;
+
+#ifdef OPLUS_FEATURE_HANS_FREEZE
+	if (is_frozen_tg(p)  /*signal receiver thread group is frozen?*/
+		&& (sig == SIGKILL || sig == SIGTERM || sig == SIGABRT || sig == SIGQUIT)) {
+		if (hans_report(SIGNAL, task_tgid_nr(current), task_uid(current).val, task_tgid_nr(p), task_uid(p).val, "signal", -1) == HANS_ERROR) {
+			printk(KERN_ERR "HANS: report signal-freeze failed, sig = %d, caller = %d, target_uid = %d\n", sig, task_tgid_nr(current), task_uid(p).val);
+		}
+	}
+#endif /*OPLUS_FEATURE_HANS_FREEZE*/
+
+#if defined(CONFIG_CFS_BANDWIDTH)
+	if (is_belong_cpugrp(p)  /*signal receiver thread group is cpuctl?*/
+		&& (sig == SIGKILL || sig == SIGTERM || sig == SIGABRT || sig == SIGQUIT)) {
+		if (hans_report(SIGNAL, task_tgid_nr(current), task_uid(current).val, task_tgid_nr(p), task_uid(p).val, "signal", -1) == HANS_ERROR) {
+			printk(KERN_ERR "HANS: report signal-cpuctl failed, sig = %d, caller = %d, target_uid = %d\n", sig, task_tgid_nr(current), task_uid(p).val);
+		}
+	}
+#endif /*OPLUS_FEATURE_HANS_FREEZE*/
 
 	if (lock_task_sighand(p, &flags)) {
 		ret = send_signal(sig, info, p, group);
