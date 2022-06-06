@@ -732,7 +732,7 @@ again:
 
 		key->both.offset |= FUT_OFF_INODE; /* inode-based key */
 		key->shared.i_seq = get_inode_sequence_number(inode);
-		key->shared.pgoff = page_to_pgoff(tail);
+		key->shared.pgoff = basepage_index(tail);
 		rcu_read_unlock();
 	}
 
@@ -852,29 +852,6 @@ static struct futex_pi_state *alloc_pi_state(void)
 	return pi_state;
 }
 
-static void pi_state_update_owner(struct futex_pi_state *pi_state,
-				  struct task_struct *new_owner)
-{
-	struct task_struct *old_owner = pi_state->owner;
-
-	lockdep_assert_held(&pi_state->pi_mutex.wait_lock);
-
-	if (old_owner) {
-		raw_spin_lock(&old_owner->pi_lock);
-		WARN_ON(list_empty(&pi_state->list));
-		list_del_init(&pi_state->list);
-		raw_spin_unlock(&old_owner->pi_lock);
-	}
-
-	if (new_owner) {
-		raw_spin_lock(&new_owner->pi_lock);
-		WARN_ON(!list_empty(&pi_state->list));
-		list_add(&pi_state->list, &new_owner->pi_state_list);
-		pi_state->owner = new_owner;
-		raw_spin_unlock(&new_owner->pi_lock);
-	}
-}
-
 static void get_pi_state(struct futex_pi_state *pi_state)
 {
 	WARN_ON_ONCE(!atomic_inc_not_zero(&pi_state->refcount));
@@ -897,12 +874,17 @@ static void put_pi_state(struct futex_pi_state *pi_state)
 	 * and has cleaned up the pi_state already
 	 */
 	if (pi_state->owner) {
-		unsigned long flags;
+		struct task_struct *owner;
 
-		raw_spin_lock_irqsave(&pi_state->pi_mutex.wait_lock, flags);
-		pi_state_update_owner(pi_state, NULL);
-		rt_mutex_proxy_unlock(&pi_state->pi_mutex);
-		raw_spin_unlock_irqrestore(&pi_state->pi_mutex.wait_lock, flags);
+		raw_spin_lock_irq(&pi_state->pi_mutex.wait_lock);
+		owner = pi_state->owner;
+		if (owner) {
+			raw_spin_lock(&owner->pi_lock);
+			list_del_init(&pi_state->list);
+			raw_spin_unlock(&owner->pi_lock);
+		}
+		rt_mutex_proxy_unlock(&pi_state->pi_mutex, owner);
+		raw_spin_unlock_irq(&pi_state->pi_mutex.wait_lock);
 	}
 
 	if (current->pi_state_cache) {
@@ -1626,10 +1608,8 @@ static int wake_futex_pi(u32 __user *uaddr, u32 uval, struct futex_pi_state *pi_
 	 */
 	newval = FUTEX_WAITERS | task_pid_vnr(new_owner);
 
-	if (unlikely(should_fail_futex(true))) {
+	if (unlikely(should_fail_futex(true)))
 		ret = -EFAULT;
-		goto out_unlock;
-	}
 
 	ret = cmpxchg_futex_value_locked(&curval, uaddr, uval, newval);
 	if (!ret && (curval != uval)) {
@@ -1645,15 +1625,26 @@ static int wake_futex_pi(u32 __user *uaddr, u32 uval, struct futex_pi_state *pi_
 			ret = -EINVAL;
 	}
 
-	if (!ret) {
-		/*
-		 * This is a point of no return; once we modified the uval
-		 * there is no going back and subsequent operations must
-		 * not fail.
-		 */
-		pi_state_update_owner(pi_state, new_owner);
-		postunlock = __rt_mutex_futex_unlock(&pi_state->pi_mutex, &wake_q);
-	}
+	if (ret)
+		goto out_unlock;
+
+	/*
+	 * This is a point of no return; once we modify the uval there is no
+	 * going back and subsequent operations must not fail.
+	 */
+
+	raw_spin_lock(&pi_state->owner->pi_lock);
+	WARN_ON(list_empty(&pi_state->list));
+	list_del_init(&pi_state->list);
+	raw_spin_unlock(&pi_state->owner->pi_lock);
+
+	raw_spin_lock(&new_owner->pi_lock);
+	WARN_ON(!list_empty(&pi_state->list));
+	list_add(&pi_state->list, &new_owner->pi_state_list);
+	pi_state->owner = new_owner;
+	raw_spin_unlock(&new_owner->pi_lock);
+
+	postunlock = __rt_mutex_futex_unlock(&pi_state->pi_mutex, &wake_q);
 
 out_unlock:
 	raw_spin_unlock_irq(&pi_state->pi_mutex.wait_lock);
@@ -1752,8 +1743,8 @@ static int futex_atomic_op_inuser(unsigned int encoded_op, u32 __user *uaddr)
 {
 	unsigned int op =	  (encoded_op & 0x70000000) >> 28;
 	unsigned int cmp =	  (encoded_op & 0x0f000000) >> 24;
-	int oparg = sign_extend32((encoded_op & 0x00fff000) >> 12, 11);
-	int cmparg = sign_extend32(encoded_op & 0x00000fff, 11);
+	int oparg = sign_extend32((encoded_op & 0x00fff000) >> 12, 12);
+	int cmparg = sign_extend32(encoded_op & 0x00000fff, 12);
 	int oldval, ret;
 
 	if (encoded_op & (FUTEX_OP_OPARG_SHIFT << 28)) {
@@ -2549,22 +2540,10 @@ retry:
 		}
 
 		/*
-		 * The trylock just failed, so either there is an owner or
-		 * there is a higher priority waiter than this one.
+		 * Since we just failed the trylock; there must be an owner.
 		 */
 		newowner = rt_mutex_owner(&pi_state->pi_mutex);
-		/*
-		 * If the higher priority waiter has not yet taken over the
-		 * rtmutex then newowner is NULL. We can't return here with
-		 * that state because it's inconsistent vs. the user space
-		 * state. So drop the locks and try again. It's a valid
-		 * situation and not any different from the other retry
-		 * conditions.
-		 */
-		if (unlikely(!newowner)) {
-			err = -EAGAIN;
-			goto handle_err;
-		}
+		BUG_ON(!newowner);
 	} else {
 		WARN_ON_ONCE(argowner != current);
 		if (oldowner == current) {
@@ -2603,7 +2582,19 @@ retry:
 	 * We fixed up user space. Now we need to fix the pi_state
 	 * itself.
 	 */
-	pi_state_update_owner(pi_state, newowner);
+	if (pi_state->owner != NULL) {
+		raw_spin_lock(&pi_state->owner->pi_lock);
+		WARN_ON(list_empty(&pi_state->list));
+		list_del_init(&pi_state->list);
+		raw_spin_unlock(&pi_state->owner->pi_lock);
+	}
+
+	pi_state->owner = newowner;
+
+	raw_spin_lock(&newowner->pi_lock);
+	WARN_ON(!list_empty(&pi_state->list));
+	list_add(&pi_state->list, &newowner->pi_state_list);
+	raw_spin_unlock(&newowner->pi_lock);
 	raw_spin_unlock_irq(&pi_state->pi_mutex.wait_lock);
 
 	return 0;
@@ -2712,10 +2703,14 @@ static int fixup_owner(u32 __user *uaddr, struct futex_q *q, int locked)
 
 	/*
 	 * Paranoia check. If we did not take the lock, then we should not be
-	 * the owner of the rt_mutex. Warn and establish consistent state.
+	 * the owner of the rt_mutex.
 	 */
-	if (WARN_ON_ONCE(rt_mutex_owner(&q->pi_state->pi_mutex) == current))
-		return fixup_pi_state_owner(uaddr, q, current);
+	if (rt_mutex_owner(&q->pi_state->pi_mutex) == current) {
+		printk(KERN_ERR "fixup_owner: ret = %d pi-mutex: %p "
+				"pi-state %p\n", ret,
+				q->pi_state->pi_mutex.owner,
+				q->pi_state->owner);
+	}
 
 out:
 	return ret ? ret : locked;
@@ -2947,6 +2942,7 @@ retry:
 		goto out;
 
 	restart = &current->restart_block;
+	restart->fn = futex_wait_restart;
 	restart->futex.uaddr = uaddr;
 	restart->futex.val = val;
 	restart->futex.time = *abs_time;
@@ -2956,7 +2952,7 @@ retry:
 	restart->futex.uaddr2 = (u32*)(long)owner_tid;
 #endif /* OPLUS_FEATURE_UIFIRST */
 
-	ret = set_restart_fn(restart, futex_wait_restart);
+	ret = -ERESTART_RESTARTBLOCK;
 
 out:
 	if (to) {
@@ -3966,7 +3962,8 @@ long do_futex(u32 __user *uaddr, int op, u32 val, ktime_t *timeout,
 
 	if (op & FUTEX_CLOCK_REALTIME) {
 		flags |= FLAGS_CLOCKRT;
-		if (cmd != FUTEX_WAIT_BITSET &&	cmd != FUTEX_WAIT_REQUEUE_PI)
+		if (cmd != FUTEX_WAIT && cmd != FUTEX_WAIT_BITSET && \
+		    cmd != FUTEX_WAIT_REQUEUE_PI)
 			return -ENOSYS;
 	}
 
