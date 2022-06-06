@@ -52,8 +52,8 @@ extern int mtk_nanohub_cfg_to_hub(uint8_t sensor_id, uint8_t *data, uint8_t coun
 #define DEV_TAG                     "[sensor_devinfo] "
 #define DEVINFO_LOG(fmt, args...)   pr_err(DEV_TAG"%s %d : "fmt, __func__, __LINE__, ##args)
 
-#define UINT2PTR(n)     (uintptr_t *)(n)
-#define PTR2UINTPTR(p)   (uintptr_t)(p)
+#define UINT2Ptr(n)     (uint32_t *)(n)
+#define Ptr2UINT32(p)   (uint32_t)(p)
 
 #define IS_SUPPROT_HWCALI           (0x01)
 #define IS_IN_FACTORY_MODE          (0x02)
@@ -566,8 +566,8 @@ static int als_cali_read_func(struct seq_file *s, void *v)
 {
     void *p = s->private;
 
-    DEVINFO_LOG("PTR2UINTPTR(p) = %d \n", PTR2UINTPTR(p));
-    switch (PTR2UINTPTR(p)) {
+    DEVINFO_LOG("Ptr2UINT32(p) = %d \n", Ptr2UINT32(p));
+    switch (Ptr2UINT32(p)) {
     case RED_MAX_LUX:
         seq_printf(s, "%d", gdata->red_max_lux);
         break;
@@ -600,7 +600,7 @@ static ssize_t als_cali_write(struct file *filp, const char *ubuf, size_t cnt, l
     int ret = 0;
     struct seq_file *s = filp->private_data;
     void *p = s->private;
-    int node = PTR2UINTPTR(p);
+    int node = Ptr2UINT32(p);
 
     if (cnt >= sizeof(buf)) {
         return -EINVAL;
@@ -723,42 +723,42 @@ static void oplus_als_cali_data_init(void)
     }
 
     pentry = proc_create_data("red_max_lux", S_IRUGO | S_IWUGO, gdata->proc_oppo_als,
-        &als_cali_para_fops, UINT2PTR(RED_MAX_LUX));
+        &als_cali_para_fops, UINT2Ptr(RED_MAX_LUX));
     if (!pentry) {
         DEVINFO_LOG("create red_max_lux proc failed.\n");
         return;
     }
 
     pentry = proc_create_data("green_max_lux", S_IRUGO | S_IWUGO, gdata->proc_oppo_als,
-        &als_cali_para_fops, UINT2PTR(GREEN_MAX_LUX));
+        &als_cali_para_fops, UINT2Ptr(GREEN_MAX_LUX));
     if (!pentry) {
         DEVINFO_LOG("create red_max_lux proc failed.\n");
         return;
     }
 
     pentry = proc_create_data("blue_max_lux", S_IRUGO | S_IWUGO, gdata->proc_oppo_als,
-        &als_cali_para_fops, UINT2PTR(BLUE_MAX_LUX));
+        &als_cali_para_fops, UINT2Ptr(BLUE_MAX_LUX));
     if (!pentry) {
         DEVINFO_LOG("create red_max_lux proc failed.\n");
         return;
     }
 
     pentry = proc_create_data("white_max_lux", S_IRUGO | S_IWUGO, gdata->proc_oppo_als,
-        &als_cali_para_fops, UINT2PTR(WHITE_MAX_LUX));
+        &als_cali_para_fops, UINT2Ptr(WHITE_MAX_LUX));
     if (!pentry) {
         DEVINFO_LOG("create red_max_lux proc failed.\n");
         return;
     }
 
     pentry = proc_create_data("cali_coe", S_IRUGO | S_IWUGO, gdata->proc_oppo_als,
-        &als_cali_para_fops, UINT2PTR(CALI_COE));
+        &als_cali_para_fops, UINT2Ptr(CALI_COE));
     if (!pentry) {
         DEVINFO_LOG("create red_max_lux proc failed.\n");
         return;
     }
 
     pentry = proc_create_data("row_coe", S_IRUGO, gdata->proc_oppo_als,
-        &als_cali_para_fops, UINT2PTR(ROW_COE));
+        &als_cali_para_fops, UINT2Ptr(ROW_COE));
     if (!pentry) {
         DEVINFO_LOG("create red_max_lux proc failed.\n");
         return;
@@ -983,7 +983,7 @@ int get_msensor_parameter(int num)
     return 0;
 }
 
-void mag_soft_parameter_init(void)
+void  mag_soft_parameter_init()
 {
     int ret = -1;
     int index = 0;
@@ -1004,8 +1004,8 @@ static int sensor_feature_read_func(struct seq_file *s, void *v)
     int ret = 0;
     int selftest_result = 0;
 
-    DEVINFO_LOG("PTR2UINTPTR(p) = %d \n", PTR2UINTPTR(p));
-    switch (PTR2UINTPTR(p)) {
+    DEVINFO_LOG("Ptr2UINT32(p) = %d \n", Ptr2UINT32(p));
+    switch (Ptr2UINT32(p)) {
     case IS_SUPPROT_HWCALI:
         if (!strcmp(sensorlist_info[ps].name, "tcs3701")) {
             seq_printf(s, "%d", 1);
@@ -1052,7 +1052,7 @@ static ssize_t sensor_feature_write(struct file *filp, const char *ubuf, size_t 
     int result = 0;
     struct seq_file *s = filp->private_data;
     void *p = s->private;
-    uint32_t node = PTR2UINTPTR(p);
+    int node = Ptr2UINT32(p);
 
     if (cnt >= sizeof(buf)) {
         return -EINVAL;
@@ -1065,7 +1065,7 @@ static ssize_t sensor_feature_write(struct file *filp, const char *ubuf, size_t 
     ret = kstrtoul(buf, 0, (unsigned long *)&val);
     DEVINFO_LOG("node1 = %d,val = %d\n", node, val);
 
-    switch ((uint32_t)node) {
+    switch (node) {
     case IS_SUPPROT_HWCALI:
         break;
     case IS_IN_FACTORY_MODE:
@@ -1120,42 +1120,42 @@ static int oplus_sensor_feature_init()
     }
 
     p_entry = proc_create_data("is_support_hwcali", S_IRUGO, oplus_sensor, &Sensor_info_fops,
-            UINT2PTR(IS_SUPPROT_HWCALI));
+            UINT2Ptr(IS_SUPPROT_HWCALI));
     if (!p_entry) {
         DEVINFO_LOG("is_support_hwcali err\n ");
         return -ENOMEM;
     }
 
     p_entry = proc_create_data("is_support_new_arch", S_IRUGO, oplus_sensor, &Sensor_info_fops,
-            UINT2PTR(IS_SUPPORT_NEW_ARCH));
+            UINT2Ptr(IS_SUPPORT_NEW_ARCH));
     if (!p_entry) {
         DEVINFO_LOG("is_support_new_arch err\n ");
         return -ENOMEM;
     }
 
     p_entry = proc_create_data("is_in_factory_mode", S_IRUGO | S_IWUGO, oplus_sensor, &Sensor_info_fops,
-            UINT2PTR(IS_IN_FACTORY_MODE));
+            UINT2Ptr(IS_IN_FACTORY_MODE));
     if (!p_entry) {
         DEVINFO_LOG("is_in_factory_mode err\n ");
         return -ENOMEM;
     }
 
     p_entry = proc_create_data("gyro_cali_version", S_IRUGO, oplus_sensor, &Sensor_info_fops,
-            UINT2PTR(GYRO_CALI_VERSION));
+            UINT2Ptr(GYRO_CALI_VERSION));
     if (!p_entry) {
         DEVINFO_LOG("gyro_cali_version err\n ");
         return -ENOMEM;
     }
 
     p_entry = proc_create_data("acc_cali_range", S_IRUGO, oplus_sensor, &Sensor_info_fops,
-            UINT2PTR(ACC_CALI_RANGE));
+            UINT2Ptr(ACC_CALI_RANGE));
     if (!p_entry) {
         DEVINFO_LOG("acc_cali_range err\n ");
         return -ENOMEM;
     }
 
     p_entry = proc_create_data("do_mag_selftest", S_IRUGO, oplus_sensor, &Sensor_info_fops,
-            UINT2PTR(DO_MAG_SELFTEST));
+            UINT2Ptr(DO_MAG_SELFTEST));
     if (!p_entry) {
         DEVINFO_LOG("do_mag_selftest err\n ");
         return -ENOMEM;

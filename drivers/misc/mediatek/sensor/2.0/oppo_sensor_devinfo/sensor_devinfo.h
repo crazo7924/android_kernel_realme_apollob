@@ -158,5 +158,4 @@ extern int oppo_send_selftest_cmd_to_hub(int sensorType, void *testresult);
 extern int oppo_send_factory_mode_cmd_to_hub(int sensorType, int mode, void *result);
 extern int get_light_sensor_type(void);
 extern bool is_support_new_arch_func(void);
-void mag_soft_parameter_init(void);
 #endif //SENSOR_DEVINFO_H

@@ -241,8 +241,6 @@ static const char *pmic_irq_name[82]={
 /* not wakeup source irq name, just used for statics*/
 #define IRQ_PROP_DUMMY_STATICS (1<<2)
 
-void pmic_irq_count_function_init(void);
-
 #if defined(CONFIG_OPPO_WAKELOCK_PROFILER) || defined(CONFIG_OPLUS_WAKELOCK_PROFILER)
 
 int wakeup_reasons_statics(const char *irq_name, u64 choose_flag);
@@ -250,7 +248,8 @@ void wakeup_reasons_clear(u64 choose_flag);
 void wakeup_reasons_print(u64 choose_flag, bool detail);
 struct timespec64 print_utc_time(char *annotation);
 void oplus_rpmh_stats_statics(const char *rpm_name,u64 sleep_count,u64 sleep_time);
-void oplus_rpm_stats_statics_clear(void);
+
+
 
 void alarmtimer_suspend_flag_set(void);
 void alarmtimer_suspend_flag_clear(void);
