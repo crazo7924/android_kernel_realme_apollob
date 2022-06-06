@@ -125,7 +125,13 @@ static int tcp_orphan_retries(struct sock *sk, bool alive)
 
 static void tcp_mtu_probing(struct inet_connection_sock *icsk, struct sock *sk)
 {
+	//#ifndef OPLUS_FEATURE_WIFI_MTUDETECT
+	//Modify for [804055] enabling mtu probing when an ICMP black hole detected,
+	/*
 	struct net *net = sock_net(sk);
+	*/
+	struct net *net = sock_net(sk);
+	net->ipv4.sysctl_tcp_mtu_probing = 1;
 
 	/* Black hole detection */
 	if (net->ipv4.sysctl_tcp_mtu_probing) {

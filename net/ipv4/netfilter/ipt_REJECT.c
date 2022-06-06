@@ -30,6 +30,9 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
 MODULE_DESCRIPTION("Xtables: packet \"rejection\" target for IPv4");
 
+void (*mark_streams_for_iptables_reject)(struct sk_buff *skb,enum ipt_reject_with reject_type) = NULL;
+EXPORT_SYMBOL(mark_streams_for_iptables_reject);
+
 static unsigned int
 reject_tg(struct sk_buff *skb, const struct xt_action_param *par)
 {
@@ -63,6 +66,9 @@ reject_tg(struct sk_buff *skb, const struct xt_action_param *par)
 	case IPT_ICMP_ECHOREPLY:
 		/* Doesn't happen. */
 		break;
+	}
+	if (mark_streams_for_iptables_reject) {
+		mark_streams_for_iptables_reject(skb,reject->with);
 	}
 
 	return NF_DROP;

@@ -282,6 +282,8 @@
 #include <asm/ioctls.h>
 #include <net/busy_poll.h>
 
+#include <perf_tracker_internal.h>
+
 int sysctl_tcp_min_tso_segs __read_mostly = 2;
 
 int sysctl_tcp_autocorking __read_mostly = 1;
@@ -299,6 +301,11 @@ EXPORT_SYMBOL(sysctl_tcp_wmem);
 
 atomic_long_t tcp_memory_allocated;	/* Current allocated memory. */
 EXPORT_SYMBOL(tcp_memory_allocated);
+
+#ifdef OPLUS_BUG_STABILITY
+int sysctl_tcp_ts_control[2] __read_mostly = {0,0};
+EXPORT_SYMBOL(sysctl_tcp_ts_control);
+#endif /* OPLUS_BUG_STABILITY */
 
 /*
  * Current number of TCP sockets.
@@ -1521,7 +1528,7 @@ static int tcp_peek_sndq(struct sock *sk, struct msghdr *msg, int len)
 		err = skb_copy_datagram_msg(skb, 0, msg, skb->len);
 		if (err)
 			break;
-
+		perf_net_pkt_trace(sk, skb, skb->len);
 		copied += skb->len;
 	}
 
@@ -1964,6 +1971,7 @@ int tcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int nonblock,
 					copied = -EFAULT;
 				break;
 			}
+			perf_net_pkt_trace(sk, skb, used);
 		}
 
 		*seq += used;
