@@ -1492,11 +1492,11 @@ static int sia81xx_volme_boost_set(
 #endif
 
 #ifdef VENDOR_EDIT
-void sia81xx_start(void){
+void sia81xx_start(){
         sia81xx_resume(g_sia81xx);
 }
 
-void sia81xx_stop(void){
+void sia81xx_stop(){
         sia81xx_suspend(g_sia81xx);
 }
 #endif
