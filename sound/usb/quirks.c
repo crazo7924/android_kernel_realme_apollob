@@ -1239,6 +1239,21 @@ int snd_usb_select_mode_quirk(struct snd_usb_substream *subs,
 	return 0;
 }
 
+#if defined(CONFIG_MACH_MT6833)
+void snd_usb_endpoint_stop_quirk(struct snd_usb_endpoint *ep)
+{
+       if (!ep)
+               return;
+	/*
+	 * Headset Meizu Corp Meizu HiFi DAC Headphone Amplifier needs a
+	 * tiny delay for stop_endpoint().
+	 */
+//	if (ep->chip->usb_id == USB_ID(0x2a45, 0x012a) &&
+//	    ep->type == SND_USB_ENDPOINT_TYPE_DATA)
+		mdelay(10);
+}
+#endif
+
 void snd_usb_endpoint_start_quirk(struct snd_usb_endpoint *ep)
 {
 	/*
@@ -1328,6 +1343,10 @@ void snd_usb_ctl_msg_quirk(struct usb_device *dev, unsigned int pipe,
 	     chip->usb_id == USB_ID(0x0951, 0x16ad)) &&
 	    (requesttype & USB_TYPE_MASK) == USB_TYPE_CLASS)
 		mdelay(1);
+
+	if (chip->usb_id == USB_ID(0x04e8, 0xa051) &&
+	     (requesttype & USB_TYPE_MASK) == USB_TYPE_CLASS)
+		mdelay(5);
 }
 
 /*
