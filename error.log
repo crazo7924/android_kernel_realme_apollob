@@ -1,113 +1,0 @@
-make[1]: Entering directory '/workspace/gitpod-gui/common/out'
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_HANS_FREEZE
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_AOD
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_DC
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_ENABLE_MODEM_DB
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_ENGINEERTOOLS
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_FACERECOGNITION
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_FASTBOOT_UNLOCK_VERIFY
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_FG_IO_OPT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_STORAGE
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_UFS
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_OF2FS
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_FINGERPRINT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_HEALTHINFO
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_UIFIRST
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_MIPICLKCHANGE
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_MULTI_FREEAREA
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_MULTI_KSWAPD
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_NFC_CONSOFT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_ONSCREENFINGERPRINT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_OSC
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_PHOENIX
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_AGINGTEST
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_PROCESS_RECLAIM
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_RESET_ROLLBACK_INDEX
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_SELINUX_CONTROL_LOG
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_SENSOR
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_SENSOR_ALGORITHM
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_SENSOR_SMEM
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_SENSOR_WISELIGHT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_SPEAKER_MUTE
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_TP_BSPFWUPDATE
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_CHG_BASIC
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_VIRTUAL_RESERVE_MEMORY
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_MEMLEAK_DETECT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_WIFI_LIMMITBGSPEED
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_WIFI_MTUDETECT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_WIFI_RUSUPGRADE
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_WIFI_SLA
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_DATA_EVAL
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_WIFI_SMART_BW
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_ZRAM_OPT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_EXFAT_SUPPORT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_SDCARDFS_SUPPORT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_STORAGE_TOOL
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_BUG_COMPATIBILITY
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_BUG_STABILITY
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_BUG_DEBUG
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_ARCH_INJECT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_ARCH_EXTENDS
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_LOWMEM_DBG
-OplusKernelEnvConfig.mk:105: myfeature is VENDOR_EDIT
-OplusKernelEnvConfig.mk:105: myfeature is COLOROS_EDIT
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_POWERINFO_STANDBY
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_CAMERA_COMMON
-OplusKernelEnvConfig.mk:105: myfeature is OPLUS_FEATURE_SDCARD
-  GEN     ./Makefile
-scripts/kconfig/conf  --silentoldconfig Kconfig
-drivers/nfc/st21nfc-i2c/Kconfig:1:warning: ignoring unsupported character ''
-drivers/nfc/st21nfc-i2c/Kconfig:2:warning: ignoring unsupported character ''
-drivers/nfc/st21nfc-i2c/Kconfig:3:warning: ignoring unsupported character ''
-drivers/nfc/st21nfc-i2c/Kconfig:4:warning: ignoring unsupported character ''
-drivers/nfc/st21nfc-i2c/Kconfig:5:warning: ignoring unsupported character ''
-drivers/nfc/st21nfc-i2c/Kconfig:6:warning: ignoring unsupported character ''
-drivers/misc/mediatek/sensor/2.0/Kconfig:10:warning: ignoring unsupported character ''
-drivers/misc/mediatek/sensor/2.0/oppo_virtual_sensor/pedo_minutehub/Kconfig:2:warning: ignoring unsupported character ''
-drivers/misc/mediatek/sensor/2.0/oppo_virtual_sensor/pedo_minutehub/Kconfig:3:warning: ignoring unsupported character ''
-drivers/misc/aw8697_haptic/Kconfig:1:warning: ignoring unsupported character ''
-drivers/misc/aw8697_haptic/Kconfig:2:warning: ignoring unsupported character ''
-drivers/misc/aw8697_haptic/Kconfig:3:warning: ignoring unsupported character ''
-drivers/misc/aw8697_haptic/Kconfig:4:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/Kconfig:22:warning: ignoring type redefinition of 'OPPO_DEVICE_IFNO' from 'boolean' to 'tristate'
-drivers/soc/oplus/system/oppo_saupwk/Kconfig:5:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/oppo_saupwk/Kconfig:6:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/oppo_saupwk/Kconfig:7:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/oppo_saupwk/Kconfig:8:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:1:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:2:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:3:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:4:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:4:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:7:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:8:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:9:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:10:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:13:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:14:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:15:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:16:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:19:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:20:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:21:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:22:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:22:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:25:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:26:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:27:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:28:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:28:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:31:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:32:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:33:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:34:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:37:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:38:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:39:warning: ignoring unsupported character ''
-drivers/soc/oplus/system/cmdline_parser/Kconfig:40:warning: ignoring unsupported character ''
-drivers/soc/Kconfig:36: can't open file "drivers/soc/oplus/oppo_healthinfo/Kconfig"
-make[3]: *** [../scripts/kconfig/Makefile:40: silentoldconfig] Error 1
-make[2]: *** [../Makefile:545: silentoldconfig] Error 2
-make[1]: *** No rule to make target 'include/config/auto.conf', needed by 'include/config/kernel.release'.  Stop.
-make[1]: Leaving directory '/workspace/gitpod-gui/common/out'
-make: *** [Makefile:146: sub-make] Error 2
