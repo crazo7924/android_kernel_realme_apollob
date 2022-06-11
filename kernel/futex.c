@@ -732,7 +732,7 @@ again:
 
 		key->both.offset |= FUT_OFF_INODE; /* inode-based key */
 		key->shared.i_seq = get_inode_sequence_number(inode);
-		key->shared.pgoff = basepage_index(tail);
+		key->shared.pgoff = page_to_pgoff(tail);
 		rcu_read_unlock();
 	}
 
@@ -883,7 +883,7 @@ static void put_pi_state(struct futex_pi_state *pi_state)
 			list_del_init(&pi_state->list);
 			raw_spin_unlock(&owner->pi_lock);
 		}
-		rt_mutex_proxy_unlock(&pi_state->pi_mutex, owner);
+		rt_mutex_proxy_unlock(&pi_state->pi_mutex);
 		raw_spin_unlock_irq(&pi_state->pi_mutex.wait_lock);
 	}
 
